@@ -1,8 +1,7 @@
 import discord.ext
-from discord import Embed
 
-import utils
 from menu import Menu
+from qalib.xml_renderer import Renderer
 
 
 class ResponseManager:
@@ -10,11 +9,12 @@ class ResponseManager:
        Data is stored in .ini files, where they are called and parsed. """
 
     def __init__(self, ctx: discord.ext.commands.context, bot: discord.ext.commands.AutoShardedBot,
-                 pages: dict):
+                 xml_path: str):
 
         self.__ctx = ctx
         self.__bot = bot
-        self.__pages = pages
+        self.__renderer = Renderer(xml_path)
+        self.__pages = {}
         self.message = None
 
     def verify(self, message):
@@ -38,53 +38,23 @@ class ResponseManager:
             return confirm.content
         return None
 
-    async def send(self, flow: str, obj, *args):
-        return await self.__ctx.send(embed=self.retrieve_embed(flow, obj, *args))
+    async def send(self, key: str, **kwargs):
+        return await self.__ctx.send(embed=self.__renderer.render_embed(key, **kwargs))
 
-    async def display(self, flow, obj=None, *args):
+    async def display(self, key: str, **kwargs):
         """this is the main function that we use to send one message, and one message only.
            However edits to that message can take place.
 
         Args:
-            flow (str): name of the flow key.
-            obj (Object): an instance/object containing data that is used for the response. Defaults to None
+            key (str): Unique identifier for the desired embed in the xml file
+            **kwargs: arguments that are passed to the xml renderer to format the text
+
         """
 
         if self.message is None:
-            self.message = await self.send(flow, obj, *args)
+            self.message = await self.send(key, **kwargs)
         else:
-            await self.message.edit(embed=self.retrieve_embed(flow, obj, *args))
-
-    def retrieve_embed(self, flow_type, obj=None, *args):
-        """Reads the contents of the section in the .ini file, and
-        creates an embed with that data.
-
-        Args:
-            flow_type (str): Name of the section in the .ini state
-            obj (Object): an instance/object containing data that is used for the response. Defaults to None
-
-        Returns:
-            Embed: Embed Object, discord compatible.
-        """
-        flow = self.__pages[flow_type](obj, *args)
-
-        colour = utils.get_colour(flow.colour)
-        embed = Embed(title=flow.title, colour=colour)
-        fields = flow.fields
-        if type(fields[-1]) != tuple:
-            fields = (fields,)
-
-        for field in fields:
-            if len(field) == 1:
-                embed.add_field(name=field[-1], value=field[1].replace('\t', ''), inline=True)
-            else:
-                embed.add_field(name=field[-1], value=field[1].replace('\t', ''), inline=field[2])
-
-        embed.set_footer(text=flow.footer_text, icon_url=flow.footer_icon)
-        embed.set_thumbnail(url=flow.thumbnail)
-        embed.set_image(url=flow.image)
-
-        return embed
+            await self.message.edit(embed=self.__renderer.render_embed(key, **kwargs))
 
     def retrieve_menu(self, flow_type: str):
         """Method that gets the menu specified
