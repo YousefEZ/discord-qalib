@@ -10,19 +10,17 @@ import utils
 class Menu:
     """Object that manages embed in a form of a menu."""
 
-    def __init__(self, pages: list, ctx: discord.ext.commands.context = None,
+    def __init__(self, xml_path: str, ctx: discord.ext.commands.context = None,
                  client: discord.ext.commands.AutoShardedBot = None):
         """Initialisation method of the Menu object.
         Args:
-            pages (dict): (str) name of the flow type that will map to its embed. -> (Embed) it's embed
+            xml_path (str): path to the xml file that contains the menu embeds
             ctx (discord.ext.commands.context): context, required to display the menu. Defaults to None.
             client (discord.ext.commands.AutoShardedBot) : bot, required to control action (reactions). Defaults to None
         """
-        self.__main = pages[0][0]
-        self.__pages = dict(pages)
         self.__ctx = ctx
         self.__client = client
-        self.__handler = ResponseManager(ctx, client, self.__pages)
+        self.__handler = ResponseManager(ctx, client, xml_path)
         self.__reactions = {}
         self.__message = None
         self.__exit = False
@@ -152,15 +150,15 @@ class Menu:
         self.log(f"*[HANDLER][MENU][FUNCTION_TRIGGER] {func} <- {args})")
         await func(*args)
 
-    async def change_page(self, page, obj=None, *args):
+    async def change_page(self, key, **kwargs):
         """Method that changes the embed on display
 
         Args:
-            page (str): flow state that identifies the page embed in the page
-            obj (object): obj that the page might require
+            key (str): flow state that identifies the page embed in the page
+
         """
-        self.log(f"*[HANDLER][PAGE] CHANGING -> {page}")
-        await self.__handler.display(page, obj, *args)
+        self.log(f"*[HANDLER][PAGE] CHANGING -> {key}")
+        await self.__handler.display(key, **kwargs)
         self.log(f"*[HANDLER][PAGE] CHANGED")
 
     async def get_input(self):
