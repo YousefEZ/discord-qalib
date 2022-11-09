@@ -12,3 +12,16 @@ Key Features:
 
 ## Installing: 
 Python3.8 or higher is required
+
+# Tests
+To run the tests, run the following command in the root directory:
+
+Windows:
+```bash
+python -m unittest tests -v 
+```
+
+Linux:
+```bash
+python3 -m unittest tests -v
+```
