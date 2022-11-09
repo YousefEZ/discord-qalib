@@ -1,7 +1,7 @@
 import asyncio
 
 import discord.ext
-from response_manager import ResponseManager
+from qalib.response_manager import ResponseManager
 
 
 import utils
