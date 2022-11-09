@@ -9,7 +9,7 @@ class Renderer:
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
     def __init__(self, path: str):
-        """Initialisation of the renderer
+        """Initialisation of the Renderer
 
         Args:
             path (str): path to the xml file containing the template embed
