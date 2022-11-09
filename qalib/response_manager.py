@@ -5,7 +5,7 @@ from qalib.xml_renderer import Renderer
 
 class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
-       Data is stored in .ini files, where they are called and parsed. """
+       Data is stored in .xml files, where they are called and parsed. """
 
     def __init__(self, ctx: commands.context, bot: commands.AutoShardedBot,
                  xml_path: str):
