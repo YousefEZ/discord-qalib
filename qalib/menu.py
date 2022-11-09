@@ -1,10 +1,9 @@
 import asyncio
 
 import discord.ext
-from qalib.response_manager import ResponseManager
-
 
 import utils
+from qalib.response_manager import ResponseManager
 
 
 class Menu:
