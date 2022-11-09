@@ -1,6 +1,7 @@
+import unittest
+
 import qalib.xml_renderer as xml_renderer
 
-import unittest
 
 class TestRenderer(unittest.TestCase):
 
