@@ -1,6 +1,5 @@
-import discord.ext
+from discord.ext import commands
 
-from menu import Menu
 from qalib.xml_renderer import Renderer
 
 
@@ -8,7 +7,7 @@ class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
        Data is stored in .ini files, where they are called and parsed. """
 
-    def __init__(self, ctx: discord.ext.commands.context, bot: discord.ext.commands.AutoShardedBot,
+    def __init__(self, ctx: commands.context, bot: commands.AutoShardedBot,
                  xml_path: str):
 
         self.__ctx = ctx
@@ -39,7 +38,7 @@ class ResponseManager:
         return None
 
     async def send(self, key: str, **kwargs):
-        return await self.__ctx.send(embed=self.__renderer.render_embed(key, **kwargs))
+        return await self.__ctx.send(embed=self.__renderer.render(key, **kwargs))
 
     async def display(self, key: str, **kwargs):
         """this is the main function that we use to send one message, and one message only.
@@ -54,7 +53,7 @@ class ResponseManager:
         if self.message is None:
             self.message = await self.send(key, **kwargs)
         else:
-            await self.message.edit(embed=self.__renderer.render_embed(key, **kwargs))
+            await self.message.edit(embed=self.__renderer.render(key, **kwargs))
 
     def retrieve_menu(self, flow_type: str):
         """Method that gets the menu specified
