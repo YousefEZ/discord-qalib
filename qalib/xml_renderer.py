@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ElementTree
+from typing import List
 
 from discord import Embed
 
@@ -14,7 +15,7 @@ class Renderer:
         Args:
             path (str): path to the xml file containing the template embed
         """
-        self.tree = ElementTree.parse(path)
+        self.root = ElementTree.parse(path).getroot()
 
     def get_raw_embed(self, identifier) -> ElementTree.Element:
         """Finds the embed specified by the identifier
@@ -25,9 +26,8 @@ class Renderer:
         Returns:
             ElementTree.Element: the raw embed specified by the identifier
         """
-        root = self.tree.getroot()
 
-        for embed in root.findall('embed'):
+        for embed in self.root.findall('embed'):
             if embed.get("key") == identifier:
                 return embed
 
@@ -68,3 +68,24 @@ class Renderer:
         embed.set_image(url=Renderer.extract_element(raw_embed.find("image")))
 
         return embed
+
+
+class MenuRenderer(Renderer):
+
+    def __init__(self, path: str, identifier: str):
+        super().__init__(path)
+
+        for menu in self.root.findall("menu"):
+            if menu.get("key") == identifier:
+                self.root = menu
+                break
+        else:
+            raise KeyError("Menu key not found")
+
+    @property
+    def number_of_pages(self) -> int:
+        return len(self.root.findall("embed"))
+
+    @property
+    def keys(self) -> List[str]:
+        return list(map(lambda element: element.get("key"), self.root.findall("embed")))
