@@ -15,5 +15,10 @@ __version__ = '0.0.1'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-from .response_manager import ResponseManager
-from .xml_renderer import Renderer
+DEBUG = False
+
+from .utils import *
+
+from .response_manager import *
+from .xml_renderer import *
+from .menu import *
