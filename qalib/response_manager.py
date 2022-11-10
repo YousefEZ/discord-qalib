@@ -8,12 +8,11 @@ class ResponseManager:
        Data is stored in .xml files, where they are called and parsed. """
 
     def __init__(self, ctx: commands.context, bot: commands.AutoShardedBot,
-                 xml_path: str):
+                 renderer: Renderer):
 
-        self.__ctx = ctx
-        self.__bot = bot
-        self.__renderer = Renderer(xml_path)
-        self.__pages = {}
+        self._ctx = ctx
+        self._bot = bot
+        self._renderer = renderer
         self.message = None
 
     def verify(self, message):
@@ -26,19 +25,19 @@ class ResponseManager:
             bool: true of false that indicates whether the data is valid.
         """
 
-        return message.author == self.__ctx.message.author and message.channel == self.__ctx.message.channel
+        return message.author == self._ctx.message.author and message.channel == self._ctx.message.channel
 
     async def get_message(self):
         """This method waits for a message to be sent by the user"""
 
-        confirm = await self.__bot.wait_for('message', timeout=59.0, check=self.verify)
+        confirm = await self._bot.wait_for('message', timeout=59.0, check=self.verify)
 
         if confirm is not None:
             return confirm.content
         return None
 
     async def send(self, key: str, **kwargs):
-        return await self.__ctx.send(embed=self.__renderer.render(key, **kwargs))
+        return await self._ctx.send(embed=self._renderer.render(key, **kwargs))
 
     async def display(self, key: str, **kwargs):
         """this is the main function that we use to send one message, and one message only.
@@ -53,4 +52,11 @@ class ResponseManager:
         if self.message is None:
             self.message = await self.send(key, **kwargs)
         else:
-            await self.message.edit(embed=self.__renderer.render(key, **kwargs))
+            await self.message.edit(embed=self._renderer.render(key, **kwargs))
+
+
+class EmbedManager(ResponseManager):
+
+    def __init__(self, ctx: commands.context, bot: commands.AutoShardedBot,
+                 embed_xml: str):
+        super().__init__(ctx, bot, Renderer(embed_xml))
