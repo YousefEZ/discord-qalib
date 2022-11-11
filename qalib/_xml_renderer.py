@@ -59,7 +59,6 @@ class Renderer:
             inline = field.get("inline") == "True"
             name = field.get("name").format(**kwargs)
             value = Renderer.extract_element(field).format(**kwargs)
-
             embed.add_field(name=name, value=value, inline=inline)
 
         embed.set_footer(text=Renderer.extract_element(raw_embed.find("footer_text")),
