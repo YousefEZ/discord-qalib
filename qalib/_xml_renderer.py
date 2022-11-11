@@ -49,7 +49,7 @@ class Renderer:
     def _render_timestamp(self, timestamp_element: ElementTree.Element, **kwargs) -> Optional[datetime]:
         if timestamp_element is not None:
             timestamp = self.render_element(timestamp_element, **kwargs)
-            date_format = self.render_element(timestamp_element.get("format"), **kwargs)
+            date_format = self.render_attribute(timestamp_element, "format", **kwargs)
             if date_format == "":
                 date_format = "%Y-%m-%d %H:%M:%S.%f"
             return datetime.strptime(timestamp, date_format) if timestamp != "" else None
