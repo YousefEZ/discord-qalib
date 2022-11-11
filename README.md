@@ -38,6 +38,7 @@ Wrap expressions that need to evaluated with ``{}``, such as ``{player.name}`` o
 Sample XML file:
 
 ```xml
+
 <embeds>
     <embed key="test_key">
         <title>Test</title>
@@ -69,12 +70,12 @@ Sample XML file:
 using the above xml file, for example, you can create an embed with the following code:
 
 ```python
-from qalib import EmbedManager
+import datetime
 
 import discord
 from discord.ext import commands
 
-import datetime
+from qalib import EmbedManager
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
