@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ElementTree
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from discord import Embed
 
@@ -34,10 +35,43 @@ class Renderer:
         raise KeyError("Embed key not found")
 
     @staticmethod
-    def extract_element(element):
+    def render_element(element, **kwargs):
         if element is None:
             return ""
-        return element.text
+        return element.text.format(**kwargs)
+
+    @staticmethod
+    def render_attribute(element, attribute, **kwargs):
+        if element.get(attribute) is None:
+            return ""
+        return element.get(attribute).format(**kwargs)
+
+    def _render_timestamp(self, timestamp_element: ElementTree.Element, **kwargs) -> Optional[datetime]:
+        if timestamp_element is not None:
+            timestamp = self.render_element(timestamp_element, **kwargs)
+            date_format = self.render_element(timestamp_element.get("format"), **kwargs)
+            if date_format == "":
+                date_format = "%Y-%m-%d %H:%M:%S.%f"
+            return datetime.strptime(timestamp, date_format) if timestamp != "" else None
+
+    def _render_author(self, author_element: ElementTree.Element, **kwargs) -> Optional[dict]:
+        return {
+            "name": self.render_element(author_element.find("name"), **kwargs),
+            "url": self.render_element(author_element.find("url"), **kwargs),
+            "icon_url": self.render_element(author_element.find("icon"), **kwargs)
+        }
+
+    def _render_footer(self, footer_element: ElementTree.Element, **kwargs) -> Optional[dict]:
+        return {
+            "text": self.render_element(footer_element.find("text"), **kwargs),
+            "icon_url": self.render_element(footer_element.find("icon"), **kwargs)
+        }
+
+    def _render_fields(self, fields_element: ElementTree.Element, **kwargs) -> List[dict]:
+        return [{"name": self.render_attribute(field, "name", **kwargs),
+                 "value": self.render_element(field).format(**kwargs),
+                 "inline": self.render_attribute(field, "inline", **kwargs) == "True"}
+                for field in fields_element.findall("field")]
 
     def render(self, identifier: str, **kwargs) -> Embed:
         """Render the desired templated embed in discord.Embed instance
@@ -51,20 +85,29 @@ class Renderer:
 
         raw_embed = self.get_raw_embed(identifier)
 
-        colour = colours.get_colour(Renderer.extract_element(raw_embed.find("colour")).format(**kwargs))
-        embed = Embed(title=Renderer.extract_element(raw_embed.find("title")).format(**kwargs), colour=colour)
-        fields = raw_embed.find("fields")
+        embed_type = self.render_element(raw_embed.find("type"), **kwargs)
 
-        for field in fields.findall("field"):
-            inline = field.get("inline") == "True"
-            name = field.get("name").format(**kwargs)
-            value = Renderer.extract_element(field).format(**kwargs)
-            embed.add_field(name=name, value=value, inline=inline)
+        embed = Embed(title=self.render_element(raw_embed.find("title"), **kwargs).format(**kwargs),
+                      colour=(colours.get_colour(self.render_element(raw_embed.find("colour")).format(**kwargs))),
+                      type=embed_type if embed_type != "" else "rich",
+                      url=self.render_element(raw_embed.find("url")).format(**kwargs),
+                      description=self.render_element(raw_embed.find("description")).format(**kwargs),
+                      timestamp=self._render_timestamp(raw_embed.find("timestamp"), **kwargs)
+                      )
 
-        embed.set_footer(text=Renderer.extract_element(raw_embed.find("footer_text")),
-                         icon_url=Renderer.extract_element(raw_embed.find("footer_icon")))
-        embed.set_thumbnail(url=Renderer.extract_element(raw_embed.find("thumbnail")))
-        embed.set_image(url=Renderer.extract_element(raw_embed.find("image")))
+        for field in self._render_fields(raw_embed.find("fields"), **kwargs):
+            embed.add_field(**field)
+
+        footer = raw_embed.find("footer")
+        if footer is not None:
+            embed.set_footer(**self._render_footer(footer, **kwargs))
+
+        embed.set_thumbnail(url=Renderer.render_element(raw_embed.find("thumbnail")))
+        embed.set_image(url=Renderer.render_element(raw_embed.find("image")))
+
+        author = raw_embed.find("author")
+        if author is not None:
+            embed.set_author(**self._render_author(author, **kwargs))
 
         return embed
 
