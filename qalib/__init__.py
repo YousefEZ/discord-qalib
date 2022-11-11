@@ -1,9 +1,9 @@
 """
-Discord API Wrapper
+Extensions to the Rapptz Discord.py library, adding the use of templating on
+embeds stored in the format of .xml files.
 
 
-A basic wrapper for the Discord API.
-:copyright: (c) 2015-present Rapptz
+:copyright: (c) 2022-present YousefEZ
 :license: MIT, see LICENSE for more details.
 """
 
@@ -11,14 +11,12 @@ __title__ = 'qalib'
 __author__ = 'YousefEZ'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-present YousefEZ'
-__version__ = '0.0.1'
+__version__ = '1.0.0'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 DEBUG = False
 
+from .embed_manager import *
+from .menu_manager import *
 from .utils import *
-
-from .response_manager import *
-from .xml_renderer import *
-from .menu import *

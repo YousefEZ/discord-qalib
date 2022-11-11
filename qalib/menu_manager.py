@@ -3,9 +3,9 @@ import asyncio
 import discord.ext
 
 from qalib import DEBUG
-from qalib.response_manager import ResponseManager
+from qalib._response_manager import ResponseManager
 from qalib.utils import emojis
-from qalib.xml_renderer import MenuRenderer
+from qalib._xml_renderer import MenuRenderer
 
 
 class Menu:
