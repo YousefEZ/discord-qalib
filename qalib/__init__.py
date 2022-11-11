@@ -2,7 +2,6 @@
 Extensions to the Rapptz Discord.py library, adding the use of templating on
 embeds stored in the format of .xml files.
 
-
 :copyright: (c) 2022-present YousefEZ
 :license: MIT, see LICENSE for more details.
 """

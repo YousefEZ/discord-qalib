@@ -53,5 +53,3 @@ class ResponseManager:
             self.message = await self.send(key, **kwargs)
         else:
             await self.message.edit(embed=self._renderer.render(key, **kwargs))
-
-
