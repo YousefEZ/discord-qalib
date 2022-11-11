@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from qalib.xml_renderer import Renderer
+from qalib._xml_renderer import Renderer
 
 
 class ResponseManager:
@@ -53,10 +53,3 @@ class ResponseManager:
             self.message = await self.send(key, **kwargs)
         else:
             await self.message.edit(embed=self._renderer.render(key, **kwargs))
-
-
-class EmbedManager(ResponseManager):
-
-    def __init__(self, ctx: commands.context, bot: commands.AutoShardedBot,
-                 embed_xml: str):
-        super().__init__(ctx, bot, Renderer(embed_xml))
