@@ -4,8 +4,8 @@ import discord.ext
 
 from qalib import DEBUG
 from qalib._response_manager import ResponseManager
-from qalib.utils import emojis
 from qalib._xml_renderer import MenuRenderer
+from qalib.utils import emojis
 
 
 class Menu:
