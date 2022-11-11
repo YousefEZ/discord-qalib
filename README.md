@@ -27,13 +27,16 @@ python3 -m unittest tests -v
 
 # Usage
 
+Wrap expressions that need to evaluated with ``{}``, such as ``{player.name}`` or ``{todays_date}``
+
+
 Sample XML file:
 ```xml
 <embed key="test_key">
     <title>Test</title>
     <description>Test Description</description>
     <colour>magenta</colour>
-    <timestamp>{date}</timestamp>
+    <timestamp>{todays_date}</timestamp>
     <url>https://www.discord.com</url>
     <fields>
         <field>
@@ -55,16 +58,20 @@ Sample XML file:
 </embed>
 ```
 
-using the above xml file:
+using the above xml file, for example, you can create an embed with the following code:
+
 ```python
 from qalib import EmbedManager
 
+import discord
+from discord.ext import commands
+
 import datetime
 
-# ...
+bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
-@app.command()
+@bot.command()
 async def test(ctx):
-    embedManager = EmbedManager(ctx, client, "test.xml")
-    await embedManager.send("test_key", time=datetime.datetime.now())
+    embedManager = EmbedManager(ctx, bot, "test.xml")
+    await embedManager.send("test_key", todays_date=datetime.datetime.now())
 ```
