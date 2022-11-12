@@ -1,5 +1,8 @@
 # discord-qalib
 
+[![Discord-Qalib Tests](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml/badge.svg)](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml)
+
+
 Discord templating engine built on discord.py, to help separate text of embeds from the source code. Inspired by Django
 and Jinja.
 
