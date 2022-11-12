@@ -1,3 +1,5 @@
+from typing import Union
+
 from discord.ext import commands
 
 from qalib._xml_renderer import Renderer
@@ -7,11 +9,9 @@ class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
        Data is stored in .xml files, where they are called and parsed. """
 
-    def __init__(self, ctx: commands.context, bot: commands.AutoShardedBot,
-                 renderer: Renderer):
+    def __init__(self, ctx: commands.context, renderer: Renderer):
 
         self._ctx = ctx
-        self._bot = bot
         self._renderer = renderer
         self.message = None
 
@@ -30,7 +30,7 @@ class ResponseManager:
     async def get_message(self):
         """This method waits for a message to be sent by the user"""
 
-        confirm = await self._bot.wait_for('message', timeout=59.0, check=self.verify)
+        confirm = await self._ctx.bot.wait_for('message', timeout=59.0, check=self.verify)
 
         if confirm is not None:
             return confirm.content
