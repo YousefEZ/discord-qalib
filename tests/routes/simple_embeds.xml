@@ -13,7 +13,7 @@
     </embed>
     <embed key="Launch2">
         <title>Hello World</title>
-        <colour>cyan</colour>
+        <colour>teal</colour>
         <fields>
             <field name="hello world2">
                 This is the body of the text
