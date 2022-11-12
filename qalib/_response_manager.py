@@ -1,15 +1,13 @@
-from typing import Union
-
 from discord.ext import commands
 
-from qalib._xml_renderer import Renderer
+from qalib._xml_renderer import _Renderer
 
 
 class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
        Data is stored in .xml files, where they are called and parsed. """
 
-    def __init__(self, ctx: commands.context, renderer: Renderer):
+    def __init__(self, ctx: commands.context, renderer: _Renderer):
 
         self._ctx = ctx
         self._renderer = renderer
@@ -31,10 +29,7 @@ class ResponseManager:
         """This method waits for a message to be sent by the user"""
 
         confirm = await self._ctx.bot.wait_for('message', timeout=59.0, check=self.verify)
-
-        if confirm is not None:
-            return confirm.content
-        return None
+        return confirm.content if confirm is not None else None
 
     async def send(self, key: str, **kwargs):
         return await self._ctx.send(embed=self._renderer.render(key, **kwargs))

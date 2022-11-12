@@ -1,4 +1,5 @@
 import xml.etree.ElementTree as ElementTree
+from abc import ABC
 from datetime import datetime
 from typing import List, Optional
 
@@ -7,7 +8,7 @@ from discord import Embed
 from qalib.utils import colours
 
 
-class Renderer:
+class _Renderer(ABC):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
     def __init__(self, path: str):
@@ -102,8 +103,8 @@ class Renderer:
         if (footer := raw_embed.find("footer")) is not None:
             embed.set_footer(**self._render_footer(footer, **kwargs))
 
-        embed.set_thumbnail(url=Renderer.render_element(raw_embed.find("thumbnail")))
-        embed.set_image(url=Renderer.render_element(raw_embed.find("image")))
+        embed.set_thumbnail(url=_Renderer.render_element(raw_embed.find("thumbnail")))
+        embed.set_image(url=_Renderer.render_element(raw_embed.find("image")))
 
         if (author := raw_embed.find("author")) is not None:
             embed.set_author(**self._render_author(author, **kwargs))
@@ -111,7 +112,14 @@ class Renderer:
         return embed
 
 
-class MenuRenderer(Renderer):
+class EmbedRenderer(_Renderer):
+    """Renderer for embeds"""
+
+    def __init__(self, path: str):
+        super().__init__(path)
+
+
+class MenuRenderer(_Renderer):
 
     def __init__(self, path: str, identifier: str):
         super().__init__(path)
