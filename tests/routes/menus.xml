@@ -1,0 +1,27 @@
+<menus>
+    <menu key="Menu1">
+        <embed key="test_key1">
+            <title>Hello World</title>
+            <colour>magenta</colour>
+            <fields>
+                <field inline="True" name="hello world">
+                    This is the body of the text
+                </field>
+            </fields>
+            <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
+            <footer_icon>http://www.google.com/favicon.ico</footer_icon>
+            <image>http://www.google.com/images/logo.gif</image>
+        </embed>
+        <embed key="test_key2">
+            <title>Hello Planet</title>
+            <colour>teal</colour>
+            <fields>
+                <field name="hello planet">
+                    This is the body of the text
+                </field>
+            </fields>
+            <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
+            <footer_icon>http://www.google.com/favicon.ico</footer_icon>
+        </embed>
+    </menu>
+</menus>
