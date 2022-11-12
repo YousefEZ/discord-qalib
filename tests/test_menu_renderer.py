@@ -17,7 +17,7 @@ class MenuRendererTest(unittest.TestCase):
         embed = renderer.render("test_key2")
         self.assertEqual(embed.title, "Hello Planet")
 
-    def test_key_not_exist(self):
+    def test_menu_key_not_exist(self):
         path = "tests/routes/menus.xml"
         self.assertRaises(KeyError, MenuRenderer, path, "not_a_key")
 

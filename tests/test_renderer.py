@@ -1,11 +1,12 @@
+import datetime
 import unittest
 
 import qalib._xml_renderer as xml_renderer
 
-import datetime
 
 class TestRenderer(unittest.TestCase):
     """Tests the XML Renderer"""
+
     def test_render(self):
         path = "tests/routes/simple_embeds.xml"
         renderer = xml_renderer.EmbedRenderer(path)
