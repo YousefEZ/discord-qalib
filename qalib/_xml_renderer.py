@@ -85,28 +85,27 @@ class Renderer:
 
         raw_embed = self.get_raw_embed(identifier)
 
-        embed_type = self.render_element(raw_embed.find("type"), **kwargs)
+        def render(name: str):
+            return self.render_element(raw_embed.find(name), **kwargs)
 
-        embed = Embed(title=self.render_element(raw_embed.find("title"), **kwargs).format(**kwargs),
-                      colour=(colours.get_colour(self.render_element(raw_embed.find("colour")).format(**kwargs))),
-                      type=embed_type if embed_type != "" else "rich",
-                      url=self.render_element(raw_embed.find("url")).format(**kwargs),
-                      description=self.render_element(raw_embed.find("description")).format(**kwargs),
+        embed = Embed(title=render("title"),
+                      colour=colours.get_colour(render("colour")),
+                      type=embed_type if (embed_type := render("type")) != "" else "rich",
+                      url=render("url"),
+                      description=render("description"),
                       timestamp=self._render_timestamp(raw_embed.find("timestamp"), **kwargs)
                       )
 
         for field in self._render_fields(raw_embed.find("fields"), **kwargs):
             embed.add_field(**field)
 
-        footer = raw_embed.find("footer")
-        if footer is not None:
+        if (footer := raw_embed.find("footer")) is not None:
             embed.set_footer(**self._render_footer(footer, **kwargs))
 
         embed.set_thumbnail(url=Renderer.render_element(raw_embed.find("thumbnail")))
         embed.set_image(url=Renderer.render_element(raw_embed.find("image")))
 
-        author = raw_embed.find("author")
-        if author is not None:
+        if (author := raw_embed.find("author")) is not None:
             embed.set_author(**self._render_author(author, **kwargs))
 
         return embed

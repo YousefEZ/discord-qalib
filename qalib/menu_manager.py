@@ -11,19 +11,16 @@ from qalib.utils import emojis
 class Menu:
     """Object that manages embed in a form of a menu."""
 
-    def __init__(self, embed_xml: str, menu_key: str, ctx: discord.ext.commands.context = None,
-                 client: discord.ext.commands.AutoShardedBot = None):
+    def __init__(self, embed_xml: str, menu_key: str, ctx: discord.ext.commands.context):
         """Initialisation method of the Menu object.
         Args:
             embed_xml (str): the path to the xml file containing the Menu embed
             menu_key (str): the key of the menu in the xml file
             ctx (discord.ext.commands.context): context, required to display the menu. Defaults to None.
-            client (discord.ext.commands.AutoShardedBot) : bot, required to control action (reactions). Defaults to None
         """
         self._renderer = MenuRenderer(embed_xml, menu_key)
         self._ctx = ctx
-        self._client = client
-        self._manager = ResponseManager(self._ctx, self._client, self._renderer)
+        self._manager = ResponseManager(self._ctx, self._renderer)
         self._reactions = {}
         self._message = None
         self._exit = False
@@ -34,14 +31,8 @@ class Menu:
         if DEBUG:
             print(string)
 
-    def attach_context(self, ctx: discord.ext.commands.context):
-        self._ctx = ctx
-
     def get_context(self) -> discord.ext.commands.context:
         return self._ctx
-
-    def attach_client(self, client: discord.ext.commands.AutoShardedBot):
-        self._client = client
 
     def attach_function(self, reaction, function, *args):
         """Attaches a function to the reaction. The function will run if
@@ -116,7 +107,7 @@ class Menu:
                     await self._manager.message.add_reaction(i)
 
                 self.log(f"*[HANDLER][RESPONSE] REACTIONS ATTACHED")
-                reaction, user = await self._client.wait_for('reaction_add', timeout=60.0, check=self.verify)
+                reaction, user = await self._ctx.bot.wait_for('reaction_add', timeout=60.0, check=self.verify)
                 self.log(f"*[HANDLER][REACTION] READ: {reaction}")
 
             except asyncio.futures.TimeoutError:
@@ -164,7 +155,7 @@ class Menu:
 
     async def get_input(self):
         """This method waits for a message to be sent by the user"""
-        confirm = await self._client.wait_for('message', timeout=60.0, check=self.verify)
+        confirm = await self._ctx.bot.wait_for('message', timeout=60.0, check=self.verify)
 
         if confirm is not None:
             return confirm.content
