@@ -1,6 +1,6 @@
 import unittest
 
-from qalib._xml_renderer import MenuRenderer
+from qalib import MenuRenderer
 
 
 class MenuRendererTest(unittest.TestCase):
