@@ -1,13 +1,13 @@
 from discord.ext import commands
 
-from qalib._xml_renderer import _Renderer
+from qalib.renderers.file_renderers._xml_renderer import XMLRenderer
 
 
 class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
        Data is stored in .xml files, where they are called and parsed. """
 
-    def __init__(self, ctx: commands.context, renderer: _Renderer):
+    def __init__(self, ctx: commands.context, renderer: XMLRenderer):
 
         self._ctx = ctx
         self._renderer = renderer
@@ -40,7 +40,7 @@ class ResponseManager:
 
         Args:
             key (str): Unique identifier for the desired embed in the xml file
-            **kwargs: arguments that are passed to the xml renderer to format the text
+            **kwargs: arguments that are passed to the xml renderers to format the text
 
         """
 
