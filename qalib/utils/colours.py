@@ -32,10 +32,9 @@ def get_colour(colour):
     Returns:
         int: hexadecimal value of the colour.
     """
-    if colour.replace(' ', '_') in COLOURS.keys():
+    if colour.replace(' ', '_') in COLOURS:
         return COLOURS[colour.replace(' ', '_')]
-    else:
-        colour = colour.split(',')
-        colour = map(int, colour)
-        Colour.from_rgb(*colour)
+    colour = colour.split(',')
+    colour = map(int, colour)
+    Colour.from_rgb(*colour)
     return colour
