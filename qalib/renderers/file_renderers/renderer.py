@@ -6,11 +6,15 @@ from discord import Embed
 class Renderer(ABC):
 
     @abstractmethod
+    def __init__(self, path: str):
+        raise NotImplementedError
+
+    @abstractmethod
     def render(self, identifier: str, **kwargs) -> Embed:
         raise NotImplementedError
 
     @abstractmethod
-    def set_root_to(self, key: str):
+    def set_menu(self, key: str):
         raise NotImplementedError
 
     @property
