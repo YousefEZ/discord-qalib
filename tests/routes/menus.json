@@ -1,0 +1,34 @@
+{
+  "Menu1": {
+    "test_key1": {
+      "title": "Hello World",
+      "color": "magenta",
+      "fields": [
+        {
+          "name": "hello world",
+          "inline": "true",
+          "value": "This is the body of the text"
+        }
+      ],
+      "footer": {
+        "icon": "http://www.google.com/favicon.ico"
+      },
+      "thumbnail": "http://www.google.com/images/logo.gif",
+      "image": "http://www.google.com/images/logo.gif"
+    },
+    "test_key2": {
+      "title": "Hello Planet",
+      "color": "teal",
+      "fields": [
+        {
+          "name": "hello planet",
+          "value": "This is the body of the text"
+        }
+      ],
+      "footer": {
+        "icon": "http://www.google.com/favicon.ico"
+      },
+      "thumbnail": "http://www.google.com/images/logo.gif"
+    }
+  }
+}
