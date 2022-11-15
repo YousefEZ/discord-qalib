@@ -4,7 +4,7 @@ import unittest
 import qalib.renderers.embed_renderer
 
 
-class TestRenderer(unittest.TestCase):
+class TestXMLRenderer(unittest.TestCase):
     """Tests the XML Renderer"""
 
     def test_render(self):
