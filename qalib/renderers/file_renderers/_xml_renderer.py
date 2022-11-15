@@ -43,9 +43,9 @@ class XMLRenderer(Renderer):
 
     @staticmethod
     def _render_attribute(element, attribute, **kwargs):
-        if element.get(attribute) is None:
+        if (value := element.get(attribute)) is None:
             return ""
-        return element.get(attribute).format(**kwargs)
+        return value.format(**kwargs)
 
     def _render_timestamp(self, timestamp_element: ElementTree.Element, **kwargs) -> Optional[datetime]:
         if timestamp_element is not None:
@@ -74,14 +74,6 @@ class XMLRenderer(Renderer):
                  "inline": self._render_attribute(field, "inline", **kwargs) == "True"}
                 for field in fields_element.findall("field")]
 
-    def set_menu_to(self, key: str):
-        for menu in self.root.findall("menu"):
-            if menu.get("key") == key:
-                self.root = menu
-                break
-        else:
-            raise KeyError("Menu key not found")
-
     @property
     def size(self) -> int:
         return len(self.root.findall("embed"))
@@ -90,7 +82,7 @@ class XMLRenderer(Renderer):
     def keys(self) -> List[str]:
         return list(map(lambda element: element.get("key"), self.root.findall("embed")))
 
-    def set_root_to(self, key: str):
+    def set_menu(self, key: str):
         for menu in self.root.findall("menu"):
             if menu.get("key") == key:
                 self.root = menu
@@ -127,8 +119,8 @@ class XMLRenderer(Renderer):
         if (footer := raw_embed.find("footer")) is not None:
             embed.set_footer(**self._render_footer(footer, **kwargs))
 
-        embed.set_thumbnail(url=XMLRenderer._render_element(raw_embed.find("thumbnail")))
-        embed.set_image(url=XMLRenderer._render_element(raw_embed.find("image")))
+        embed.set_thumbnail(url=self._render_element(raw_embed.find("thumbnail"), **kwargs))
+        embed.set_image(url=self._render_element(raw_embed.find("image"), **kwargs))
 
         if (author := raw_embed.find("author")) is not None:
             embed.set_author(**self._render_author(author, **kwargs))
