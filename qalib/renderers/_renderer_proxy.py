@@ -8,6 +8,3 @@ class RendererProxy:
 
     def render(self, key, **kwargs):
         return self._renderer.render(key, **kwargs)
-
-    def set_root_to(self, key):
-        self._renderer.set_root_to(key)

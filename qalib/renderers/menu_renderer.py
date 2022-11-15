@@ -9,8 +9,7 @@ class MenuRenderer:
 
     def __init__(self, path: str, menu_key: str):
         self._renderer = RendererFactory.get_renderer(path)
-        self._key = menu_key
-        self._renderer.set_root_to(menu_key)
+        self._renderer.set_menu(menu_key)
 
     def render(self, key: str, **kwargs) -> Embed:
         return self._renderer.render(key, **kwargs)
