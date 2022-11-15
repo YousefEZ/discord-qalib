@@ -1,4 +1,4 @@
-<embeds>
+<discord>
     <embed key="test_key">
         <title>Test</title>
         <description>Test Description</description>
@@ -49,4 +49,4 @@
             <url>https://discordapp.com</url>
         </author>
     </embed>
-</embeds>
+</discord>
