@@ -12,5 +12,5 @@ class RendererFactory:
             return XMLRenderer(path)
         elif path.endswith(".json"):
             return JSONRenderer(path)
-        else:
-            raise ValueError("File type not supported")
+
+        raise ValueError("File type not supported")
