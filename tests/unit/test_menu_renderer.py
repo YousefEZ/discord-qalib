@@ -24,7 +24,7 @@ class MenuRendererTest(unittest.TestCase):
     def test_xml_pages(self):
         path = "tests/routes/menus.xml"
         renderer = MenuRenderer(path, "Menu1")
-        self.assertEqual(renderer.number_of_pages, 2)
+        self.assertEqual(renderer.size, 2)
 
     def test_xml_keys(self):
         path = "tests/routes/menus.xml"
@@ -51,7 +51,7 @@ class MenuRendererTest(unittest.TestCase):
     def test_json_pages(self):
         path = "tests/routes/menus.json"
         renderer = MenuRenderer(path, "Menu1")
-        self.assertEqual(renderer.number_of_pages, 2)
+        self.assertEqual(renderer.size, 2)
 
     def test_json_keys(self):
         path = "tests/routes/menus.json"
