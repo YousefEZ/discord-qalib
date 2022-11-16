@@ -1,23 +1,13 @@
-from typing import List
-
 from discord import Embed
 
-from qalib.renderers.file_renderers.renderer_factory import RendererFactory
+from qalib.renderers.renderer_proxy import RendererProxy
 
 
-class MenuRenderer:
+class MenuRenderer(RendererProxy):
 
     def __init__(self, path: str, menu_key: str):
-        self._renderer = RendererFactory.get_renderer(path)
+        super().__init__(path)
         self._renderer.set_menu(menu_key)
 
     def render(self, key: str, **kwargs) -> Embed:
         return self._renderer.render(key, **kwargs)
-
-    @property
-    def number_of_pages(self) -> int:
-        return self._renderer.size
-
-    @property
-    def keys(self) -> List[str]:
-        return self._renderer.keys
