@@ -1,4 +1,4 @@
-from qalib.renderers._renderer_proxy import RendererProxy
+from qalib.renderers.renderer_proxy import RendererProxy
 
 
 class EmbedRenderer(RendererProxy):
