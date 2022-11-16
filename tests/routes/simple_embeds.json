@@ -1,0 +1,36 @@
+{
+  "Launch": {
+    "title": "Hello World",
+    "colour": "magenta",
+    "fields": [
+      {
+        "name": "hello world",
+        "inline": "true",
+        "value": "This is the body of the text"
+      }
+    ],
+    "footer": {
+      "icon": "http://www.google.com/favicon.ico",
+      "text": "Test"
+    },
+    "thumbnail": "http://www.google.com/images/logo.gif",
+    "image": "http://www.google.com/images/logo.gif"
+  },
+  "Launch2": {
+    "title": "Hello World",
+    "colour": "teal",
+    "fields": [
+      {
+        "name": "hello world",
+        "inline": "true",
+        "value": "This is the body of the text"
+      }
+    ],
+    "footer": {
+      "icon": "http://www.google.com/favicon.ico",
+      "text": "Test"
+    },
+    "thumbnail": "http://www.google.com/images/logo.gif",
+    "image": "http://www.google.com/images/logo.gif"
+  }
+}

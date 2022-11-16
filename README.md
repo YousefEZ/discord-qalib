@@ -43,7 +43,7 @@ Sample XML file:
 
 ```xml
 
-<embeds>
+<discord>
     <embed key="test_key">
         <title>Test</title>
         <description>Test Description</description>
@@ -68,7 +68,7 @@ Sample XML file:
             <url>https://discordapp.com</url>
         </author>
     </embed>
-</embeds>
+</discord>
 ```
 
 using the above xml file, for example, you can create an embed with the following code:

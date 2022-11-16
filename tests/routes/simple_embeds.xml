@@ -1,4 +1,4 @@
-<embeds>
+<discord>
     <embed key="Launch">
         <title>Hello World</title>
         <colour>magenta</colour>
@@ -23,4 +23,4 @@
         <footer_icon>http://www.google.com/favicon.ico</footer_icon>
         <image>http://www.google.com/images/logo.gif</image>
     </embed>
-</embeds>
+</discord>

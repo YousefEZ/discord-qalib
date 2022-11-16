@@ -1,14 +1,14 @@
-import xml.etree.ElementTree as ElementTree
-from abc import ABC
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional, List
+from xml.etree import ElementTree as ElementTree
 
 from discord import Embed
 
+from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
 
-class _Renderer(ABC):
+class XMLRenderer(Renderer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
     def __init__(self, path: str):
@@ -19,7 +19,7 @@ class _Renderer(ABC):
         """
         self.root = ElementTree.parse(path).getroot()
 
-    def get_raw_embed(self, identifier) -> ElementTree.Element:
+    def _get_raw_embed(self, identifier) -> ElementTree.Element:
         """Finds the embed specified by the identifier
 
         Args:
@@ -36,43 +36,59 @@ class _Renderer(ABC):
         raise KeyError("Embed key not found")
 
     @staticmethod
-    def render_element(element, **kwargs):
+    def _render_element(element, **kwargs):
         if element is None:
             return ""
         return element.text.format(**kwargs)
 
     @staticmethod
-    def render_attribute(element, attribute, **kwargs):
-        if element.get(attribute) is None:
+    def _render_attribute(element, attribute, **kwargs):
+        if (value := element.get(attribute)) is None:
             return ""
-        return element.get(attribute).format(**kwargs)
+        return value.format(**kwargs)
 
     def _render_timestamp(self, timestamp_element: ElementTree.Element, **kwargs) -> Optional[datetime]:
         if timestamp_element is not None:
-            timestamp = self.render_element(timestamp_element, **kwargs)
-            date_format = self.render_attribute(timestamp_element, "format", **kwargs)
+            timestamp = self._render_element(timestamp_element, **kwargs)
+            date_format = self._render_attribute(timestamp_element, "format", **kwargs)
             if date_format == "":
                 date_format = "%Y-%m-%d %H:%M:%S.%f"
             return datetime.strptime(timestamp, date_format) if timestamp != "" else None
 
     def _render_author(self, author_element: ElementTree.Element, **kwargs) -> Optional[dict]:
         return {
-            "name": self.render_element(author_element.find("name"), **kwargs),
-            "url": self.render_element(author_element.find("url"), **kwargs),
-            "icon_url": self.render_element(author_element.find("icon"), **kwargs)
+            "name": self._render_element(author_element.find("name"), **kwargs),
+            "url": self._render_element(author_element.find("url"), **kwargs),
+            "icon_url": self._render_element(author_element.find("icon"), **kwargs)
         }
 
     def _render_footer(self, footer_element: ElementTree.Element, **kwargs) -> Optional[dict]:
         return {
-            "text": self.render_element(footer_element.find("text"), **kwargs),
-            "icon_url": self.render_element(footer_element.find("icon"), **kwargs)
+            "text": self._render_element(footer_element.find("text"), **kwargs),
+            "icon_url": self._render_element(footer_element.find("icon"), **kwargs)
         }
 
     def _render_fields(self, fields_element: ElementTree.Element, **kwargs) -> List[dict]:
-        return [{"name": self.render_attribute(field, "name", **kwargs),
-                 "value": self.render_element(field).format(**kwargs),
-                 "inline": self.render_attribute(field, "inline", **kwargs) == "True"}
+        return [{"name": self._render_attribute(field, "name", **kwargs),
+                 "value": self._render_element(field).format(**kwargs),
+                 "inline": self._render_attribute(field, "inline", **kwargs) == "True"}
                 for field in fields_element.findall("field")]
+
+    @property
+    def size(self) -> int:
+        return len(self.root.findall("embed"))
+
+    @property
+    def keys(self) -> List[str]:
+        return list(map(lambda element: element.get("key"), self.root.findall("embed")))
+
+    def set_menu(self, key: str):
+        for menu in self.root.findall("menu"):
+            if menu.get("key") == key:
+                self.root = menu
+                break
+        else:
+            raise KeyError("Menu key not found")
 
     def render(self, identifier: str, **kwargs) -> Embed:
         """Render the desired templated embed in discord.Embed instance
@@ -84,10 +100,10 @@ class _Renderer(ABC):
             Embed: Embed Object, discord compatible.
         """
 
-        raw_embed = self.get_raw_embed(identifier)
+        raw_embed = self._get_raw_embed(identifier)
 
         def render(name: str):
-            return self.render_element(raw_embed.find(name), **kwargs)
+            return self._render_element(raw_embed.find(name), **kwargs)
 
         embed = Embed(title=render("title"),
                       colour=colours.get_colour(render("colour")),
@@ -103,38 +119,10 @@ class _Renderer(ABC):
         if (footer := raw_embed.find("footer")) is not None:
             embed.set_footer(**self._render_footer(footer, **kwargs))
 
-        embed.set_thumbnail(url=_Renderer.render_element(raw_embed.find("thumbnail")))
-        embed.set_image(url=_Renderer.render_element(raw_embed.find("image")))
+        embed.set_thumbnail(url=self._render_element(raw_embed.find("thumbnail"), **kwargs))
+        embed.set_image(url=self._render_element(raw_embed.find("image"), **kwargs))
 
         if (author := raw_embed.find("author")) is not None:
             embed.set_author(**self._render_author(author, **kwargs))
 
         return embed
-
-
-class EmbedRenderer(_Renderer):
-    """Renderer for embeds"""
-
-    def __init__(self, path: str):
-        super().__init__(path)
-
-
-class MenuRenderer(_Renderer):
-
-    def __init__(self, path: str, identifier: str):
-        super().__init__(path)
-
-        for menu in self.root.findall("menu"):
-            if menu.get("key") == identifier:
-                self.root = menu
-                break
-        else:
-            raise KeyError("Menu key not found")
-
-    @property
-    def number_of_pages(self) -> int:
-        return len(self.root.findall("embed"))
-
-    @property
-    def keys(self) -> List[str]:
-        return list(map(lambda element: element.get("key"), self.root.findall("embed")))
