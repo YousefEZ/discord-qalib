@@ -1,3 +1,5 @@
+from typing import List
+
 from qalib.renderers.file_renderers.renderer_factory import RendererFactory
 
 
@@ -8,3 +10,11 @@ class RendererProxy:
 
     def render(self, key, **kwargs):
         return self._renderer.render(key, **kwargs)
+
+    @property
+    def size(self) -> int:
+        return self._renderer.size
+
+    @property
+    def keys(self) -> List[str]:
+        return self._renderer.keys

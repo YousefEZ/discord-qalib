@@ -2,7 +2,7 @@ import datetime
 import unittest
 
 from qalib.embed_manager import EmbedManager
-from tests.mocked_classes import ContextMocked, MessageMocked
+from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
 
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):

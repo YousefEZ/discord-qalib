@@ -1,19 +1,22 @@
-from discord.ext import commands
+from typing import Optional
 
-from qalib.renderers.file_renderers._xml_renderer import XMLRenderer
+from discord.ext import commands
+from discord.message import Message
+
+from qalib.renderers.renderer_proxy import RendererProxy
 
 
 class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
        Data is stored in .xml files, where they are called and parsed. """
 
-    def __init__(self, ctx: commands.context, renderer: XMLRenderer):
+    def __init__(self, ctx: commands.context, renderer: RendererProxy):
 
-        self._ctx = ctx
-        self._renderer = renderer
-        self.message = None
+        self._ctx: commands.context = ctx
+        self._renderer: RendererProxy = renderer
+        self.message: Optional[Message] = None
 
-    def verify(self, message):
+    def verify(self, message: Message) -> bool:
         """Method verifies if the content of the message is in the contents
 
         Args:
@@ -25,16 +28,16 @@ class ResponseManager:
 
         return message.author == self._ctx.message.author and message.channel == self._ctx.message.channel
 
-    async def get_message(self):
+    async def get_message(self) -> Optional[str]:
         """This method waits for a message to be sent by the user"""
 
-        confirm = await self._ctx.bot.wait_for('message', timeout=59.0, check=self.verify)
+        confirm: Optional[Message] = await self._ctx.bot.wait_for('message', timeout=59.0, check=self.verify)
         return confirm.content if confirm is not None else None
 
-    async def send(self, key: str, **kwargs):
+    async def send(self, key: str, **kwargs) -> Message:
         return await self._ctx.send(embed=self._renderer.render(key, **kwargs))
 
-    async def display(self, key: str, **kwargs):
+    async def display(self, key: str, **kwargs) -> None:
         """this is the main function that we use to send one message, and one message only.
            However edits to that message can take place.
 
