@@ -8,20 +8,19 @@ from qalib.renderers.menu_renderer import MenuRenderer
 from qalib.utils import emojis
 
 
-class Menu:
+class Menu(ResponseManager):
     """Object that manages embed in a form of a menu."""
 
-    def __init__(self, embed_xml: str, menu_key: str, ctx: discord.ext.commands.context):
+    def __init__(self, path: str, menu_key: str, ctx: discord.ext.commands.context):
         """Initialisation method of the Menu object.
         Args:
-            embed_xml (str): the path to the xml file containing the Menu embed
+            path (str): the path to the containing the Menu embed
             menu_key (str): the key of the menu in the xml file
             ctx (discord.ext.commands.context): context, required to display the menu. Defaults to None.
         """
-        self._renderer = MenuRenderer(embed_xml, menu_key)
+        super().__init__(MenuRenderer(path, menu_key), ctx)
         self._ctx = ctx
-        self._manager = ResponseManager(self._ctx, self._renderer)
-        self._reactions = {}
+        self._ui_elements = {}
         self._message = None
         self._exit = False
         self._debug = False
@@ -34,17 +33,17 @@ class Menu:
     def get_context(self) -> discord.ext.commands.context:
         return self._ctx
 
-    def attach_function(self, reaction, function, *args):
+    def attach_function(self, interaction_id: str, function, *args):
         """Attaches a function to the reaction. The function will run if
            the reaction is triggered by the user.
 
         Args:
-            reaction (emoji): unicode string of the emoji.
+            interaction_id (str): the id of the UI element
             function (function): function that is going to be attached to that emoji
             args (tuple): arguments that need to be run as the arguments of the function.
         """
-        self.log(f'*[HANDLER][REACTION][ATTACH] {reaction} <- {function} <- {args}')
-        self._reactions[reaction] = (function, *args)
+        self.log(f'*[HANDLER][REACTION][ATTACH] {interaction_id} <- {function} <- {args}')
+        self._ui_elements[interaction_id] = (function, *args)
         self.log(f'*[HANDLER][REACTION][ATTACH] SUCCESS')
 
     def attach_closing(self, page, *args):
@@ -52,12 +51,12 @@ class Menu:
 
     async def attach_numbers(self, *args, **kwargs):
         """makes the pages behave in a page form."""
-        if self._renderer.number_of_pages == 1:
+        if self._renderer.size == 1:
             return
         for page, i in zip(self._renderer.keys, range(1, 10)):
-            self._reactions[emojis.PAGES[i]] = (Menu.change_page, self, page, args, kwargs)
+            self._ui_elements[emojis.PAGES[i]] = (Menu.change_page, self, page, args, kwargs)
 
-    def verify(self, reaction: discord.reaction.Reaction, user: discord.member.Member):
+    def reaction_verify(self, reaction: discord.reaction.Reaction, user: discord.member.Member):
         """method that checks that the reaction is sent from the user.
 
         Args:
@@ -67,26 +66,13 @@ class Menu:
         Returns:
             boolean: Flag that indicates whether it satisfies the verification function.
         """
-        return user == self._ctx.message.author
-
-    async def attach_reactions(self, message):
-        """Attach reactions
-
-        Args:
-            message (discord.message.Message): discord object representing a message.
-        """
-        for reaction in self._reactions.keys():
-            await message.add_reaction(reaction)
-
-        await asyncio.sleep(2)
-
-    async def hook_message(self, message):
-        """Method that allows you to hook a message, instead of making a new message"""
-        self._manager.message = message
-        await self.clear_reactions()
+        return user == self._ctx.message.author and str(reaction.emoji) in self._ui_elements
 
     def get_message(self):
-        return self._manager.message
+        return self.message
+
+    def interaction_verify(self, interaction, user):
+        return user == self._ctx.message.author and interaction.message.id == self.message.id
 
     async def deploy_menu(self, main: str, **kwargs):
         """This method deploys the menu into the ctx.channel and manages the menu.
@@ -96,21 +82,22 @@ class Menu:
             **kwargs (dict): dictionary of arguments that are passed to the embed
         """
 
-        await self._manager.display(main, **kwargs)
+        await self.display(main, **kwargs)
         self.log(f"*[HANDLER][MENU] DEPLOYED")
 
         while not self._exit:
 
             try:
 
-                for i in self._reactions.keys():
-                    await self._manager.message.add_reaction(i)
+                for i in self._ui_elements.keys():
+                    await self.message.add_reaction(i)
 
                 self.log(f"*[HANDLER][RESPONSE] REACTIONS ATTACHED")
-                reaction, user = await self._ctx.bot.wait_for('reaction_add', timeout=60.0, check=self.verify)
+                reaction, user = await self._ctx.bot.wait_for('interaction', timeout=60.0,
+                                                              check=self.interaction_verify)
                 self.log(f"*[HANDLER][REACTION] READ: {reaction}")
 
-            except asyncio.futures.TimeoutError:
+            except asyncio.TimeoutError:
 
                 self.log(f"*[HANDLER][MENU] TIMED OUT")
                 self._exit = True
@@ -119,18 +106,15 @@ class Menu:
 
                 emoji = reaction.emoji
                 self.log(f"*[HANDLER][CONVERSION] {emoji}")
-                if str(emoji) in self._reactions.keys():
-                    func, *args = self._reactions[str(emoji)]
+                if str(emoji) in self._ui_elements.keys():
+                    func, *args = self._ui_elements[str(emoji)]
                     self.log(f"*[HANDLER][MENU][FUNCTION_TRIGGER] {func} <- {args})")
                     await func(*args)
                 else:
-                    self.log(f"*[HANDLER][EMOJI] {emoji} NOT IN {self._reactions.keys()}")
+                    self.log(f"*[HANDLER][EMOJI] {emoji} NOT IN {self._ui_elements.keys()}")
                 await reaction.remove(user)
 
         await self.exit()
-
-    async def clear_reactions(self):
-        self._ctx.message.clear_reactions()
 
     async def exit(self):
         """Method that exits the menu loop, and begins the closure function"""
@@ -150,19 +134,5 @@ class Menu:
             **kwargs (dict): dictionary of arguments that are passed to the embed
         """
         self.log(f"*[HANDLER][PAGE] CHANGING -> {page}")
-        await self._manager.display(page, **kwargs)
+        await self.display(page, **kwargs)
         self.log(f"*[HANDLER][PAGE] CHANGED")
-
-    async def get_input(self):
-        """This method waits for a message to be sent by the user"""
-        confirm = await self._ctx.bot.wait_for('message', timeout=60.0, check=self.verify)
-
-        if confirm is not None:
-            return confirm.content
-        return None
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self):
-        pass
