@@ -1,10 +1,12 @@
 import json
 from datetime import datetime
-from typing import Dict, List, Optional, Any, cast
+from typing import Dict, List, Optional, Callable, Any, cast
 
 from discord import Embed
 from discord.types.embed import EmbedType
 
+from qalib.renderers.file_renderers.component_renderers.item import Item
+from qalib.renderers.file_renderers.component_renderers.item_factory import ItemFactory
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -70,6 +72,30 @@ class JSONRenderer(Renderer):
     @property
     def keys(self) -> List[str]:
         return list(self._data.keys())
+
+    def _extract_attributes(self, element: Dict[str, Any], **kwargs) -> Dict[str, str]:
+        return {attribute: self._render_attribute(element, attribute, **kwargs) for attribute in element.keys()}
+
+    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
+        """
+
+        Args:
+            identifier:
+            **kwargs:
+
+        Returns:
+
+        """
+
+        view = self._get_raw_embed(identifier).get("view")
+        if view is None:
+            return None
+
+        return [
+            ItemFactory.get_item(item_type)(**self._extract_attributes(item, **kwargs))
+            for item_type in view
+            for item in view.get(item_type)
+        ]
 
     def render(self, identifier: str, **kwargs) -> Embed:
         """Render the desired templated embed in discord.Embed instance
