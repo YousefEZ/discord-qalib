@@ -1,9 +1,11 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Callable
 from xml.etree import ElementTree as ElementTree
 
 from discord import Embed
 
+from qalib.renderers.file_renderers.component_renderers.item import Item
+from qalib.renderers.file_renderers.component_renderers.item_factory import ItemFactory
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -89,6 +91,30 @@ class XMLRenderer(Renderer):
                 break
         else:
             raise KeyError("Menu key not found")
+
+    def _extract_attributes(self, tree: ElementTree.Element, **kwargs) -> Dict[str, str]:
+        return {attribute: self._render_attribute(tree, attribute, **kwargs) for attribute in tree.keys()}
+
+    def render_component(self, component: ElementTree.Element, callback: Callable, **kwargs) -> Item:
+
+        item = ItemFactory.get_item(component.tag)(**self._extract_attributes(component, **kwargs))
+        item.callback = callback
+        return item
+
+    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
+        """
+
+        Args:
+            identifier:
+
+        Returns:
+
+        """
+        view = self._get_raw_embed(identifier).find("view")
+        if view is None:
+            return None
+
+        return [self.render_component(component, callables[component.get("key")], **kwargs) for component in view]
 
     def render(self, identifier: str, **kwargs) -> Embed:
         """Render the desired templated embed in discord.Embed instance
