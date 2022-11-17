@@ -1,3 +1,6 @@
+from typing import Optional, List, Dict, Callable
+
+from qalib.renderers.file_renderers.component_renderers.item import Item
 from abc import ABC, abstractmethod
 
 from discord import Embed
@@ -11,6 +14,10 @@ class Renderer(ABC):
 
     @abstractmethod
     def render(self, identifier: str, **kwargs) -> Embed:
+        raise NotImplementedError
+
+    @abstractmethod
+    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
         raise NotImplementedError
 
     @abstractmethod
