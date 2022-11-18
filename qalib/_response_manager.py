@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Optional, Dict, Callable, List
 
+import discord.ui
 from discord.ext import commands
 from discord.message import Message
 
@@ -34,12 +35,16 @@ class ResponseManager:
         confirm: Optional[Message] = await self._ctx.bot.wait_for('message', timeout=59.0, check=self.verify)
         return confirm.content if confirm is not None else None
 
-    async def send(self, key: str, **kwargs) -> Message:
+    async def send(self, key: str, callables: Dict[str, Callable] = None, **kwargs) -> Message:
+        if callables is None:
+            callables = {}
+        components: List[discord.ui.Item] = self._renderer.render_view(key, callables, **kwargs)
+        view: discord.ui.View = discord.ui.View()
         return await self._ctx.send(embed=self._renderer.render(key, **kwargs))
 
     async def display(self, key: str, **kwargs) -> None:
         """this is the main function that we use to send one message, and one message only.
-           However edits to that message can take place.
+           However, edits to that message can take place.
 
         Args:
             key (str): Unique identifier for the desired embed in the xml file

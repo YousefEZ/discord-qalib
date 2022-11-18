@@ -3,8 +3,8 @@ from typing import Optional, List, Dict, Callable
 from xml.etree import ElementTree as ElementTree
 
 from discord import Embed
+from discord.ui import Item
 
-from qalib.renderers.file_renderers.component_renderers.item import Item
 from qalib.renderers.file_renderers.component_renderers.item_factory import ItemFactory
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
@@ -105,6 +105,7 @@ class XMLRenderer(Renderer):
         """
 
         Args:
+            callables:
             identifier:
 
         Returns:

@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Callable, Any, cast
 from discord import Embed
 from discord.types.embed import EmbedType
 
-from qalib.renderers.file_renderers.component_renderers.item import Item
+from qalib.renderers.file_renderers.component_renderers.virtual_items import Item
 from qalib.renderers.file_renderers.component_renderers.item_factory import ItemFactory
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
