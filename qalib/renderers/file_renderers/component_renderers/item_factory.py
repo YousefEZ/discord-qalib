@@ -1,15 +1,16 @@
-from typing import Type
+from typing import Type, Union
 
-from discord.ui import Button, Select, Item
+from discord.ui import Button, Select, TextInput
 
+ItemType = Type[Union[Button, Select, TextInput]]
 
 class ItemFactory:
 
     @staticmethod
-    def get_item(item_tag: str) -> Type[Item]:
+    def get_item(item_tag: str) -> ItemType:
         if item_tag == "button":
             return Button
-        elif item_tag == "select":
-            return Select
+        elif item_tag == "textinput":
+            return TextInput
 
         raise ValueError("Invalid item tag")
