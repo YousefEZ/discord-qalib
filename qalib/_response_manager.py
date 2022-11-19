@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Callable, List
+from typing import Optional, Dict, Callable
 
 import discord.ui
 from discord.ext import commands
@@ -38,9 +38,8 @@ class ResponseManager:
     async def send(self, key: str, callables: Dict[str, Callable] = None, **kwargs) -> Message:
         if callables is None:
             callables = {}
-        components: List[discord.ui.Item] = self._renderer.render_view(key, callables, **kwargs)
-        view: discord.ui.View = discord.ui.View()
-        return await self._ctx.send(embed=self._renderer.render(key, **kwargs))
+        view: Optional[discord.ui.View] = self._renderer.render_view(key, callables, **kwargs)
+        return await self._ctx.send(embed=self._renderer.render(key, **kwargs), view=view)
 
     async def display(self, key: str, **kwargs) -> None:
         """this is the main function that we use to send one message, and one message only.
