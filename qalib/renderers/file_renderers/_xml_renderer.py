@@ -1,17 +1,19 @@
 from datetime import datetime
-from typing import Optional, List, Dict, Callable
+from typing import Optional, List, Dict, Callable, Any
 from xml.etree import ElementTree as ElementTree
 
 from discord import Embed
-from discord.ui import Item
+from discord.ui import Item, Button
 
-from qalib.renderers.file_renderers.component_renderers.item_factory import ItemFactory
+from qalib.renderers.file_renderers._item_wrappers import create_button
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
 
 class XMLRenderer(Renderer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
+
+    __slots__ = ("root",)
 
     def __init__(self, path: str):
         """Initialisation of the Renderer
@@ -44,7 +46,7 @@ class XMLRenderer(Renderer):
         return element.text.format(**kwargs)
 
     @staticmethod
-    def _render_attribute(element, attribute, **kwargs):
+    def _render_attribute(element: ElementTree.Element, attribute: str, **kwargs):
         if (value := element.get(attribute)) is None:
             return ""
         return value.format(**kwargs)
@@ -92,14 +94,34 @@ class XMLRenderer(Renderer):
         else:
             raise KeyError("Menu key not found")
 
-    def _extract_attributes(self, tree: ElementTree.Element, **kwargs) -> Dict[str, str]:
+    @staticmethod
+    def _render_emoji(emoji_element: ElementTree.Element, **kwargs) -> Optional[Dict[str, str]]:
+        return {
+            "name": emoji_element.get("name").format(**kwargs),
+            "id": emoji_element.get("id").format(**kwargs),
+            "animated": emoji_element.get("animated").format(**kwargs) == "True"
+        }
+
+    def _extract_attributes(self, tree: ElementTree.Element, **kwargs) -> Dict[str, Any]:
         return {attribute: self._render_attribute(tree, attribute, **kwargs) for attribute in tree.keys()}
+
+    def _render_button(self, component: ElementTree.Element, callback: Callable, **kwargs) -> Item:
+        component.remove(emoji_component := component.find("emoji"))
+
+        attributes = self._extract_attributes(component, **kwargs)
+        if emoji_component is not None:
+            attributes["emoji"] = self._render_emoji(emoji_component, **kwargs)
+
+        button: Button = create_button(**attributes)
+        button.callback = callback
+        return button
 
     def render_component(self, component: ElementTree.Element, callback: Callable, **kwargs) -> Item:
 
-        item = ItemFactory.get_item(component.tag)(**self._extract_attributes(component, **kwargs))
-        item.callback = callback
-        return item
+        if component.tag == "button":
+            return self._render_button(component, callback, **kwargs)
+
+        raise ValueError(f"Unknown component type: {component.tag}")
 
     def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
         """

@@ -1,9 +1,8 @@
+from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Callable
 
-from qalib.renderers.file_renderers.component_renderers.virtual_items import Item
-from abc import ABC, abstractmethod
-
 from discord import Embed
+from discord.ui import Item
 
 
 class Renderer(ABC):

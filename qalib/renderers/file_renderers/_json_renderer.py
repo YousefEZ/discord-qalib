@@ -1,17 +1,18 @@
 import json
 from datetime import datetime
-from typing import Dict, List, Optional, Callable, Any, cast
+from typing import Dict, List, Optional, Callable, Any, Union, cast
 
 from discord import Embed
 from discord.types.embed import EmbedType
+from discord.ui import Item, Button
 
-from qalib.renderers.file_renderers.component_renderers.virtual_items import Item
-from qalib.renderers.file_renderers.component_renderers.item_factory import ItemFactory
+from qalib.renderers.file_renderers._item_wrappers import create_button
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
 
 class JSONRenderer(Renderer):
+    __slots__ = ("_data",)
 
     def __init__(self, path: str):
         with open(path, "r") as file:
@@ -73,13 +74,37 @@ class JSONRenderer(Renderer):
     def keys(self) -> List[str]:
         return list(self._data.keys())
 
-    def _extract_attributes(self, element: Dict[str, Any], **kwargs) -> Dict[str, str]:
+    @staticmethod
+    def _render_emoji(emoji_element: Dict[str, str], **kwargs) -> Optional[Dict[str, str]]:
+        return {"name": emoji_element.get("name").format(**kwargs),
+                "id": emoji_element.get("id").format(**kwargs),
+                "animated": emoji_element.get("animated").format(**kwargs) == "True"
+                }
+
+    def _extract_attributes(self, element: Dict[str, Any], **kwargs) -> Dict[str, Union[str, Dict[str, str]]]:
         return {attribute: self._render_attribute(element, attribute, **kwargs) for attribute in element.keys()}
+
+    def _render_button(self, component: Dict[str, Union[str, Dict[str, Any]]], callback: Callable, **kwargs) -> Item:
+
+        attributes = self._extract_attributes(component, **kwargs)
+        if "emoji" in component:
+            attributes["emoji"] = self._render_emoji(component.pop("emoji"), **kwargs)
+
+        button: Button = create_button(**attributes)
+        button.callback = callback
+        return button
+
+    def render_component(self, component: Dict[str, Union[str, Dict[str, Any]]], callback: Callable, **kwargs) -> Item:
+        if component["tag"] == "button":
+            return self._render_button(component, callback, **kwargs)
+
+        raise ValueError(f"Unknown component type: {component['tag']}")
 
     def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
         """
 
         Args:
+            callables:
             identifier:
             **kwargs:
 
@@ -91,11 +116,7 @@ class JSONRenderer(Renderer):
         if view is None:
             return None
 
-        return [
-            ItemFactory.get_item(item_type)(**self._extract_attributes(item, **kwargs))
-            for item_type in view
-            for item in view.get(item_type)
-        ]
+        return [self.render_component(component, callables[key], **kwargs) for key, component in view.items()]
 
     def render(self, identifier: str, **kwargs) -> Embed:
         """Render the desired templated embed in discord.Embed instance
