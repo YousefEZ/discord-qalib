@@ -55,7 +55,7 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# The suffix(es) of doc filenames.
+# The suffix(es) of docs filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
@@ -71,8 +71,8 @@ master_doc = 'index'
 # Usually you set "language" from the command line for these cases.
 language = None
 
-# List of patterns, relative to doc directory, that match files and
-# directories to ignore when looking for doc files.
+# List of patterns, relative to docs directory, that match files and
+# directories to ignore when looking for docs files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
@@ -134,7 +134,7 @@ latex_elements = {
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
-# (doc start file, target name, title,
+# (docs start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'Discord-Qalib.tex', 'Discord-Qalib Documentation',
@@ -144,7 +144,7 @@ latex_documents = [
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
-# (doc start file, name, description, authors, manual section).
+# (docs start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'discord-qalib', 'Discord-Qalib Documentation',
      [author], 1)
@@ -153,7 +153,7 @@ man_pages = [
 # -- Options for Texinfo output ----------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
-# (doc start file, target name, title, author,
+# (docs start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'Discord-Qalib', 'Discord-Qalib Documentation',
