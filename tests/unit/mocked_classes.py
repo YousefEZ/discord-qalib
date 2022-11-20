@@ -23,8 +23,13 @@ class MessageMocked:
         self.embed = embed
         self.view = view
 
-    async def edit(self, embed=None):
+    async def edit(self, author=None, channel=None, content=None, embed: Optional[discord.Embed] = None,
+                   view: Optional[discord.ui.View] = None):
+        self.author = author
+        self.channel = channel
+        self.content = content
         self.embed = embed
+        self.view = view
 
 
 class BotMocked:
