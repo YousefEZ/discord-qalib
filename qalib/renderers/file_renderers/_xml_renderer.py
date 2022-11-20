@@ -99,9 +99,9 @@ class XMLRenderer(Renderer):
         emoji = {}
         if (name := emoji_element.find("name")) is not None:
             emoji["name"] = XMLRenderer._render_element(name, **kwargs)
-        if (id := emoji_element.get("id")) is not None:
+        if (id := emoji_element.find("id")) is not None:
             emoji["id"] = XMLRenderer._render_element(id, **kwargs)
-        if (animated := emoji_element.get("animated")) is not None:
+        if (animated := emoji_element.find("animated")) is not None:
             emoji["animated"] = XMLRenderer._render_element(animated, **kwargs) == "True"
         return (None, emoji)[len(emoji) > 0]
 

@@ -33,7 +33,9 @@ class JSONRenderer(Renderer):
     def _render_attribute(element: Dict[str, str], attribute, **kwargs) -> str:
         if (value := element.get(attribute)) is None:
             return ""
-        return value.format(**kwargs)
+        if isinstance(element[attribute], str):
+            return value.format(**kwargs)
+        return value
 
     def _render_timestamp(self, timestamp: Optional[Dict[str, str]], **kwargs) -> Optional[datetime]:
         if timestamp is not None:
@@ -76,10 +78,15 @@ class JSONRenderer(Renderer):
 
     @staticmethod
     def _render_emoji(emoji_element: Dict[str, str], **kwargs) -> Optional[Dict[str, str]]:
-        return {"name": emoji_element.get("name").format(**kwargs),
-                "id": emoji_element.get("id").format(**kwargs),
-                "animated": emoji_element.get("animated").format(**kwargs) == "True"
-                }
+        emoji = {}
+        if "name" in emoji_element:
+            emoji["name"] = JSONRenderer._render_attribute(emoji_element, "name", **kwargs)
+        if "id" in emoji_element:
+            emoji["id"] = JSONRenderer._render_attribute(emoji_element, "id", **kwargs)
+        if "animated" in emoji_element:
+            animated = JSONRenderer._render_attribute(emoji_element, "animated", **kwargs)
+            emoji["animated"] = animated if type(animated) == bool else animated.lower() == "true"
+        return (None, emoji)[len(emoji) > 0]
 
     def _extract_attributes(self, element: Dict[str, Any], **kwargs) -> Dict[str, Union[str, Dict[str, str]]]:
         return {attribute: self._render_attribute(element, attribute, **kwargs) for attribute in element.keys()}
@@ -91,9 +98,11 @@ class JSONRenderer(Renderer):
             **kwargs
     ) -> ui.Item:
 
+        emoji = self._render_emoji(component.pop("emoji"), **kwargs) if "emoji" in component else None
+
         attributes = self._extract_attributes(component, **kwargs)
-        if "emoji" in component:
-            attributes["emoji"] = self._render_emoji(component.pop("emoji"), **kwargs)
+        if emoji is not None:
+            attributes["emoji"] = emoji
 
         button: ui.Button = create_button(**attributes)
         button.callback = callback
