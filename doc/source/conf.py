@@ -18,10 +18,14 @@
 
 
 # -- Project information -----------------------------------------------------
+import os
+import sys
 
 project = 'Discord-Qalib'
 copyright = '2022, Yousef Zaher'
 author = 'Yousef Zaher'
+sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../qalib'))
 
 # The short X.Y version
 version = ''
@@ -161,6 +165,13 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = project
+
+html_context = {
+    "display_github": True,  # Integrate GitHub
+    "github_repo": "yousefez/discord-qalib",  # Repo name
+    "github_version": "main",  # Version
+    "conf_py_path": "docs/source/",  # Path in the checkout to the docs root
+}
 
 # The unique identifier of the text. This can be a ISBN number
 # or the project homepage.
