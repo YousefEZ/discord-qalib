@@ -24,18 +24,11 @@ def make_emoji(emoji: Optional[Union[str, dict]]) -> Optional[Union[str, discord
     if emoji is None:
         return None
 
-    if "name" in emoji and "id" not in emoji:
-        return emoji["name"]
-    elif "id" in emoji:
-        return discord.emoji.PartialEmoji(name=emoji["name"],
-                                          id=emoji["id"],
-                                          animated=emoji.get("animated", "False") == "True")
-
-    raise ValueError("Invalid emoji")
+    return discord.emoji.PartialEmoji.from_dict(emoji)
 
 
-def create_button(**kwargs) -> discord.ui.Button:
-    return discord.ui.Button(
+def create_button(**kwargs) -> ui.Button:
+    return ui.Button(
         style=make_button_style(kwargs.get("style")),
         label=kwargs.get("label"),
         disabled=kwargs.get("disabled", "False").lower() == "True",
