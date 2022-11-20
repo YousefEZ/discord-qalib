@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Callable
+from typing import Any, Optional, List, Dict, Callable
 
 import discord
 import discord.ui as ui
@@ -12,11 +12,16 @@ class Renderer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def render(self, identifier: str, **kwargs) -> discord.Embed:
+    def render(self, identifier: str, keywords: Optional[Dict[str, Any]] = None) -> discord.Embed:
         raise NotImplementedError
 
     @abstractmethod
-    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[ui.Item]]:
+    def render_components(
+            self,
+            identifier: str,
+            callables: Dict[str, Callable],
+            keywords: Dict[str, Any]
+    ) -> Optional[List[ui.Item]]:
         raise NotImplementedError
 
     @abstractmethod

@@ -3,7 +3,6 @@
 [![Discord-Qalib Tests](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml/badge.svg)](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml)
 [![codecov](https://codecov.io/gh/YousefEZ/discord-qalib/branch/main/graph/badge.svg?token=3EG4ZF8K3R)](https://codecov.io/gh/YousefEZ/discord-qalib)
 
-
 Discord templating engine built on discord.py, to help separate text of embeds from the source code. Inspired by Django
 and Jinja.
 
@@ -67,6 +66,13 @@ Sample XML file:
             <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
             <url>https://discordapp.com</url>
         </author>
+        <view>
+            <button key="understood_button">
+                <label>Understood</label>
+                <style>success</style>
+                <url>https://discordapp.com</url>
+            </button>
+        </view>
     </embed>
 </discord>
 ```
@@ -84,8 +90,16 @@ from qalib import EmbedManager
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 
+async def acknowledged(interaction: discord.Interaction):
+    await interaction.response.send_message("Acknowledged", ephemeral=True)
+
+
 @bot.command()
 async def test(ctx):
     embedManager = EmbedManager(ctx, bot, "test.xml")
-    await embedManager.send("test_key", todays_date=datetime.datetime.now())
+    callables = {"understood_button": acknowledged}
+
+    await embedManager.send("test_key", callables, keywords={
+        "todays_date": datetime.datetime.now()
+    })
 ```

@@ -1,4 +1,4 @@
-from typing import List, Dict, Callable, Optional
+from typing import Any, List, Dict, Callable, Optional
 
 import discord.ui
 
@@ -11,21 +11,36 @@ class RendererProxy:
     def __init__(self, path):
         self._renderer = RendererFactory.get_renderer(path)
 
-    def render(self, key, **kwargs):
-        return self._renderer.render(key, **kwargs)
+    def render(self, key: str, keywords: Optional[Dict[str, Any]] = None) -> discord.Embed:
+        if keywords is None:
+            keywords = {}
+        return self._renderer.render(key, keywords)
 
     def render_view(
             self,
             identifier: str,
             callbacks: Optional[Dict[str, Callable]] = None,
             timeout: Optional[int] = 180,
-            **kwargs
+            keywords: Optional[Dict[str, Any]] = None
     ) -> Optional[discord.ui.View]:
+        """Methods that renders a view from the Renderer
+
+        Args:
+            identifier (str): identifier of the embed
+            callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view
+            timeout (Optional[int]): timeout of the view
+            keywords (Optional[Dict[str, Any]]): keywords that are used to format the components
+
+        Returns (Optional[discord.ui.View]): View object that is rendered from the Renderer
+        """
 
         if callbacks is None:
             callbacks = {}
 
-        components: Optional[List[discord.ui.Item]] = self._renderer.render_components(identifier, callbacks, **kwargs)
+        if keywords is None:
+            keywords = {}
+
+        components: Optional[List[discord.ui.Item]] = self._renderer.render_components(identifier, callbacks, keywords)
         if components is None:
             return None
 
