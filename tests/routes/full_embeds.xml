@@ -3,7 +3,7 @@
         <title>Test</title>
         <description>Test Description</description>
         <type>rich</type>
-        <colour>magenta</colour>
+        <colour>55,55,55</colour>
         <timestamp>{todays_date}</timestamp>
         <url>https://www.discord.com</url>
         <fields>
@@ -52,7 +52,43 @@
             <button key="button1">
                 <style>primary</style>
                 <emoji>
+                    <name>randomemoji</name>
+                    <id>123456789</id>
+                    <animated>true</animated>
+                </emoji>
+                <label>Test Button</label>
+                <url>https://www.discord.com</url>
+            </button>
+            <button key="button2">
+                <style>secondary</style>
+                <emoji>
+                    <name>random2</name>
+                    <id>123456789</id>
+                    <animated>false</animated>
+                </emoji>
+                <label>Test Button</label>
+                <url>https://www.discord.com</url>
+            </button>
+            <button key="button3">
+                <style>success</style>
+                <emoji>
+                    <name>✅</name>
+                </emoji>
+                <label>Test Button</label>
+                <url>https://www.discord.com</url>
+            </button>
+            <button key="button4">
+                <style>danger</style>
+                <emoji>
                     <name>🔥</name>
+                </emoji>
+                <label>Test Button</label>
+                <url>https://www.discord.com</url>
+            </button>
+            <button key="button5">
+                <style>link</style>
+                <emoji>
+                    <name>🔗</name>
                 </emoji>
                 <label>Test Button</label>
                 <url>https://www.discord.com</url>

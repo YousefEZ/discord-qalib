@@ -3,7 +3,7 @@
     "title": "Test",
     "description": "Test Description",
     "type": "rich",
-    "colour": "magenta",
+    "colour": "55,55,55",
     "timestamp": {
       "date": "{todays_date}"
     },
@@ -57,7 +57,36 @@
         "type": "button",
         "label": "Test Button",
         "url": "https://www.discord.com",
-        "style": "primary"
+        "style": "primary",
+        "emoji": {
+          "name": "randomemoji",
+          "id": "123456789",
+          "animated": false
+        }
+      },
+      "button2": {
+        "type": "button",
+        "label": "Test Button",
+        "url": "https://www.discord.com",
+        "style": "secondary"
+      },
+      "button3": {
+        "type": "button",
+        "label": "Test Button",
+        "url": "https://www.discord.com",
+        "style": "success"
+      },
+      "button4": {
+        "type": "button",
+        "label": "Test Button",
+        "url": "https://www.discord.com",
+        "style": "danger"
+      },
+      "button5": {
+        "type": "button",
+        "label": "Test Button",
+        "url": "https://www.discord.com",
+        "style": "link"
       }
     }
   }
