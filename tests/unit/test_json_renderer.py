@@ -23,3 +23,9 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
         self.assertRaises(KeyError, renderer.render, "not_a_key")
+
+    def test_button_rendering(self):
+        path = "tests/routes/full_embeds.json"
+        renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
+        view = renderer.render_view("test_key2", todays_date=datetime.datetime.now())
+        self.assertEqual(len(view.children), 1)

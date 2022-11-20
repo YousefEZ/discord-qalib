@@ -35,6 +35,12 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
         self.assertEqual(self.ctx.message.embed.title, "Test2")
 
+    async def test_xml_display_message_with_buttons(self):
+        embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.xml")
+
+        await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
+        self.assertEqual(len(self.ctx.message.view.children), 1)
+
     async def test_json_embed_manager(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/simple_embeds.json")
         await embed_manager.display("Launch")
@@ -59,3 +65,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
         self.assertEqual(self.ctx.message.embed.title, "Test2")
+
+    async def test_json_display_message_with_buttons(self):
+        embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.json")
+
+        await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
+        self.assertEqual(len(self.ctx.message.view.children), 1)
