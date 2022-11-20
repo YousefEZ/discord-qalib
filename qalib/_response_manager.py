@@ -57,13 +57,6 @@ class ResponseManager:
 
         Returns (discord.Embed, Optional[ui.View]): tuple of the embed and the view
         """
-
-        if callables is None:
-            callables = {}
-
-        if keywords is None:
-            keywords = {}
-
         view: Optional[ui.View] = self._renderer.render_view(identifier, callables, timeout, keywords)
         embed: discord.Embed = self._renderer.render(identifier, keywords)
         return embed, view
@@ -88,8 +81,6 @@ class ResponseManager:
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        if keywords is None:
-            keywords = {}
         embed, view = self._render(identifier, callables, keywords, timeout)
         return await self._ctx.send(embed=embed, view=view, **kwargs)
 
