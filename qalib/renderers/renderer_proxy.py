@@ -1,7 +1,6 @@
 from typing import List, Dict, Callable, Optional
 
-from discord.ui import View
-from discord.ui.item import Item
+import discord.ui
 
 from qalib.renderers.file_renderers.renderer_factory import RendererFactory
 
@@ -18,19 +17,19 @@ class RendererProxy:
     def render_view(
             self,
             identifier: str,
-            callbacks: Optional[Dict[str, Callable]],
+            callbacks: Optional[Dict[str, Callable]] = None,
             timeout: Optional[int] = 180,
             **kwargs
-    ) -> Optional[View]:
+    ) -> Optional[discord.ui.View]:
 
         if callbacks is None:
             callbacks = {}
 
-        components: Optional[List[Item]] = self._renderer.render_components(identifier, callbacks, **kwargs)
+        components: Optional[List[discord.ui.Item]] = self._renderer.render_components(identifier, callbacks, **kwargs)
         if components is None:
             return None
 
-        view = View(timeout=timeout)
+        view = discord.ui.View(timeout=timeout)
         for component in components:
             view.add_item(component)
         return view
