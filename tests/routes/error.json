@@ -1,0 +1,40 @@
+{
+  "test1": {
+    "title": "Test 1",
+    "description": "Test 1",
+    "colour": "magenta",
+    "fields": [
+      {
+        "name": "Test 1",
+        "value": "Test 1"
+      }
+    ],
+    "view": {
+      "button1": {
+        "label": "Test 1",
+        "type": "button",
+        "url": "https://www.google.com",
+        "emoji": {
+          "animated": false
+        }
+      }
+    }
+  },
+  "test2": {
+    "title": "Test 2",
+    "description": "Test 2",
+    "colour": "magenta",
+    "fields": [
+      {
+        "name": "Test 2",
+        "value": "Test 2"
+      }
+    ],
+    "view": {
+      "randomElement": {
+        "type": "randomElement",
+        "label": "Test 2"
+      }
+    }
+  }
+}

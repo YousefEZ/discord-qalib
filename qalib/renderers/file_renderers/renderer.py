@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import Optional, List, Dict, Callable
 
-from discord import Embed
+import discord
+import discord.ui as ui
 
 
 class Renderer(ABC):
@@ -10,7 +12,11 @@ class Renderer(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def render(self, identifier: str, **kwargs) -> Embed:
+    def render(self, identifier: str, **kwargs) -> discord.Embed:
+        raise NotImplementedError
+
+    @abstractmethod
+    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[ui.Item]]:
         raise NotImplementedError
 
     @abstractmethod

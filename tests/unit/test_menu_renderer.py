@@ -31,7 +31,6 @@ class MenuRendererTest(unittest.TestCase):
         renderer = MenuRenderer(path, "Menu1")
         self.assertEqual(renderer.keys, ["test_key1", "test_key2"])
 
-
     def test_json_render(self):
         path = "tests/routes/menus.json"
         renderer = MenuRenderer(path, "Menu1")

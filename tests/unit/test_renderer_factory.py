@@ -1,7 +1,7 @@
 import unittest
 
-from qalib.renderers.file_renderers._xml_renderer import XMLRenderer
 from qalib.renderers.file_renderers._json_renderer import JSONRenderer
+from qalib.renderers.file_renderers._xml_renderer import XMLRenderer
 from qalib.renderers.file_renderers.renderer_factory import RendererFactory
 
 
@@ -20,6 +20,3 @@ class TestRendererFactory(unittest.TestCase):
     def test_no_render(self):
         path = ""
         self.assertRaises(ValueError, RendererFactory.get_renderer, path)
-
-if __name__ == '__main__':
-    unittest.main()

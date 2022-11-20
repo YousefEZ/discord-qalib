@@ -25,7 +25,7 @@ COLOURS = {'teal': 0x1abc9c,
            'greyple': 0x99aab5}
 
 
-def get_colour(colour):
+def get_colour(colour) -> Colour:
     """maps the name of the a colour to its value
     Args:
         colour (str): the name of the colour, or it's rgb components.
@@ -36,5 +36,4 @@ def get_colour(colour):
         return COLOURS[colour.replace(' ', '_')]
     colour = colour.split(',')
     colour = map(int, colour)
-    Colour.from_rgb(*colour)
-    return colour
+    return Colour.from_rgb(*colour)
