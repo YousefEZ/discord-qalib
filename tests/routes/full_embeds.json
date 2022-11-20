@@ -51,6 +51,14 @@
       "name": "Test Author",
       "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
       "url": "https://discordapp.com"
+    },
+    "view": {
+      "button1": {
+        "type": "button",
+        "label": "Test Button",
+        "url": "https://www.discord.com",
+        "style": "primary"
+      }
     }
   }
 }
