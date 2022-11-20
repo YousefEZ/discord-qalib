@@ -28,4 +28,14 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
         view = renderer.render_view("test_key2", todays_date=datetime.datetime.now())
-        self.assertEqual(len(view.children), 1)
+        self.assertEqual(len(view.children), 5)
+
+    def test_emoji_error(self):
+        path = "tests/routes/error.json"
+        renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
+        self.assertRaises(ValueError, renderer.render_view, "test1")
+
+    def test_element_error(self):
+        path = "tests/routes/error.json"
+        renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
+        self.assertRaises(ValueError, renderer.render_view, "test2")
