@@ -21,7 +21,7 @@ class TestXMLRenderer(unittest.TestCase):
     def test_full_render(self):
         path = "tests/routes/full_embeds.xml"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
-        embed = renderer.render("test_key", todays_date=datetime.datetime.now())
+        embed = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(embed.title, "Test")
 
     def test_key_not_exist(self):
@@ -32,7 +32,7 @@ class TestXMLRenderer(unittest.TestCase):
     def test_button_rendering(self):
         path = "tests/routes/full_embeds.xml"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
-        view = renderer.render_view("test_key2", todays_date=datetime.datetime.now())
+        view = renderer.render_view("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(view.children), 5)
 
     def test_emoji_error(self):

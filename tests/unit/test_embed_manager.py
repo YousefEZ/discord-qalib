@@ -29,16 +29,16 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_display_message(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.xml")
 
-        await embed_manager.display("test_key", todays_date=datetime.datetime.now())
+        await embed_manager.display("test_key", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(self.ctx.message.embed.title, "Test")
 
-        await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
+        await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(self.ctx.message.embed.title, "Test2")
 
     async def test_xml_display_message_with_buttons(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.xml")
 
-        await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
+        await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(self.ctx.message.view.children), 5)
 
     async def test_json_embed_manager(self):
@@ -60,14 +60,14 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_json_display_message(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.json")
 
-        await embed_manager.display("test_key", todays_date=datetime.datetime.now())
+        await embed_manager.display("test_key", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(self.ctx.message.embed.title, "Test")
 
-        await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
+        await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(self.ctx.message.embed.title, "Test2")
 
     async def test_json_display_message_with_buttons(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.json")
 
-        await embed_manager.display("test_key2", todays_date=datetime.datetime.now())
+        await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(self.ctx.message.view.children), 5)
