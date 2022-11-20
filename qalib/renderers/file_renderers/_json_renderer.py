@@ -2,9 +2,9 @@ import json
 from datetime import datetime
 from typing import Dict, List, Optional, Callable, Any, Union, cast
 
-from discord import Embed
-from discord.types.embed import EmbedType
-from discord.ui import Item, Button
+import discord
+import discord.types.embed
+import discord.ui as ui
 
 from qalib.renderers.file_renderers._item_wrappers import create_button
 from qalib.renderers.file_renderers.renderer import Renderer
@@ -84,23 +84,33 @@ class JSONRenderer(Renderer):
     def _extract_attributes(self, element: Dict[str, Any], **kwargs) -> Dict[str, Union[str, Dict[str, str]]]:
         return {attribute: self._render_attribute(element, attribute, **kwargs) for attribute in element.keys()}
 
-    def _render_button(self, component: Dict[str, Union[str, Dict[str, Any]]], callback: Callable, **kwargs) -> Item:
+    def _render_button(
+            self,
+            component: Dict[str, Union[str, Dict[str, Any]]],
+            callback: Optional[Callable],
+            **kwargs
+    ) -> ui.Item:
 
         attributes = self._extract_attributes(component, **kwargs)
         if "emoji" in component:
             attributes["emoji"] = self._render_emoji(component.pop("emoji"), **kwargs)
 
-        button: Button = create_button(**attributes)
+        button: ui.Button = create_button(**attributes)
         button.callback = callback
         return button
 
-    def render_component(self, component: Dict[str, Union[str, Dict[str, Any]]], callback: Callable, **kwargs) -> Item:
-        if component["tag"] == "button":
+    def render_component(
+            self,
+            component: Dict[str, Union[str, Dict[str, Any]]],
+            callback: Optional[Callable],
+            **kwargs
+    ) -> ui.Item:
+        if (component_type := component.pop("type")) == "button":
             return self._render_button(component, callback, **kwargs)
 
-        raise ValueError(f"Unknown component type: {component['tag']}")
+        raise ValueError(f"Unknown component type: {component_type}")
 
-    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
+    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[ui.Item]]:
         """
 
         Args:
@@ -116,9 +126,9 @@ class JSONRenderer(Renderer):
         if view is None:
             return None
 
-        return [self.render_component(component, callables[key], **kwargs) for key, component in view.items()]
+        return [self.render_component(component, callables.get(key), **kwargs) for key, component in view.items()]
 
-    def render(self, identifier: str, **kwargs) -> Embed:
+    def render(self, identifier: str, **kwargs) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance
 
         Args:
@@ -133,17 +143,18 @@ class JSONRenderer(Renderer):
         def render(attribute: str) -> str:
             return self._render_attribute(raw_embed, attribute, **kwargs)
 
-        embed_type: EmbedType = "rich"
-        if cast(EmbedType, given_type := render("type")) != "":
-            embed_type = cast(EmbedType, given_type)
+        embed_type: discord.types.embed.EmbedType = "rich"
+        if cast(discord.types.embed.EmbedType, given_type := render("type")) != "":
+            embed_type = cast(discord.types.embed.EmbedType, given_type)
 
-        embed = Embed(title=render("title"),
-                      colour=colours.get_colour(colour if (colour := render("colour")) != "" else render("color")),
-                      type=embed_type,
-                      url=render("url"),
-                      description=render("description"),
-                      timestamp=self._render_timestamp(raw_embed.get("timestamp"), **kwargs)
-                      )
+        embed = discord.Embed(title=render("title"),
+                              colour=colours.get_colour(
+                                  colour if (colour := render("colour")) != "" else render("color")),
+                              type=embed_type,
+                              url=render("url"),
+                              description=render("description"),
+                              timestamp=self._render_timestamp(raw_embed.get("timestamp"), **kwargs)
+                              )
 
         for field in self._render_fields(raw_embed["fields"], **kwargs):
             embed.add_field(**field)

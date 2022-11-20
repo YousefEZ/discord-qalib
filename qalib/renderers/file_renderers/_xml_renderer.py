@@ -2,8 +2,8 @@ from datetime import datetime
 from typing import Optional, List, Dict, Callable, Any
 from xml.etree import ElementTree as ElementTree
 
-from discord import Embed
-from discord.ui import Item, Button
+import discord
+import discord.ui as ui
 
 from qalib.renderers.file_renderers._item_wrappers import create_button
 from qalib.renderers.file_renderers.renderer import Renderer
@@ -96,34 +96,37 @@ class XMLRenderer(Renderer):
 
     @staticmethod
     def _render_emoji(emoji_element: ElementTree.Element, **kwargs) -> Optional[Dict[str, str]]:
-        return {
-            "name": emoji_element.get("name").format(**kwargs),
-            "id": emoji_element.get("id").format(**kwargs),
-            "animated": emoji_element.get("animated").format(**kwargs) == "True"
-        }
+        emoji = {}
+        if (name := emoji_element.find("name")) is not None:
+            emoji["name"] = XMLRenderer._render_element(name, **kwargs)
+        if (id := emoji_element.get("id")) is not None:
+            emoji["id"] = XMLRenderer._render_element(id, **kwargs)
+        if (animated := emoji_element.get("animated")) is not None:
+            emoji["animated"] = XMLRenderer._render_element(animated, **kwargs) == "True"
+        return (None, emoji)[len(emoji) > 0]
 
-    def _extract_attributes(self, tree: ElementTree.Element, **kwargs) -> Dict[str, Any]:
-        return {attribute: self._render_attribute(tree, attribute, **kwargs) for attribute in tree.keys()}
+    def _extract_elements(self, tree: ElementTree.Element, **kwargs) -> Dict[str, Any]:
+        return {element.tag: self._render_element(element, **kwargs) for element in tree}
 
-    def _render_button(self, component: ElementTree.Element, callback: Callable, **kwargs) -> Item:
+    def _render_button(self, component: ElementTree.Element, callback: Optional[Callable], **kwargs) -> ui.Button:
         component.remove(emoji_component := component.find("emoji"))
 
-        attributes = self._extract_attributes(component, **kwargs)
+        attributes = self._extract_elements(component, **kwargs)
         if emoji_component is not None:
             attributes["emoji"] = self._render_emoji(emoji_component, **kwargs)
 
-        button: Button = create_button(**attributes)
+        button: ui.Button = create_button(**attributes)
         button.callback = callback
         return button
 
-    def render_component(self, component: ElementTree.Element, callback: Callable, **kwargs) -> Item:
+    def render_component(self, component: ElementTree.Element, callback: Optional[Callable], **kwargs) -> ui.Item:
 
         if component.tag == "button":
             return self._render_button(component, callback, **kwargs)
 
         raise ValueError(f"Unknown component type: {component.tag}")
 
-    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[Item]]:
+    def render_components(self, identifier: str, callables: Dict[str, Callable], **kwargs) -> Optional[List[ui.Item]]:
         """
 
         Args:
@@ -137,9 +140,16 @@ class XMLRenderer(Renderer):
         if view is None:
             return None
 
-        return [self.render_component(component, callables[component.get("key")], **kwargs) for component in view]
+        return [
+            self.render_component(
+                component,
+                callables.get(key) if (key := self._render_attribute(component, "key", **kwargs)) else None,
+                **kwargs
+            )
+            for component in view
+        ]
 
-    def render(self, identifier: str, **kwargs) -> Embed:
+    def render(self, identifier: str, **kwargs) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance
 
         Args:
@@ -154,13 +164,13 @@ class XMLRenderer(Renderer):
         def render(name: str):
             return self._render_element(raw_embed.find(name), **kwargs)
 
-        embed = Embed(title=render("title"),
-                      colour=colours.get_colour(render("colour")),
-                      type=embed_type if (embed_type := render("type")) != "" else "rich",
-                      url=render("url"),
-                      description=render("description"),
-                      timestamp=self._render_timestamp(raw_embed.find("timestamp"), **kwargs)
-                      )
+        embed = discord.Embed(title=render("title"),
+                              colour=colours.get_colour(render("colour")),
+                              type=embed_type if (embed_type := render("type")) != "" else "rich",
+                              url=render("url"),
+                              description=render("description"),
+                              timestamp=self._render_timestamp(raw_embed.find("timestamp"), **kwargs)
+                              )
 
         for field in self._render_fields(raw_embed.find("fields"), **kwargs):
             embed.add_field(**field)
