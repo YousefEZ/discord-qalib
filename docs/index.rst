@@ -1,5 +1,5 @@
 .. Discord-Qalib documentation master file, created by
-sphinx-quickstart on Sun Nov 20 22:33:24 2022.
+sphinx-quickstart on Mon Nov 21 23:19:14 2022.
 You can adapt this file completely to your liking, but it should at least
 contain the root `toctree` directive.
 

@@ -18,14 +18,10 @@
 
 
 # -- Project information -----------------------------------------------------
-import os
-import sys
 
 project = 'Discord-Qalib'
 copyright = '2022, Yousef Zaher'
 author = 'Yousef Zaher'
-sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, os.path.abspath('../../qalib'))
 
 # The short X.Y version
 version = ''
@@ -55,7 +51,7 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# The suffix(es) of docs filenames.
+# The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
@@ -71,10 +67,10 @@ master_doc = 'index'
 # Usually you set "language" from the command line for these cases.
 language = None
 
-# List of patterns, relative to docs directory, that match files and
-# directories to ignore when looking for docs files.
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -134,7 +130,7 @@ latex_elements = {
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
-# (docs start file, target name, title,
+# (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'Discord-Qalib.tex', 'Discord-Qalib Documentation',
@@ -144,7 +140,7 @@ latex_documents = [
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
-# (docs start file, name, description, authors, manual section).
+# (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'discord-qalib', 'Discord-Qalib Documentation',
      [author], 1)
@@ -153,7 +149,7 @@ man_pages = [
 # -- Options for Texinfo output ----------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
-# (docs start file, target name, title, author,
+# (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'Discord-Qalib', 'Discord-Qalib Documentation',
@@ -165,13 +161,6 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = project
-
-html_context = {
-    "display_github": True,  # Integrate GitHub
-    "github_repo": "yousefez/discord-qalib",  # Repo name
-    "github_version": "main",  # Version
-    "conf_py_path": "docs/source/",  # Path in the checkout to the docs root
-}
 
 # The unique identifier of the text. This can be a ISBN number
 # or the project homepage.
