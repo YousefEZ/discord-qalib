@@ -43,4 +43,4 @@ class TestXMLRenderer(unittest.TestCase):
     def test_element_error(self):
         path = "tests/routes/error.xml"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
-        self.assertRaises(ValueError, renderer.render_view, "test2")
+        self.assertRaises(KeyError, renderer.render_view, "test2")
