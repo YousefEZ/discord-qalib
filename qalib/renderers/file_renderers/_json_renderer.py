@@ -6,7 +6,7 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button
+from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -101,7 +101,7 @@ class JSONRenderer(Renderer):
             component: Dict[str, Union[str, Dict[str, Any]]],
             callback: Optional[Callable],
             keywords: Dict[str, Any]
-    ) -> ui.Item:
+    ) -> ui.Button:
         """Renders a button from the given component's template
 
         Args:
@@ -116,11 +116,59 @@ class JSONRenderer(Renderer):
 
         attributes = self._extract_attributes(component, keywords)
         if emoji is not None:
-            attributes["emoji"] = emoji
+            attributes["emoji"] = make_emoji(emoji)
 
         button: ui.Button = create_button(**attributes)
         button.callback = callback
         return button
+
+    def _render_options(
+            self,
+            raw_options: List[Dict[str, Union[str, str]]],
+            keywords: Dict[str, Any]
+    ) -> List[discord.SelectOption]:
+        """Renders the options for a select menu
+
+        Args:
+            raw_options (List[Dict[str, Union[str, str]]]): the raw options to be rendered
+            keywords (Dict[str, Any]): the keywords to be used when rendering the options' attributes
+
+        Returns (List[discord.SelectOption]): the rendered options
+        """
+        options = []
+        for option in raw_options:
+            emoji = self._render_emoji(option.pop("emoji"), keywords) if "emoji" in option else None
+            attributes = self._extract_attributes(option, keywords)
+
+            if emoji is not None:
+                attributes["emoji"] = make_emoji(emoji)
+
+            options.append(discord.SelectOption(**attributes))
+        return options
+
+    def _render_select(
+            self,
+            component: Dict[str, Union[str, Dict[str, Any]]],
+            callback: Optional[Callable],
+            keywords: Dict[str, Any]
+    ) -> ui.Select:
+        """Renders a select menu from the given component's template
+
+        Args:
+            component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
+            callback (Optional[Callable]): the callback to be called when the select menu is pressed
+            keywords (Dict[str, Any]): the keywords to be used when rendering the select menu's attributes
+
+        Returns (ui.Item): the rendered select menu
+        """
+
+        options = self._render_options(component.pop("options"), keywords)
+        attributes: Dict[str, Any] = self._extract_attributes(component, keywords)
+        attributes["options"] = options
+
+        select: ui.Select = create_select(**attributes)
+        select.callback = callback
+        return select
 
     def render_component(
             self,
@@ -137,10 +185,10 @@ class JSONRenderer(Renderer):
 
         Returns (ui.Item): the rendered component
         """
-        if (component_type := component.pop("type")) == "button":
-            return self._render_button(component, callback, keywords)
-
-        raise ValueError(f"Unknown component type: {component_type}")
+        return {
+            "button": self._render_button,
+            "select": self._render_select
+        }[component.pop("type")](component, callback, keywords)
 
     def render_components(
             self,

@@ -1,6 +1,8 @@
 import datetime
 import unittest
 
+import discord.ui
+
 import qalib.renderers.embed_renderer
 
 
@@ -30,6 +32,15 @@ class TestJSONRenderer(unittest.TestCase):
         view = renderer.render_view("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(view.children), 5)
 
+    def test_select_rendering(self):
+        path = "tests/routes/full_embeds.json"
+        renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
+        view = renderer.render_view("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        self.assertEqual(len(view.children), 1)
+        child = view.children[0]
+        assert isinstance(child, discord.ui.Select)
+        self.assertEqual(child.placeholder, "Select a date")
+
     def test_emoji_error(self):
         path = "tests/routes/error.json"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
@@ -38,4 +49,4 @@ class TestJSONRenderer(unittest.TestCase):
     def test_element_error(self):
         path = "tests/routes/error.json"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
-        self.assertRaises(ValueError, renderer.render_view, "test2")
+        self.assertRaises(KeyError, renderer.render_view, "test2")

@@ -6,7 +6,7 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button
+from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -96,7 +96,24 @@ class XMLRenderer(Renderer):
             raise KeyError("Menu key not found")
 
     @staticmethod
-    def _render_emoji(emoji_element: ElementTree.Element, keywords) -> Optional[Dict[str, str]]:
+    def _pop_component(component: ElementTree.Element, key: str) -> Optional[ElementTree.Element]:
+        """Pops a component from the given element, and returns it.
+
+        Args:
+            component (ElementTree.Element): The element to pop the component from.
+            key (str): The key of the component to pop.
+
+        Returns (Optional[ElementTree.Element]): The popped component, or None if it doesn't exist.
+        """
+        if (child_component := component.find(key)) is not None:
+            component.remove(child_component)
+        return child_component
+
+    @staticmethod
+    def _render_emoji(emoji_element: Optional[ElementTree.Element], keywords) -> Optional[Dict[str, str]]:
+        if emoji_element is None:
+            return
+
         emoji = {}
         if (name := emoji_element.find("name")) is not None:
             emoji["name"] = XMLRenderer._render_element(name, keywords)
@@ -124,15 +141,58 @@ class XMLRenderer(Renderer):
 
         Returns (ui.Button): The rendered button.
         """
-        component.remove(emoji_component := component.find("emoji"))
-
+        emoji_component = self._pop_component(component, "emoji")
         attributes = self._extract_elements(component, keywords)
-        if emoji_component is not None:
-            attributes["emoji"] = self._render_emoji(emoji_component, keywords)
+        attributes["emoji"] = make_emoji(self._render_emoji(emoji_component, keywords))
 
         button: ui.Button = create_button(**attributes)
         button.callback = callback
         return button
+
+    def _render_options(
+            self,
+            raw_options: Optional[ElementTree.Element],
+            keywords: Dict[str, Any]
+    ) -> List[discord.SelectOption]:
+        """Renders a list of options based on the template in the element, and formatted values given by the keywords.
+
+        Args:
+            raw_options (ElementTree.Element): The options to render, contains the template.
+            keywords (Dict[str, Any]): The values to format the template with.
+
+        Returns (List[discord.SelectOption]): The rendered options.
+        """
+        options = []
+        for option in (raw_options or []):
+            emoji_component = self._pop_component(option, "emoji")
+            option_attributes = self._extract_elements(option, keywords)
+            option_attributes["emoji"] = make_emoji(self._render_emoji(emoji_component, keywords))
+            options.append(discord.SelectOption(**option_attributes))
+        return options
+
+    def _render_select(
+            self,
+            component: ElementTree.Element,
+            callback: Optional[Callable],
+            keywords: Dict[str, Any]
+    ) -> ui.Select:
+        """Renders a select based on the template in the element, and formatted values given by the keywords.
+
+        Args:
+            component (ElementTree.Element): The select to render, contains the template.
+            callback (Optional[Callable]): The callback to use if the user interacts with this select.
+            keywords (Dict[str, Any]): The values to format the template with.
+
+        Returns (ui.Select): The rendered select.
+        """
+        options = self._render_options(self._pop_component(component, "options"), keywords)
+
+        attributes = self._extract_elements(component, keywords)
+        attributes["options"] = options
+
+        select: ui.Select = create_select(**attributes)
+        select.callback = callback
+        return select
 
     def render_component(
             self,
@@ -150,10 +210,10 @@ class XMLRenderer(Renderer):
         Returns (discord.ui.Item): The rendered component.
         """
 
-        if component.tag == "button":
-            return self._render_button(component, callback, keywords)
-
-        raise ValueError(f"Unknown component type: {component.tag}")
+        return {
+            "button": self._render_button,
+            "select": self._render_select
+        }[component.tag](component, callback, keywords)
 
     def render_components(
             self,
@@ -161,15 +221,14 @@ class XMLRenderer(Renderer):
             callables: Dict[str, Callable],
             keywords: Optional[Dict[str, Any]] = None
     ) -> Optional[List[ui.Item]]:
-        """
+        """Renders a list of components based on the identifier given.
 
         Args:
-            keywords:
-            callables:
-            identifier:
+            keywords (Optional[Dict[str, Any]]): The keywords to use to format the components before rendering.
+            callables (Dict[str, Callable]): The callbacks to use if the user interacts with the components.
+            identifier (str): The identifier of the components to render.
 
-        Returns:
-
+        Returns (Optional[List[discord.ui.Item]]): The rendered components.
         """
         view = self._get_raw_embed(identifier).find("view")
         if view is None:

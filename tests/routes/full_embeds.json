@@ -89,5 +89,58 @@
         "style": "link"
       }
     }
+  },
+  "test_key3": {
+    "title": "Test2",
+    "description": "Test Description",
+    "type": "rich",
+    "colour": "magenta",
+    "timestamp": {
+      "date": "{todays_date}"
+    },
+    "url": "https://www.discord.com",
+    "fields": [
+      {
+        "name": "Test Field",
+        "text": "Test Text"
+      }
+    ],
+    "footer": {
+      "text": "Test Footer",
+      "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+    },
+    "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
+    "image": "https://cdn.discordapp.com/embed/avatars/0.png",
+    "author": {
+      "name": "Test Author",
+      "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "url": "https://discordapp.com"
+    },
+    "view": {
+      "select1": {
+        "type": "select",
+        "label": "Test Select",
+        "options": [
+          {
+            "label": "Test Option",
+            "value": "test_option",
+            "description": "Test Description",
+            "emoji": {
+              "name": "randomemoji",
+              "id": "123456789",
+              "animated": false
+            }
+          },
+          {
+            "label": "Test Option",
+            "value": "test_option",
+            "description": "Test Description"
+          }
+        ],
+        "placeholder": "Select a date",
+        "min_values": 1,
+        "max_values": 1
+      }
+    }
   }
 }
