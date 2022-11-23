@@ -6,7 +6,7 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button, create_select
+from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -116,7 +116,7 @@ class JSONRenderer(Renderer):
 
         attributes = self._extract_attributes(component, keywords)
         if emoji is not None:
-            attributes["emoji"] = emoji
+            attributes["emoji"] = make_emoji(emoji)
 
         button: ui.Button = create_button(**attributes)
         button.callback = callback
@@ -141,7 +141,7 @@ class JSONRenderer(Renderer):
             attributes = self._extract_attributes(option, keywords)
 
             if emoji is not None:
-                attributes["emoji"] = emoji
+                attributes["emoji"] = make_emoji(emoji)
 
             options.append(discord.SelectOption(**attributes))
         return options
