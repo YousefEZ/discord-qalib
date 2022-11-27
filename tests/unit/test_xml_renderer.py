@@ -39,10 +39,19 @@ class TestXMLRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.xml"
         renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
         view = renderer.render_view("test_key3", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(len(view.children), 1)
+        self.assertEqual(len(view.children), 2)
         child = view.children[0]
         assert isinstance(child, discord.ui.Select)
         self.assertEqual(child.placeholder, "Select a date")
+
+    def test_channel_select_rendering(self):
+        path = "tests/routes/full_embeds.xml"
+        renderer = qalib.renderers.embed_renderer.EmbedRenderer(path)
+        view = renderer.render_view("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        self.assertEqual(len(view.children), 2)
+        child = view.children[1]
+        assert isinstance(child, discord.ui.ChannelSelect)
+        self.assertEqual(child.placeholder, "Select a channel")
 
     def test_emoji_error(self):
         path = "tests/routes/error.xml"
