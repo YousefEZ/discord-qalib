@@ -140,6 +140,14 @@
         "placeholder": "Select a date",
         "min_values": 1,
         "max_values": 1
+      },
+      "channel1": {
+        "type": "channel_select",
+        "channel_types": [
+          "text",
+          "private"
+        ],
+        "placeholder": "Select a channel"
       }
     }
   }
