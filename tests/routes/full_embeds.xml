@@ -54,7 +54,6 @@
                 <emoji>
                     <name>randomemoji</name>
                     <id>123456789</id>
-                    <animated>true</animated>
                 </emoji>
                 <label>Test Button</label>
                 <url>https://www.discord.com</url>
@@ -72,7 +71,7 @@
             <button key="button3">
                 <style>success</style>
                 <emoji>
-                    <name>✅</name>
+                    <name>:white_check_mark:</name>
                 </emoji>
                 <label>Test Button</label>
                 <url>https://www.discord.com</url>
@@ -80,7 +79,7 @@
             <button key="button4">
                 <style>danger</style>
                 <emoji>
-                    <name>🔥</name>
+                    <name>fire</name>
                 </emoji>
                 <label>Test Button</label>
                 <url>https://www.discord.com</url>
@@ -120,10 +119,10 @@
             <url>https://discordapp.com</url>
         </author>
         <view>
-            <select>
+            <select key="select1">
                 <placeholder>Select a date</placeholder>
                 <options>
-                    <option key="option1">
+                    <option>
                         <label>Test Option</label>
                         <value>Test Value</value>
                         <description>Test Description</description>
@@ -133,13 +132,20 @@
                             <animated>true</animated>
                         </emoji>
                     </option>
-                    <option key="option1">
+                    <option>
                         <label>Test Option</label>
                         <value>Test Value</value>
                         <description>Test Description</description>
                     </option>
                 </options>
             </select>
+            <channel_select key="channel1">
+                <placeholder>Select a channel</placeholder>
+                <channel_types>
+                    <channel_type>text</channel_type>
+                    <channel_type>voice</channel_type>
+                </channel_types>
+            </channel_select>
         </view>
     </embed>
 </discord>

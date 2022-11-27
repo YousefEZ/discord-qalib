@@ -14,7 +14,22 @@ __version__ = '1.0.0'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
+import discord.ext.commands
+
 DEBUG = False
 
 from .embed_manager import *
 from .utils import *
+
+import discord.ext.commands
+
+
+def embed_manager(path):
+    def embed_manager(func):
+        def wrapper(*args, **kwargs):
+            assert type(args[0]) is discord.ext.commands.Context
+            return func(EmbedManager(args[0], path), *args[1:], **kwargs)
+
+        return wrapper
+
+    return embed_manager
