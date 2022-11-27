@@ -1,35 +1,63 @@
-from typing import Optional, Union
+from functools import reduce
+from typing import Dict, List, Optional, Union
 
 import discord.emoji
 import discord.ui as ui
-from discord.utils import MISSING
+import discord.utils as utils
 from discord.ui.button import ButtonStyle
+import emoji
+
+CHANNEL_TYPES: Dict[str, discord.ChannelType] = {
+    "text": discord.ChannelType.text,
+    "private": discord.ChannelType.private,
+    "voice": discord.ChannelType.voice,
+    "group": discord.ChannelType.group,
+    "category": discord.ChannelType.category,
+    "news": discord.ChannelType.news,
+    "news_thread": discord.ChannelType.news_thread,
+    "public_thread": discord.ChannelType.public_thread,
+    "private_thread": discord.ChannelType.private_thread,
+    "stage_voice": discord.ChannelType.stage_voice,
+    "forum": discord.ChannelType.forum
+}
+
+BUTTON_STYLES: Dict[str, ButtonStyle] = {
+    "primary": ButtonStyle.primary,
+    "secondary": ButtonStyle.secondary,
+    "success": ButtonStyle.success,
+    "danger": ButtonStyle.danger,
+    "link": ButtonStyle.link
+}
+
+
+def make_channel_types(types: List[str]) -> List[discord.ChannelType]:
+    return list(map(lambda channel_type: CHANNEL_TYPES[channel_type], types))
 
 
 def make_button_style(style: str) -> ButtonStyle:
-    if style == "primary":
-        return ButtonStyle.primary
-    elif style == "secondary":
-        return ButtonStyle.secondary
-    elif style == "success":
-        return ButtonStyle.success
-    elif style == "danger":
-        return ButtonStyle.danger
-    elif style == "link":
-        return ButtonStyle.link
-
-    raise ValueError(f"{style} is Invalid button style")
+    return BUTTON_STYLES[style]
 
 
-def make_emoji(emoji: Optional[Union[str, dict]]) -> Optional[Union[str, discord.emoji.PartialEmoji]]:
-    if emoji is None:
+def make_emoji(raw_emoji: Optional[Union[str, dict]]) -> Optional[Union[str, discord.emoji.PartialEmoji]]:
+    if raw_emoji is None:
         return None
-    return discord.emoji.PartialEmoji.from_dict(emoji)
+
+    if reduce(lambda r, k: r * k, [k in raw_emoji for k in ("name", "id", "animated")]):
+        return discord.emoji.PartialEmoji.from_dict(raw_emoji)
+
+    if "id" in raw_emoji:
+        return f"<:{raw_emoji['name']}:{raw_emoji['id']}>"
+    elif "name" in raw_emoji:
+        if emoji.is_emoji(raw_emoji["name"]):
+            return emoji.demojize(raw_emoji["name"])
+        return raw_emoji["name"] if raw_emoji["name"].startswith(":") else f":{raw_emoji['name']}:"
+
+    raise ValueError("Invalid Emoji Description Given")
 
 
 def create_button(**kwargs) -> ui.Button:
     return ui.Button(
-        style=make_button_style(kwargs.get("style")),
+        style=make_button_style(kwargs.get("style", "primary")),
         custom_id=kwargs.get("custom_id"),
         label=kwargs.get("label"),
         disabled=kwargs.get("disabled", "false").lower() == "true",
@@ -39,9 +67,21 @@ def create_button(**kwargs) -> ui.Button:
     )
 
 
+def create_channel_select(**kwargs) -> ui.ChannelSelect:
+    return ui.ChannelSelect(
+        custom_id=kwargs.get("custom_id", utils.MISSING),
+        channel_types=kwargs.get("channel_types", utils.MISSING),
+        placeholder=kwargs.get("placeholder"),
+        min_values=int(kwargs.get("min_values", 1)),
+        max_values=int(kwargs.get("max_values", 1)),
+        disabled=kwargs.get("disabled", "false").lower() == "true",
+        row=int(row) if (row := kwargs.get("row")) is not None else None
+    )
+
+
 def create_select(**kwargs) -> ui.Select:
     return ui.Select(
-        custom_id=kwargs.get("custom_id", MISSING),
+        custom_id=kwargs.get("custom_id", utils.MISSING),
         placeholder=kwargs.get("placeholder"),
         min_values=int(kwargs.get("min_values", 1)),
         max_values=int(kwargs.get("max_values", 1)),

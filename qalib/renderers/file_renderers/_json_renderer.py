@@ -6,7 +6,8 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji
+from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, make_channel_types, \
+    create_channel_select
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -146,6 +147,32 @@ class JSONRenderer(Renderer):
             options.append(discord.SelectOption(**attributes))
         return options
 
+    def _render_channel_select(
+            self,
+            component: Dict[str, Union[str, Dict[str, Any]]],
+            callback: Optional[Callable],
+            keywords: Dict[str, Any]
+    ) -> ui.ChannelSelect:
+        """Renders a select menu from the given component's template
+
+        Args:
+            component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
+            callback (Optional[Callable]): the callback to be called when the select menu is pressed
+            keywords (Dict[str, Any]): the keywords to be used when rendering the select menu's attributes
+
+        Returns (ui.Item): the rendered channel select menu
+        """
+
+        channel_types: List[str] = component.pop("channel_types")
+
+        attributes: Dict[str, Any] = self._extract_attributes(component, keywords)
+        if channel_types is not None:
+            attributes["channel_types"] = make_channel_types(channel_types)
+
+        select: ui.ChannelSelect = create_channel_select(**attributes)
+        select.callback = callback
+        return select
+
     def _render_select(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
@@ -187,7 +214,8 @@ class JSONRenderer(Renderer):
         """
         return {
             "button": self._render_button,
-            "select": self._render_select
+            "select": self._render_select,
+            "channel_select": self._render_channel_select
         }[component.pop("type")](component, callback, keywords)
 
     def render_components(

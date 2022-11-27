@@ -6,7 +6,8 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji
+from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, \
+    create_channel_select, make_channel_types
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -194,6 +195,34 @@ class XMLRenderer(Renderer):
         select.callback = callback
         return select
 
+    def _render_channel_select(
+            self,
+            component: ElementTree.Element,
+            callback: Optional[Callable],
+            keywords: Dict[str, Any]
+    ) -> ui.ChannelSelect:
+        """Renders a channel select based on the template in the element, and formatted values given by the keywords.
+
+        Args:
+            component (ElementTree.Element): The channel select to render, contains the template.
+            callback (Optional[Callable]): The callback to use if the user interacts with this channel select.
+            keywords (Dict[str, Any]): The values to format the template with.
+
+        Returns (ui.ChannelSelect): The rendered channel select.
+        """
+        channel_types: ElementTree.Element = self._pop_component(component, "channel_types")
+
+        attributes = self._extract_elements(component, keywords)
+        if channel_types is not None:
+            attributes["channel_types"] = make_channel_types(list(map(
+                lambda element: self._render_element(element, keywords),
+                channel_types
+            )))
+
+        select: ui.ChannelSelect = create_channel_select(**attributes)
+        select.callback = callback
+        return select
+
     def render_component(
             self,
             component: ElementTree.Element,
@@ -212,7 +241,8 @@ class XMLRenderer(Renderer):
 
         return {
             "button": self._render_button,
-            "select": self._render_select
+            "select": self._render_select,
+            "channel_select": self._render_channel_select
         }[component.tag](component, callback, keywords)
 
     def render_components(
