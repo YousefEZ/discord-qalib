@@ -1,8 +1,12 @@
 import datetime
 import unittest
 
+from qalib import embed_manager as embed_decorator
 from qalib.embed_manager import EmbedManager
 from tests.unit.mocked_classes import ContextMocked, MessageMocked
+import discord.ext.commands
+
+discord.ext.commands.Context = ContextMocked
 
 
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
@@ -71,3 +75,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(self.ctx.message.view.children), 5)
+
+    def test_decorator(self):
+        f = embed_decorator("tests/routes/simple_embeds.json")
+        wrapper = f(lambda ctx: ctx)
+        embed_manager = wrapper(self.ctx)
+        self.assertIsInstance(embed_manager, EmbedManager)
