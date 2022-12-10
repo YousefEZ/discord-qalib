@@ -1,0 +1,37 @@
+<discord>
+    <embed key="test1">
+        <title>test</title>
+        <colour>magenta</colour>
+        <fields>
+            {% for i in range(0, 3) %}
+            <field>
+                <name>test</name>
+                <value>test</value>
+            </field>
+            {% endfor %}
+        </fields>
+        <view>
+            <button key="button1">
+                <style>primary</style>
+                <emoji>
+                    <name>randomemoji</name>
+                    <id>123456789</id>
+                </emoji>
+                <label>Test Button</label>
+                <url>https://www.discord.com</url>
+            </button>
+        </view>
+    </embed>
+    <embed key="test2">
+        <title>test</title>
+        <colour>magenta</colour>
+        <fields>
+            {% for i in range(0, 3) %}
+            <field>
+                <name>test</name>
+                <value>test</value>
+            </field>
+            {% endfor %}
+        </fields>
+    </embed>
+</discord>
