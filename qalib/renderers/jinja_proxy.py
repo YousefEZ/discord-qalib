@@ -1,12 +1,10 @@
-from . import RendererProtocol
-
 from typing import Any, Callable, Dict, Optional, List
 
 import discord
 import jinja2
 
 from qalib.renderers.file_renderers.jinja_renderer import JinjaXMLTemplate
-from qalib.renderers.renderer_proxy import RendererProxy
+from . import RendererProtocol
 
 
 class JinjaProxy(RendererProtocol):
@@ -18,20 +16,43 @@ class JinjaProxy(RendererProtocol):
         self._template = template
         self._environment = environment
 
-    def render(
-            self,
-            identifier: str,
-            callbacks: Optional[Dict[str, Callable]],
-            keywords: Optional[Dict[str, Any]] = None,
-            timeout: Optional[int] = 180
-    ) -> (discord.Embed, Optional[discord.ui.View]):
+    def template(self, keywords: Optional[Dict[str, Any]] = None) -> JinjaXMLTemplate:
         if keywords is None:
             keywords = {}
 
-        template: JinjaXMLTemplate = JinjaXMLTemplate(self._template, self._environment, keywords)
-        template.render_components(identifier, callbacks, keywords)
-        return template.render(identifier, keywords), self.render_view(identifier, callbacks, timeout,
-                                                                       keywords, template)
+        return JinjaXMLTemplate(self._template, self._environment, keywords)
+
+    def render(
+            self,
+            identifier: str,
+            callbacks: Optional[Dict[str, Callable]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            timeout: Optional[int] = 180
+    ) -> (discord.Embed, Optional[discord.ui.View]):
+
+        template = self.template(keywords)
+        return self.render_embed(identifier, keywords, template), self.render_view(identifier, callbacks, timeout,
+                                                                                   keywords, template)
+
+    def render_embed(
+            self,
+            identifier: str,
+            keywords: Optional[Dict[str, Any]] = None,
+            template: JinjaXMLTemplate = None
+    ) -> discord.Embed:
+        """Method that renders an embed from the Renderer
+
+        Args:
+            identifier (str): identifier of the embed
+            keywords (Optional[Dict[str, Any]]): keywords that are used to format the embed
+
+        Returns (discord.Embed): Embed object that is rendered from the Renderer
+        """
+
+        if template is None:
+            template = self.template(keywords)
+
+        return template.render(identifier)
 
     def render_view(
             self,
@@ -71,10 +92,8 @@ class JinjaProxy(RendererProtocol):
             view.add_item(component)
         return view
 
-    @property
-    def size(self) -> int:
-        return self._renderer.size
+    def size(self, keywords: Optional[Dict[str, Any]] = None) -> int:
+        return self.template(keywords).size
 
-    @property
-    def keys(self) -> List[str]:
-        return self._renderer.keys
+    def keys(self, keywords: Optional[Dict[str, Any]] = None) -> List[str]:
+        return self.template(keywords).keys
