@@ -1,7 +1,7 @@
 from qalib.renderers.renderer_proxy import RendererProxy
 
 
-class EmbedRenderer(RendererProxy):
+class EmbedProxy(RendererProxy):
     """Renderer for embeds"""
 
     def __init__(self, path: str):
