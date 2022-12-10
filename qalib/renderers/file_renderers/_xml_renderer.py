@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional, List, Dict, Callable, Any, cast
 from xml.etree import ElementTree as ElementTree
@@ -17,13 +19,17 @@ class XMLRenderer(Renderer):
 
     __slots__ = ("root",)
 
-    def __init__(self, path: str):
+    def __init__(self, root_element: ElementTree.Element):
         """Initialisation of the Renderer
 
         Args:
-            path (str): path to the xml file containing the template embed
+            root_element (ElementTree.Element): the root of the XML file.
         """
-        self.root = ElementTree.parse(path).getroot()
+        self.root = root_element
+
+    @classmethod
+    def construct_with_path(cls, path: str) -> XMLRenderer:
+        return cls(ElementTree.parse(path).getroot())
 
     def _get_raw_embed(self, identifier) -> ElementTree.Element:
         """Finds the embed specified by the identifier
@@ -42,13 +48,13 @@ class XMLRenderer(Renderer):
         raise KeyError("Embed key not found")
 
     @staticmethod
-    def _render_element(element: ElementTree.Element, keywords: Dict[str, Any]):
+    def _render_element(element: ElementTree.Element, keywords: Dict[str, Any]) -> str:
         if element is None:
             return ""
         return element.text.format(**keywords)
 
     @staticmethod
-    def _render_attribute(element: ElementTree.Element, attribute: str, keywords: Dict[str, Any]):
+    def _render_attribute(element: ElementTree.Element, attribute: str, keywords: Dict[str, Any]) -> str:
         if (value := element.get(attribute)) is None:
             return ""
         return value.format(**keywords)
