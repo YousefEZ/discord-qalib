@@ -6,30 +6,69 @@ embeds stored in the format of .xml files.
 :license: MIT, see LICENSE for more details.
 """
 
+import discord.ext.commands
+import discord.ext.commands
+import jinja2
+
+from .renderers.embed_proxy import EmbedProxy
+from .renderers.jinja_proxy import JinjaProxy
+from .renderers.menu_proxy import MenuProxy
+from .response_manager import ResponseManager
+from .utils import *
+
 __title__ = 'qalib'
 __author__ = 'YousefEZ'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-present YousefEZ'
 __version__ = '1.0.0'
 
-__path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-import discord.ext.commands
+class EmbedManager(ResponseManager):
 
-DEBUG = False
-
-from .embed_manager import *
-from .utils import *
-
-import discord.ext.commands
+    def __init__(self, ctx: discord.ext.commands.Context, file_path: str):
+        super().__init__(ctx, EmbedProxy(file_path))
 
 
-def embed_manager(path):
-    def embed_manager(func):
+class MenuManager(ResponseManager):
+
+    def __init__(self, ctx: discord.ext.commands.Context, file_path: str, menu_key: str):
+        super().__init__(ctx, MenuProxy(file_path, menu_key))
+
+
+class JinjaManager(ResponseManager):
+
+    def __init__(self, ctx: discord.ext.commands.Context, template: str, environment: jinja2.Environment):
+        super().__init__(ctx, JinjaProxy(template, environment))
+
+
+def embed_manager(*manager_args):
+    def manager(func):
         def wrapper(*args, **kwargs):
             assert type(args[0]) is discord.ext.commands.Context
-            return func(EmbedManager(args[0], path), *args[1:], **kwargs)
+            return func(EmbedManager(args[0], *manager_args), *args[1:], **kwargs)
 
         return wrapper
 
-    return embed_manager
+    return manager
+
+
+def menu_manager(*manager_args):
+    def manager(func):
+        def wrapper(*args, **kwargs):
+            assert type(args[0]) is discord.ext.commands.Context
+            return func(MenuManager(args[0], *manager_args), *args[1:], **kwargs)
+
+        return wrapper
+
+    return manager
+
+
+def jinja_manager(*manager_args):
+    def manager(func):
+        def wrapper(*args, **kwargs):
+            assert type(args[0]) is discord.ext.commands.Context
+            return func(JinjaManager(args[0], *manager_args), *args[1:], **kwargs)
+
+        return wrapper
+
+    return manager
