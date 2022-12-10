@@ -1,10 +1,11 @@
 import datetime
 import unittest
 
-from qalib import embed_manager as embed_decorator
-from qalib.embed_manager import EmbedManager
-from tests.unit.mocked_classes import ContextMocked, MessageMocked
 import discord.ext.commands
+
+from qalib import EmbedManager
+from qalib import embed_manager as embed_decorator
+from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
 discord.ext.commands.Context = ContextMocked
 
