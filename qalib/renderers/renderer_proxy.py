@@ -2,19 +2,31 @@ from typing import Any, List, Dict, Callable, Optional
 
 import discord.ui
 
-from qalib.renderers.file_renderers.renderer_factory import RendererFactory
+from . import RendererProtocol
+from .file_renderers.renderer_factory import RendererFactory
 
 
-class RendererProxy:
+class RendererProxy(RendererProtocol):
     __slots__ = ("_renderer",)
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         self._renderer = RendererFactory.get_renderer(path)
 
-    def render(self, key: str, keywords: Optional[Dict[str, Any]] = None) -> discord.Embed:
+    def render(
+            self,
+            identifier: str,
+            callbacks: Optional[Dict[str, Callable]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            timeout: Optional[int] = 180
+    ) -> (discord.Embed, Optional[discord.ui.View]):
+
+        return self.render_embed(identifier, keywords), self.render_view(identifier, callbacks, timeout, keywords)
+
+    def render_embed(self, identifier: str, keywords: Optional[Dict[str, Any]] = None):
         if keywords is None:
             keywords = {}
-        return self._renderer.render(key, keywords)
+
+        return self._renderer.render(identifier, keywords)
 
     def render_view(
             self,

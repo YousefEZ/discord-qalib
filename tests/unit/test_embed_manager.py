@@ -1,10 +1,11 @@
 import datetime
 import unittest
 
-from qalib import embed_manager as embed_decorator
-from qalib.embed_manager import EmbedManager
-from tests.unit.mocked_classes import ContextMocked, MessageMocked
 import discord.ext.commands
+
+from qalib import EmbedManager, embed_manager, jinja_manager, menu_manager
+from qalib import embed_manager as embed_decorator
+from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
 discord.ext.commands.Context = ContextMocked
 
@@ -81,3 +82,17 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         wrapper = f(lambda ctx: ctx)
         embed_manager = wrapper(self.ctx)
         self.assertIsInstance(embed_manager, EmbedManager)
+
+    def test_menu_manager(self):
+        @menu_manager("tests/routes/menus.json", "Menu1")
+        def test(ctx):
+            return ctx
+
+        test(self.ctx)
+
+    def test_jinja_manager(self):
+        @jinja_manager("jinja-test.xml", "tests/routes")
+        def test(ctx):
+            return ctx
+
+        test(self.ctx)

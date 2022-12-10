@@ -1,3 +1,5 @@
+import functools
+
 from qalib.renderers.file_renderers._json_renderer import JSONRenderer
 from qalib.renderers.file_renderers._xml_renderer import XMLRenderer
 from qalib.renderers.file_renderers.renderer import Renderer
@@ -9,7 +11,7 @@ class RendererFactory:
     @staticmethod
     def get_renderer(path: str) -> Renderer:
         if path.endswith(".xml"):
-            return XMLRenderer(path)
+            return XMLRenderer.construct_with_path(path)
         elif path.endswith(".json"):
             return JSONRenderer(path)
 

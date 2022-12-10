@@ -4,14 +4,14 @@ import discord.message
 import discord.ui as ui
 import discord.ext.commands
 
-from qalib.renderers.renderer_proxy import RendererProxy
+from qalib.renderers.renderer_proxy import RendererProtocol
 
 
 class ResponseManager:
     """ResponseManager object is responsible for handling messages that are to be sent to the client.
        Data is stored in .xml files, where they are called and parsed. """
 
-    def __init__(self, ctx: discord.ext.commands.context, renderer: RendererProxy):
+    def __init__(self, ctx: discord.ext.commands.context, renderer: RendererProtocol):
         """Constructor for the ResponseManager object
 
         Args:
@@ -19,7 +19,7 @@ class ResponseManager:
             renderer (RendererProxy): renderer object that is used to render the embeds and views
         """
         self._ctx: discord.ext.commands.context = ctx
-        self._renderer: RendererProxy = renderer
+        self._renderer: RendererProtocol = renderer
         self.message: Optional[discord.message.Message] = None
 
     def verify(self, message: discord.message.Message) -> bool:
@@ -57,9 +57,7 @@ class ResponseManager:
 
         Returns (discord.Embed, Optional[ui.View]): tuple of the embed and the view
         """
-        view: Optional[ui.View] = self._renderer.render_view(identifier, callables, timeout, keywords)
-        embed: discord.Embed = self._renderer.render(identifier, keywords)
-        return embed, view
+        return self._renderer.render(identifier, callables, keywords, timeout=timeout)
 
     async def send(
             self,
