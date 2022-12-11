@@ -1,13 +1,21 @@
 import datetime
 import unittest
 
+from typing import Optional
+
 import discord.ext.commands
 
-from qalib import EmbedManager, embed_manager, jinja_manager, menu_manager
-from qalib import embed_manager as embed_decorator
+import qalib.qalib_context
+from qalib import EmbedManager, jinja_manager, menu_manager, embed_manager as embed_decorator
 from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
-discord.ext.commands.Context = ContextMocked
+
+async def send(self, embed: discord.Embed, view: discord.ui.View, **k) -> MessageMocked:
+    self.message = MessageMocked(embed=embed, view=view)
+    return self.message
+
+
+qalib.qalib_context.QalibContext.send = send
 
 
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
@@ -18,7 +26,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_embed_manager(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/simple_embeds.xml")
         await embed_manager.display("Launch")
-        self.assertEqual(self.ctx.message.embed.title, "Hello World")
+        self.assertEqual(embed_manager._displayed.embed.title, "Hello World")
 
     async def test_xml_get_message(self):
         author, channel = "Yousef", 346712637812
@@ -35,21 +43,21 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.xml")
 
         await embed_manager.display("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(self.ctx.message.embed.title, "Test")
+        self.assertEqual(embed_manager._displayed.embed.title, "Test")
 
         await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(self.ctx.message.embed.title, "Test2")
+        self.assertEqual(embed_manager._displayed.embed.title, "Test2")
 
     async def test_xml_display_message_with_buttons(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.xml")
 
         await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(len(self.ctx.message.view.children), 5)
+        self.assertEqual(len(embed_manager._displayed.view.children), 5)
 
     async def test_json_embed_manager(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/simple_embeds.json")
         await embed_manager.display("Launch")
-        self.assertEqual(self.ctx.message.embed.title, "Hello World")
+        self.assertEqual(embed_manager._displayed.embed.title, "Hello World")
 
     async def test_json_get_message(self):
         author, channel = "Yousef", 346712637812
@@ -66,16 +74,16 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.json")
 
         await embed_manager.display("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(self.ctx.message.embed.title, "Test")
+        self.assertEqual(embed_manager._displayed.embed.title, "Test")
 
         await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(self.ctx.message.embed.title, "Test2")
+        self.assertEqual(embed_manager._displayed.embed.title, "Test2")
 
     async def test_json_display_message_with_buttons(self):
         embed_manager = EmbedManager(self.ctx, "tests/routes/full_embeds.json")
 
         await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(len(self.ctx.message.view.children), 5)
+        self.assertEqual(len(embed_manager._displayed.view.children), 5)
 
     def test_decorator(self):
         f = embed_decorator("tests/routes/simple_embeds.json")
