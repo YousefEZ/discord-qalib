@@ -1,6 +1,7 @@
 from typing import Optional
 
 import discord.ui
+from mock import Mock
 
 
 class MockedView:
@@ -15,13 +16,14 @@ class MockedView:
 
 class MessageMocked:
 
-    def __init__(self, author=None, channel=None, content=None, embed: Optional[discord.Embed] = None,
+    def __init__(self, author=Mock(), channel=Mock(), content: str = "", embed: Optional[discord.Embed] = None,
                  view: Optional[discord.ui.View] = None):
         self.author = author
         self.channel = channel
         self.content = content
         self.embed = embed
         self.view = view
+        self._state = Mock()
 
     async def edit(self, author=None, channel=None, content=None, embed: Optional[discord.Embed] = None,
                    view: Optional[discord.ui.View] = None):
@@ -35,7 +37,7 @@ class MessageMocked:
 class BotMocked:
 
     def __init__(self):
-        self.message = None
+        self.message = MessageMocked()
 
     def inject_message(self, message):
         self.message = message
@@ -49,13 +51,18 @@ class BotMocked:
 class ContextMocked:
 
     def __init__(self):
-        self.message = None
+        self.message = MessageMocked()
         self.bot = BotMocked()
-
-    async def send(
-            self,
-            embed: Optional[discord.Embed] = None,
-            view: Optional[discord.ui.View] = None
-    ) -> MessageMocked:
-        self.message = MessageMocked(embed=embed, view=view)
-        return self.message
+        self.view = None
+        self.args = None
+        self.kwargs = None
+        self.prefix = None
+        self.command = None
+        self.invoked_with = None
+        self.invoked_parents = None
+        self.invoked_subcommand = None
+        self.subcommand_passed = None
+        self.command_failed = None
+        self.current_parameter = None
+        self.current_argument = None
+        self.interaction = None

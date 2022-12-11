@@ -86,7 +86,6 @@ import discord
 from discord.ext import commands
 
 import qalib
-from qalib import EmbedManager
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
@@ -97,10 +96,10 @@ async def acknowledged(interaction: discord.Interaction):
 
 @bot.command()
 @qalib.embed_manager("templates/test.xml")
-async def test(embedManager: EmbedManager):
+async def test(ctx: qalib.QalibContext):
     callables = {"understood_button": acknowledged}
 
-    await embedManager.send("test_key", callables, keywords={
+    await ctx.rendered_send("test_key", callables, keywords={
         "todays_date": datetime.datetime.now()
     })
 ```
