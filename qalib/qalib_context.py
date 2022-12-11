@@ -7,18 +7,34 @@ import discord.ext.commands
 from qalib.renderers.renderer_proxy import RendererProtocol
 
 
-class ResponseManager:
-    """ResponseManager object is responsible for handling messages that are to be sent to the client.
-       Data is stored in .xml files, where they are called and parsed. """
+class QalibContext(discord.ext.commands.Context):
+    """QalibContext object is responsible for handling messages that are to be sent to the client."""
 
     def __init__(self, ctx: discord.ext.commands.context, renderer: RendererProtocol):
-        """Constructor for the ResponseManager object
+        """Constructor for the QalibContext object
 
         Args:
             ctx (commands.context): context object that is passed to the command
             renderer (RendererProxy): renderer object that is used to render the embeds and views
         """
-        self._ctx: discord.ext.commands.context = ctx
+
+        super().__init__(
+            message=ctx.message,
+            bot=ctx.bot,
+            view=ctx.view,
+            args=ctx.args,
+            kwargs=ctx.kwargs,
+            prefix=ctx.prefix,
+            command=ctx.command,
+            invoked_with=ctx.invoked_with,
+            invoked_parents=ctx.invoked_parents,
+            invoked_subcommand=ctx.invoked_subcommand,
+            subcommand_passed=ctx.subcommand_passed,
+            command_failed=ctx.command_failed,
+            current_parameter=ctx.current_parameter,
+            current_argument=ctx.current_argument,
+            interaction=ctx.interaction
+        )
         self._renderer: RendererProtocol = renderer
         self.message: Optional[discord.message.Message] = None
 
@@ -31,13 +47,13 @@ class ResponseManager:
         Returns:
             bool: true of false that indicates whether the data is valid.
         """
-        return message.author == self._ctx.message.author and message.channel == self._ctx.message.channel
+        return message.author == self.message.author and message.channel == self.message.channel
 
     async def get_message(self) -> Optional[str]:
         """This method waits for a message to be sent by the user"""
-        confirm: Optional[discord.message.Message] = await self._ctx.bot.wait_for('message',
-                                                                                  timeout=59.0,
-                                                                                  check=self.verify)
+        confirm: Optional[discord.message.Message] = await self.bot.wait_for('message',
+                                                                             timeout=59.0,
+                                                                             check=self.verify)
         return confirm.content if confirm is not None else None
 
     def _render(
@@ -59,7 +75,7 @@ class ResponseManager:
         """
         return self._renderer.render(identifier, callables, keywords, timeout=timeout)
 
-    async def send(
+    async def rendered_send(
             self,
             identifier: str,
             callables: Optional[Dict[str, Callable]] = None,
@@ -80,7 +96,7 @@ class ResponseManager:
         Returns (discord.message.Message): Message object that got sent to the client.
         """
         embed, view = self._render(identifier, callables, keywords, timeout)
-        return await self._ctx.send(embed=embed, view=view, **kwargs)
+        return await self.send(embed=embed, view=view, **kwargs)
 
     async def display(
             self,
@@ -104,7 +120,7 @@ class ResponseManager:
             keywords = {}
 
         if self.message is None:
-            self.message = await self.send(key, callables, keywords, **kwargs)
+            self.message = await self.rendered_send(key, callables, keywords, **kwargs)
         else:
             embed, view = self._render(key, callables, keywords)
             await self.message.edit(embed=embed, view=view, **kwargs)
