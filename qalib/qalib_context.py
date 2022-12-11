@@ -17,7 +17,6 @@ class QalibContext(discord.ext.commands.Context):
             ctx (commands.context): context object that is passed to the command
             renderer (RendererProxy): renderer object that is used to render the embeds and views
         """
-
         super().__init__(
             message=ctx.message,
             bot=ctx.bot,
@@ -36,7 +35,7 @@ class QalibContext(discord.ext.commands.Context):
             interaction=ctx.interaction
         )
         self._renderer: RendererProtocol = renderer
-        self.message: Optional[discord.message.Message] = None
+        self._displayed: Optional[discord.message.Message] = None
 
     def verify(self, message: discord.message.Message) -> bool:
         """Method verifies if the content of the message is in the contents
@@ -119,8 +118,8 @@ class QalibContext(discord.ext.commands.Context):
         if keywords is None:
             keywords = {}
 
-        if self.message is None:
-            self.message = await self.rendered_send(key, callables, keywords, **kwargs)
+        if self._displayed is None:
+            self._displayed = await self.rendered_send(key, callables, keywords, **kwargs)
         else:
             embed, view = self._render(key, callables, keywords)
-            await self.message.edit(embed=embed, view=view, **kwargs)
+            await self._displayed.edit(embed=embed, view=view, **kwargs)
