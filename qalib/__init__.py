@@ -44,7 +44,6 @@ class JinjaManager(QalibContext):
 def embed_manager(*manager_args):
     def manager(func):
         def wrapper(*args, **kwargs):
-            assert type(args[0]) is discord.ext.commands.Context
             return func(EmbedManager(args[0], *manager_args), *args[1:], **kwargs)
 
         return wrapper
@@ -55,20 +54,14 @@ def embed_manager(*manager_args):
 def menu_manager(*manager_args):
     def manager(func):
         def wrapper(*args, **kwargs):
-            assert type(args[0]) is discord.ext.commands.Context
             return func(MenuManager(args[0], *manager_args), *args[1:], **kwargs)
-
         return wrapper
-
     return manager
 
 
 def jinja_manager(*manager_args):
     def manager(func):
         def wrapper(*args, **kwargs):
-            assert type(args[0]) is discord.ext.commands.Context
             return func(JinjaManager(args[0], *manager_args), *args[1:], **kwargs)
-
         return wrapper
-
     return manager
