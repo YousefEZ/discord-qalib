@@ -26,7 +26,7 @@ author = 'Yousef Zaher'
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../qalib'))
+sys.path.insert(0, os.path.abspath('..'))
 
 # The short X.Y version
 version = ''

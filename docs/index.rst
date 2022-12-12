@@ -5,7 +5,32 @@ contain the root `toctree` directive.
 
 Welcome to Discord-Qalib's documentation!
 =========================================
-.. automodule:: my_project.main
+
+.. automodule:: qalib
+    :members:
+
+.. automodule:: qalib.qalib_context
+    :members:
+
+.. automodule:: qalib.renderers
+    :members:
+
+.. automodule:: qalib.renderers.renderer_proxy
+    :members:
+
+.. automodule:: qalib.renderers.jinja_proxy
+    :members:
+
+.. automodule:: qalib.renderers.file_renderers.renderer
+    :members:
+
+.. automodule:: qalib.renderers.file_renderers._xml_renderer
+    :members:
+
+.. automodule:: qalib.renderers.file_renderers._json_renderer
+    :members:
+
+.. automodule:: qalib.renderers.file_renderers.jinja_renderer
     :members:
 
 .. toctree::
