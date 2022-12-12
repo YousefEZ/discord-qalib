@@ -82,8 +82,8 @@ class QalibContext(discord.ext.commands.Context):
             timeout: Optional[int] = 180,
             **kwargs
     ) -> discord.message.Message:
-        """Methods that is fires a message to the client and returns the message object.
-        Doesn't save/keep track of the message.
+        """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
+        message.
 
         Args:
             identifier (str): identifies the embed in the route file
@@ -104,8 +104,8 @@ class QalibContext(discord.ext.commands.Context):
             keywords: Dict[str, Any] = None,
             **kwargs
     ) -> None:
-        """this is the main function that we use to send one message, and one message only.
-           However, edits to that message can take place.
+        """this is the main function that we use to send one message, and one message only. However, edits to that
+        message can take place.
 
         Args:
             key (str): identifies the embed in the route file
