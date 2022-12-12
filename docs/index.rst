@@ -5,6 +5,8 @@ contain the root `toctree` directive.
 
 Welcome to Discord-Qalib's documentation!
 =========================================
+.. automodule:: my_project.main
+    :members:
 
 .. toctree::
    :maxdepth: 2
