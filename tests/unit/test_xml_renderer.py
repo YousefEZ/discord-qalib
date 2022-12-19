@@ -55,6 +55,12 @@ class TestXMLRenderer(unittest.TestCase):
         assert isinstance(child, discord.ui.ChannelSelect)
         self.assertEqual(child.placeholder, "Select a channel")
 
+    def test_role_select_rendering(self):
+        path = "tests/routes/role_embeds.xml"
+        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
+        view = renderer.render_view("Launch")
+        self.assertEqual(len(view.children), 1)
+
     def test_emoji_error(self):
         path = "tests/routes/error.xml"
         renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
