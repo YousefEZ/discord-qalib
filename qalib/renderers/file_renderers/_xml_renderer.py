@@ -9,7 +9,7 @@ import discord.types.embed
 import discord.ui as ui
 
 from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, \
-    create_channel_select, make_channel_types
+    create_channel_select, make_channel_types, create_role_select
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -229,6 +229,27 @@ class XMLRenderer(Renderer):
         select.callback = callback
         return select
 
+    def _render_role_select(
+            self,
+            component: ElementTree.Element,
+            callback: Optional[Callable],
+            keywords: Dict[str, Any]
+    ) -> ui.RoleSelect:
+        """Renders a role select based on the template in the element, and formatted values given by the keywords.
+
+        Args:
+            component (ElementTree.Element): The role select to render, contains the template.
+            callback (Optional[Callable]): The callback to use if the user interacts with this role select.
+            keywords (Dict[str, Any]): The values to format the template with.
+
+        Returns (ui.RoleSelect): The rendered role select.
+        """
+        attributes = self._extract_elements(component, keywords)
+
+        select: ui.RoleSelect = create_role_select(**attributes)
+        select.callback = callback
+        return select
+
     def render_component(
             self,
             component: ElementTree.Element,
@@ -248,7 +269,8 @@ class XMLRenderer(Renderer):
         return {
             "button": self._render_button,
             "select": self._render_select,
-            "channel_select": self._render_channel_select
+            "channel_select": self._render_channel_select,
+            "role_select": self._render_role_select,
         }[component.tag](component, callback, keywords)
 
     def render_components(

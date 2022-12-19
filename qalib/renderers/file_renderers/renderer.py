@@ -8,10 +8,6 @@ import discord.ui as ui
 class Renderer(ABC):
 
     @abstractmethod
-    def __init__(self, path: str):
-        ...
-
-    @abstractmethod
     def render(self, identifier: str, keywords: Optional[Dict[str, Any]] = None) -> discord.Embed:
         ...
 
