@@ -4,8 +4,8 @@ from typing import Dict, List, Optional, Union
 import discord.emoji
 import discord.ui as ui
 import discord.utils as utils
-from discord.ui.button import ButtonStyle
 import emoji
+from discord.ui.button import ButtonStyle
 
 CHANNEL_TYPES: Dict[str, discord.ChannelType] = {
     "text": discord.ChannelType.text,
@@ -87,5 +87,16 @@ def create_select(**kwargs) -> ui.Select:
         max_values=int(kwargs.get("max_values", 1)),
         disabled=kwargs.get("disabled", "false").lower() == "true",
         options=kwargs.get("options", []),
+        row=int(row) if (row := kwargs.get("row")) is not None else None
+    )
+
+
+def create_role_select(**kwargs) -> ui.RoleSelect:
+    return ui.RoleSelect(
+        custom_id=kwargs.get("custom_id", utils.MISSING),
+        placeholder=kwargs.get("placeholder"),
+        min_values=int(kwargs.get("min_values", 1)),
+        max_values=int(kwargs.get("max_values", 1)),
+        disabled=kwargs.get("disabled", "false").lower() == "true",
         row=int(row) if (row := kwargs.get("row")) is not None else None
     )
