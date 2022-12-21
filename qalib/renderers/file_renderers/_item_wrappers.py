@@ -1,11 +1,14 @@
 from functools import reduce
 from typing import Dict, List, Optional, Union
+from typing import Type
 
 import discord.emoji
 import discord.ui as ui
 import discord.utils as utils
 import emoji
 from discord.ui.button import ButtonStyle
+
+T = Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]
 
 CHANNEL_TYPES: Dict[str, discord.ChannelType] = {
     "text": discord.ChannelType.text,
@@ -91,8 +94,8 @@ def create_select(**kwargs) -> ui.Select:
     )
 
 
-def create_role_select(**kwargs) -> ui.RoleSelect:
-    return ui.RoleSelect(
+def create_type_select(select: Type[T], **kwargs) -> T:
+    return select(
         custom_id=kwargs.get("custom_id", utils.MISSING),
         placeholder=kwargs.get("placeholder"),
         min_values=int(kwargs.get("min_values", 1)),

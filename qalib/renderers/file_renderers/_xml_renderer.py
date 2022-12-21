@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, List, Dict, Callable, Any, cast
+from functools import partial
+from typing import Optional, List, Dict, Callable, Any, cast, Type
 from xml.etree import ElementTree as ElementTree
 
 import discord
@@ -9,7 +10,7 @@ import discord.types.embed
 import discord.ui as ui
 
 from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, \
-    create_channel_select, make_channel_types, create_role_select
+    create_channel_select, make_channel_types, create_type_select, T
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -229,16 +230,17 @@ class XMLRenderer(Renderer):
         select.callback = callback
         return select
 
-    def _render_role_select(
+    def _render_type_select(
             self,
+            select_type: Type[T],
             component: ElementTree.Element,
             callback: Optional[Callable],
             keywords: Dict[str, Any]
-    ) -> ui.RoleSelect:
-        """Renders a role select based on the template in the element, and formatted values given by the keywords.
+    ) -> T:
+        """Renders a type select based on the template in the element, and formatted values given by the keywords.
 
         Args:
-            component (ElementTree.Element): The role select to render, contains the template.
+            component (ElementTree.Element): The type select to render, contains the template.
             callback (Optional[Callable]): The callback to use if the user interacts with this role select.
             keywords (Dict[str, Any]): The values to format the template with.
 
@@ -246,7 +248,7 @@ class XMLRenderer(Renderer):
         """
         attributes = self._extract_elements(component, keywords)
 
-        select: ui.RoleSelect = create_role_select(**attributes)
+        select: ui.RoleSelect = create_type_select(select_type, **attributes)
         select.callback = callback
         return select
 
@@ -270,7 +272,9 @@ class XMLRenderer(Renderer):
             "button": self._render_button,
             "select": self._render_select,
             "channel_select": self._render_channel_select,
-            "role_select": self._render_role_select,
+            "role_select": partial(self._render_type_select, ui.RoleSelect),
+            "mentionable_select": partial(self._render_type_select, ui.MentionableSelect),
+            "user_select": partial(self._render_type_select, ui.UserSelect),
         }[component.tag](component, callback, keywords)
 
     def render_components(
