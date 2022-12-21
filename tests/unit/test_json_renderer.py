@@ -51,10 +51,31 @@ class TestJSONRenderer(unittest.TestCase):
         self.assertEqual(child.placeholder, "Select a channel")
 
     def test_role_select_rendering(self):
-        path = "tests/routes/role_embeds.json"
+        path = "tests/routes/select_embeds.json"
         renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
         view = renderer.render_view("Launch")
         self.assertGreater(len(view.children), 0)
+        child = view.children[0]
+        assert isinstance(child, discord.ui.RoleSelect)
+        self.assertEqual(child.placeholder, "Select a Role")
+
+    def test_user_select_rendering(self):
+        path = "tests/routes/select_embeds.json"
+        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
+        view = renderer.render_view("Launch")
+        self.assertGreater(len(view.children), 0)
+        child = view.children[1]
+        assert isinstance(child, discord.ui.UserSelect)
+        self.assertEqual(child.placeholder, "Select a User")
+
+    def test_mentionable_select_rendering(self):
+        path = "tests/routes/select_embeds.json"
+        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
+        view = renderer.render_view("Launch")
+        self.assertGreater(len(view.children), 0)
+        child = view.children[2]
+        assert isinstance(child, discord.ui.MentionableSelect)
+        self.assertEqual(child.placeholder, "Select a Mention")
 
     def test_emoji_error(self):
         path = "tests/routes/error.json"
