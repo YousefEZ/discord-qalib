@@ -1,13 +1,14 @@
 import json
 from datetime import datetime
-from typing import Dict, List, Optional, Callable, Any, Union, cast
+from functools import partial
+from typing import Dict, List, Optional, Callable, Any, Union, cast, Type
 
 import discord
 import discord.types.embed
 import discord.ui as ui
 
 from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, make_channel_types, \
-    create_channel_select, create_role_select
+    create_channel_select, create_type_select, T
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -197,25 +198,26 @@ class JSONRenderer(Renderer):
         select.callback = callback
         return select
 
-    def _render_role_select(
+    def _render_type_select(
             self,
+            select_type: Type[T],
             component: Dict[str, Union[str, Dict[str, Any]]],
             callback: Optional[Callable],
             keywords: Dict[str, Any]
-    ) -> ui.RoleSelect:
-        """Renders a role select menu from the given component's template
+    ) -> T:
+        """Renders a type select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called when the role is selected from the select menu
-            keywords (Dict[str, Any]): the keywords to be used when rendering the role select menu's attributes
+            callback (Optional[Callable]): the callback to be called it is selected from the select menu
+            keywords (Dict[str, Any]): the keywords to be used when rendering the select menu's attributes
 
         Returns (ui.Item): the rendered role select menu
         """
 
         attributes: Dict[str, Any] = self._extract_attributes(component, keywords)
 
-        select: ui.RoleSelect = create_role_select(**attributes)
+        select: T = create_type_select(select_type, **attributes)
         select.callback = callback
         return select
 
@@ -238,7 +240,9 @@ class JSONRenderer(Renderer):
             "button": self._render_button,
             "select": self._render_select,
             "channel_select": self._render_channel_select,
-            "role_select": self._render_role_select
+            "role_select": partial(self._render_type_select, ui.RoleSelect),
+            "user_select": partial(self._render_type_select, ui.UserSelect),
+            "mentionable_select": partial(self._render_type_select, ui.MentionableSelect)
         }[component.pop("type")](component, callback, keywords)
 
     def render_components(
