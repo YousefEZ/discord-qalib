@@ -9,8 +9,7 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, \
-    create_channel_select, make_channel_types, create_type_select, T
+from qalib.renderers.file_renderers._item_wrappers import *
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -252,6 +251,27 @@ class XMLRenderer(Renderer):
         select.callback = callback
         return select
 
+    def _render_text_input(
+            self,
+            component: ElementTree.Element,
+            callback: (Optional[Callable]),
+            keywords: (Dict[str, Any])
+    ) -> ui.TextInput:
+        """Renders a text input based on the template in the element, and formatted values given by the keywords.
+
+        Args:
+            component (ElementTree.Element): The text input to render, contains the template.
+            callback (Optional[Callable]): The callback to use if the user interacts with this text input.
+            keywords (Dict[str, Any]): The values to format the template with.
+
+        Returns (ui.TextInput): The rendered text input.
+        """
+        attributes = self._extract_elements(component, keywords)
+
+        text_input: ui.TextInput = create_text_input(**attributes)
+        text_input.callback = callback
+        return text_input
+
     def render_component(
             self,
             component: ElementTree.Element,
@@ -272,6 +292,7 @@ class XMLRenderer(Renderer):
             "button": self._render_button,
             "select": self._render_select,
             "channel_select": self._render_channel_select,
+            "text_input": self._render_text_input,
             "role_select": partial(self._render_type_select, ui.RoleSelect),
             "mentionable_select": partial(self._render_type_select, ui.MentionableSelect),
             "user_select": partial(self._render_type_select, ui.UserSelect),
