@@ -77,6 +77,15 @@ class TestJSONRenderer(unittest.TestCase):
         assert isinstance(child, discord.ui.MentionableSelect)
         self.assertEqual(child.placeholder, "Select a Mention")
 
+    def test_text_input_rendering(self):
+        path = "tests/routes/select_embeds.json"
+        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
+        view = renderer.render_view("Launch")
+        self.assertGreater(len(view.children), 0)
+        child = view.children[3]
+        assert isinstance(child, discord.ui.TextInput)
+        self.assertEqual(child.placeholder, "Test Placeholder")
+
     def test_emoji_error(self):
         path = "tests/routes/error.json"
         renderer = qalib.renderers.embed_proxy.EmbedProxy(path)

@@ -59,7 +59,7 @@ class TestXMLRenderer(unittest.TestCase):
         path = "tests/routes/select_embeds.xml"
         renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
         view = renderer.render_view("Launch")
-        self.assertEqual(len(view.children), 3)
+        self.assertEqual(len(view.children), 4)
         child = view.children[0]
         assert isinstance(child, discord.ui.RoleSelect)
         self.assertEqual(child.placeholder, "Select a Role")
@@ -68,7 +68,7 @@ class TestXMLRenderer(unittest.TestCase):
         path = "tests/routes/select_embeds.xml"
         renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
         view = renderer.render_view("Launch")
-        self.assertEqual(len(view.children), 3)
+        self.assertEqual(len(view.children), 4)
         child = view.children[1]
         assert isinstance(child, discord.ui.UserSelect)
         self.assertEqual(child.placeholder, "Select a User")
@@ -77,10 +77,19 @@ class TestXMLRenderer(unittest.TestCase):
         path = "tests/routes/select_embeds.xml"
         renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
         view = renderer.render_view("Launch")
-        self.assertEqual(len(view.children), 3)
+        self.assertEqual(len(view.children), 4)
         child = view.children[2]
         assert isinstance(child, discord.ui.MentionableSelect)
         self.assertEqual(child.placeholder, "Select a Mention")
+
+    def test_text_input_rendering(self):
+        path = "tests/routes/select_embeds.xml"
+        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
+        view = renderer.render_view("Launch")
+        self.assertEqual(len(view.children), 4)
+        child = view.children[3]
+        assert isinstance(child, discord.ui.TextInput)
+        self.assertEqual(child.placeholder, "Test Placeholder")
 
     def test_emoji_error(self):
         path = "tests/routes/error.xml"
