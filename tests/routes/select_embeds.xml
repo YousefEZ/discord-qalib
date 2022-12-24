@@ -20,6 +20,10 @@
             <mentionable_select>
                 <placeholder>Select a Mention</placeholder>
             </mentionable_select>
+            <text_input>
+                <label>Test Label</label>
+                <placeholder>Test Placeholder</placeholder>
+            </text_input>
         </view>
     </embed>
 </discord>

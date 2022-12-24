@@ -8,6 +8,17 @@ import discord.utils as utils
 import emoji
 from discord.ui.button import ButtonStyle
 
+__all__ = (
+    "T",
+    "make_channel_types",
+    "make_emoji",
+    "create_button",
+    "create_select",
+    "create_channel_select",
+    "create_type_select",
+    "create_text_input"
+)
+
 T = Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]
 
 CHANNEL_TYPES: Dict[str, discord.ChannelType] = {
@@ -32,13 +43,15 @@ BUTTON_STYLES: Dict[str, ButtonStyle] = {
     "link": ButtonStyle.link
 }
 
+TEXT_STYLES: Dict[str, discord.TextStyle] = {
+    "short": discord.TextStyle.short,
+    "paragraph": discord.TextStyle.paragraph,
+    "long": discord.TextStyle.long
+}
+
 
 def make_channel_types(types: List[str]) -> List[discord.ChannelType]:
-    return list(map(lambda channel_type: CHANNEL_TYPES[channel_type], types))
-
-
-def make_button_style(style: str) -> ButtonStyle:
-    return BUTTON_STYLES[style]
+    return list(map(CHANNEL_TYPES.get, types))
 
 
 def make_emoji(raw_emoji: Optional[Union[str, dict]]) -> Optional[Union[str, discord.emoji.PartialEmoji]]:
@@ -60,7 +73,7 @@ def make_emoji(raw_emoji: Optional[Union[str, dict]]) -> Optional[Union[str, dis
 
 def create_button(**kwargs) -> ui.Button:
     return ui.Button(
-        style=make_button_style(kwargs.get("style", "primary")),
+        style=BUTTON_STYLES.get(kwargs.get("style", "primary")),
         custom_id=kwargs.get("custom_id"),
         label=kwargs.get("label"),
         disabled=kwargs.get("disabled", "false").lower() == "true",
@@ -101,5 +114,18 @@ def create_type_select(select: Type[T], **kwargs) -> T:
         min_values=int(kwargs.get("min_values", 1)),
         max_values=int(kwargs.get("max_values", 1)),
         disabled=kwargs.get("disabled", "false").lower() == "true",
+        row=int(row) if (row := kwargs.get("row")) is not None else None
+    )
+
+
+def create_text_input(**kwargs) -> ui.TextInput:
+    return ui.TextInput(
+        label=kwargs.get("label"),
+        custom_id=kwargs.get("custom_id", utils.MISSING),
+        style=TEXT_STYLES.get(kwargs.get("style", "text")),
+        placeholder=kwargs.get("placeholder"),
+        default=kwargs.get("default"),
+        min_length=int(kwargs.get("min_length", 0)),
+        max_length=int(kwargs.get("max_length", 2000)),
         row=int(row) if (row := kwargs.get("row")) is not None else None
     )

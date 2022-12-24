@@ -7,8 +7,7 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from qalib.renderers.file_renderers._item_wrappers import create_button, create_select, make_emoji, make_channel_types, \
-    create_channel_select, create_type_select, T
+from qalib.renderers.file_renderers._item_wrappers import *
 from qalib.renderers.file_renderers.renderer import Renderer
 from qalib.utils import colours
 
@@ -221,6 +220,28 @@ class JSONRenderer(Renderer):
         select.callback = callback
         return select
 
+    def _render_text_input(
+            self,
+            component: Dict[str, Union[str, Dict[str, Any]]],
+            callback: Optional[Callable],
+            keywords: Dict[str, Any]
+    ) -> ui.TextInput:
+        """Renders a text input form the given component's template
+
+        Args:
+            component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
+            callback (Optional[Callable]): the callback to be called when the text is submitted
+            keywords (Dict[str, Any]): the keywords to be used when rendering te text input.
+
+        Returns (ui.TextInput): the rendered text input block.
+        """
+
+        attributes: Dict[str, Any] = self._extract_attributes(component, keywords)
+
+        text_input: ui.TextInput = create_text_input(**attributes)
+        text_input.callback = callback
+        return text_input
+
     def render_component(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
@@ -242,7 +263,8 @@ class JSONRenderer(Renderer):
             "channel_select": self._render_channel_select,
             "role_select": partial(self._render_type_select, ui.RoleSelect),
             "user_select": partial(self._render_type_select, ui.UserSelect),
-            "mentionable_select": partial(self._render_type_select, ui.MentionableSelect)
+            "mentionable_select": partial(self._render_type_select, ui.MentionableSelect),
+            "text_input": self._render_text_input
         }[component.pop("type")](component, callback, keywords)
 
     def render_components(

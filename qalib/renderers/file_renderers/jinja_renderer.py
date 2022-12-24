@@ -9,8 +9,7 @@ from ._xml_renderer import XMLRenderer
 class JinjaXMLTemplate(XMLRenderer):
 
     def __init__(self, path: str, environment: jinja2.Environment, keywords: Dict[str, Any]):
-        self._environment = environment
-        super().__init__(ElementTree.fromstring(self._environment.get_template(path).render(**keywords)))
+        super().__init__(ElementTree.fromstring(environment.get_template(path).render(**keywords)))
 
     @staticmethod
     def _render_element(element: ElementTree.Element, *_) -> str:

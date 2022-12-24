@@ -27,6 +27,11 @@
       "test3": {
         "type": "mentionable_select",
         "placeholder": "Select a Mention"
+      },
+      "test4": {
+        "type": "text_input",
+        "placeholder": "Test Placeholder",
+        "label": "Test Label"
       }
     }
   }
