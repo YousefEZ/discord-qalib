@@ -3,8 +3,9 @@
         <title>Hello World</title>
         <colour>magenta</colour>
         <fields>
-            <field inline="True" name="hello world">
-                This is the body of the text
+            <field inline="True">
+                <name>hello world</name>
+                <value>This is the body of the text</value>
             </field>
         </fields>
         <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
@@ -15,8 +16,9 @@
         <title>Hello World</title>
         <colour>teal</colour>
         <fields>
-            <field name="hello world2">
-                This is the body of the text
+            <field>
+                <name>hello world2</name>
+                <value>This is the body of the text</value>
             </field>
         </fields>
         <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
