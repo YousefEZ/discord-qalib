@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Optional, Callable, Any, Union, cast, Type
+from typing import Dict, List, Optional, Coroutine, Any, Union, cast, Type
 
 import discord
 import discord.types.embed
@@ -64,7 +64,7 @@ class JSONRenderer(Renderer):
         return [{
             "name": self._render_attribute(field, "name", keywords),
             "value": self._render_attribute(field, "text", keywords),
-            "inline": self._render_attribute(field, "inline", keywords) == "True"}
+            "inline": self._render_attribute(field, "inline", keywords).lower() == "true"}
             for field in fields
         ]
 
@@ -100,14 +100,14 @@ class JSONRenderer(Renderer):
     def _render_button(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.Button:
         """Renders a button from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called when the button is pressed
+            callback (Optional[Coroutine]): the callback to be called when the button is pressed
             keywords (Dict[str, Any]): the keywords to be used when rendering the button's attributes
 
         Returns (ui.Item): the rendered button
@@ -150,14 +150,14 @@ class JSONRenderer(Renderer):
     def _render_channel_select(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.ChannelSelect:
         """Renders a select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called when the select menu is pressed
+            callback (Optional[Coroutine]): the callback to be called when the select menu is pressed
             keywords (Dict[str, Any]): the keywords to be used when rendering the select menu's attributes
 
         Returns (ui.Item): the rendered channel select menu
@@ -176,14 +176,14 @@ class JSONRenderer(Renderer):
     def _render_select(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.Select:
         """Renders a select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called when the select menu is pressed
+            callback (Optional[Coroutine]): the callback to be called when the select menu is pressed
             keywords (Dict[str, Any]): the keywords to be used when rendering the select menu's attributes
 
         Returns (ui.Item): the rendered select menu
@@ -201,14 +201,14 @@ class JSONRenderer(Renderer):
             self,
             select_type: Type[T],
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> T:
         """Renders a type select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called it is selected from the select menu
+            callback (Optional[Coroutine]): the callback to be called it is selected from the select menu
             keywords (Dict[str, Any]): the keywords to be used when rendering the select menu's attributes
 
         Returns (ui.Item): the rendered role select menu
@@ -223,14 +223,14 @@ class JSONRenderer(Renderer):
     def _render_text_input(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.TextInput:
         """Renders a text input form the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called when the text is submitted
+            callback (Optional[Coroutine]): the callback to be called when the text is submitted
             keywords (Dict[str, Any]): the keywords to be used when rendering te text input.
 
         Returns (ui.TextInput): the rendered text input block.
@@ -245,14 +245,14 @@ class JSONRenderer(Renderer):
     def render_component(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.Item:
         """ Renders a component from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Callable]): the callback to be called when the user interacts with the component
+            callback (Optional[Coroutine]): the callback to be called when the user interacts with the component
             keywords (Dict[str, Any]): the keywords to be used when rendering the component's attributes
 
         Returns (ui.Item): the rendered component
@@ -270,14 +270,14 @@ class JSONRenderer(Renderer):
     def render_components(
             self,
             identifier: str,
-            callables: Dict[str, Callable],
+            callables: Dict[str, Coroutine],
             keywords: Dict[str, Any]
     ) -> Optional[List[ui.Item]]:
         """Renders the components specified by the identifier
 
         Args:
             identifier (str): the name of the embed containing the components to be rendered
-            callables (Dict[str, Callable]): the callbacks to be called when the user interacts with the components
+            callables (Dict[str, Coroutine]): the callbacks to be called when the user interacts with the components
             keywords (Optional[Dict[str, Any]]): the keywords to be used when rendering the components' attributes
 
         Returns (Optional[List[ui.Item]]): the rendered components
@@ -287,7 +287,8 @@ class JSONRenderer(Renderer):
         if view is None:
             return None
 
-        return [self.render_component(component, callables.get(key), keywords) for key, component in view.items()]
+        return [self.render_component(component, callables.get(key, ui.Item.callback), keywords) for key, component in
+                view.items()]
 
     def render(self, identifier: str, keywords: Optional[Dict[str, Any]] = None) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance
