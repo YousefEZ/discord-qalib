@@ -6,7 +6,7 @@ from typing import Optional
 import discord.ext.commands
 
 import qalib.qalib_context
-from qalib import EmbedManager, jinja_manager, menu_manager, embed_manager as embed_decorator
+from qalib import EmbedManager, jinja_manager, menu_manager, embed_manager as embed_decorator, MenuManager, JinjaManager
 from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
 
@@ -85,22 +85,23 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await embed_manager.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(embed_manager._displayed.view.children), 5)
 
-    def test_decorator(self):
-        f = embed_decorator("tests/routes/simple_embeds.json")
-        wrapper = f(lambda ctx: ctx)
-        embed_manager = wrapper(self.ctx)
-        self.assertIsInstance(embed_manager, EmbedManager)
+    async def test_decorator(self):
+        @embed_decorator("tests/routes/simple_embeds.json")
+        async def test(ctx):
+            self.assertIsInstance(ctx, EmbedManager)
+
+        await test(ContextMocked())
 
     def test_menu_manager(self):
         @menu_manager("tests/routes/menus.json", "Menu1")
         def test(ctx):
-            return ctx
+            self.assertIsInstance(ctx, MenuManager)
 
         test(self.ctx)
 
     def test_jinja_manager(self):
         @jinja_manager("jinja-test.xml", "tests/routes")
         def test(ctx):
-            return ctx
+            self.assertIsInstance(ctx, JinjaManager)
 
         test(self.ctx)
