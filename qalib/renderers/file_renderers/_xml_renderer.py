@@ -222,7 +222,7 @@ class XMLRenderer(Renderer):
         if channel_types is not None:
             attributes["channel_types"] = make_channel_types(list(map(
                 lambda element: self._render_element(element, keywords),
-                channel_types
+                channel_types.findall("channel_type")
             )))
 
         select: ui.ChannelSelect = create_channel_select(**attributes)
