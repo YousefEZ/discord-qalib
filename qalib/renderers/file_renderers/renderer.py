@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, List, Dict, Callable
+from typing import Any, Optional, List, Dict, Coroutine
 
 import discord
 import discord.ui as ui
@@ -15,7 +15,7 @@ class Renderer(ABC):
     def render_components(
             self,
             identifier: str,
-            callables: Dict[str, Callable],
+            callables: Dict[str, Coroutine],
             keywords: Dict[str, Any]
     ) -> Optional[List[ui.Item]]:
         ...

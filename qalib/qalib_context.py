@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict, Callable
+from typing import Any, Optional, Dict, Coroutine
 
 import discord.message
 import discord.ui as ui
@@ -58,7 +58,7 @@ class QalibContext(discord.ext.commands.Context):
     def _render(
             self,
             identifier: str,
-            callables: Optional[Dict[str, Callable]] = None,
+            callables: Optional[Dict[str, Coroutine]] = None,
             keywords: Dict[str, Any] = None,
             timeout: Optional[int] = 180
     ) -> (discord.Embed, Optional[ui.View]):
@@ -66,7 +66,7 @@ class QalibContext(discord.ext.commands.Context):
 
         Args:
             identifier (str): identifies the embed in the route file
-            callables (Optional[Dict[str, Callable]]) : functions that are hooked to components
+            callables (Optional[Dict[str, Coroutine]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             timeout (Optional[int]): timeout for the view
 
@@ -77,7 +77,7 @@ class QalibContext(discord.ext.commands.Context):
     async def rendered_send(
             self,
             identifier: str,
-            callables: Optional[Dict[str, Callable]] = None,
+            callables: Optional[Dict[str, Coroutine]] = None,
             keywords: Dict[str, Any] = None,
             timeout: Optional[int] = 180,
             **kwargs
@@ -87,7 +87,7 @@ class QalibContext(discord.ext.commands.Context):
 
         Args:
             identifier (str): identifies the embed in the route file
-            callables (Optional[Dict[str, Callable]]) : functions that are hooked to components
+            callables (Optional[Dict[str, Coroutine]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             timeout (Optional[int]): timeout for the view
             **kwargs: kwargs that are passed to the context's send method
@@ -100,7 +100,7 @@ class QalibContext(discord.ext.commands.Context):
     async def display(
             self,
             key: str,
-            callables: Optional[Dict[str, Callable]] = None,
+            callables: Optional[Dict[str, Coroutine]] = None,
             keywords: Dict[str, Any] = None,
             **kwargs
     ) -> None:
@@ -109,7 +109,7 @@ class QalibContext(discord.ext.commands.Context):
 
         Args:
             key (str): identifies the embed in the route file
-            callables: callable functions that are called when the user interacts with the message
+            callables: callable coroutines that are called when the user interacts with the message
             keywords: keywords that are passed to the embed renderer to format the text
             **kwargs: kwargs that are passed to the context send method or the message edit method
 

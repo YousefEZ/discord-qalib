@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, List
+from typing import Any, Coroutine, Dict, Optional, List
 
 import discord
 import jinja2
@@ -25,7 +25,7 @@ class JinjaProxy(RendererProtocol):
     def render(
             self,
             identifier: str,
-            callbacks: Optional[Dict[str, Callable]] = None,
+            callbacks: Optional[Dict[str, Coroutine]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
     ) -> (discord.Embed, Optional[discord.ui.View]):
@@ -57,7 +57,7 @@ class JinjaProxy(RendererProtocol):
     def render_view(
             self,
             identifier: str,
-            callbacks: Optional[Dict[str, Callable]] = None,
+            callbacks: Optional[Dict[str, Coroutine]] = None,
             timeout: Optional[int] = 180,
             keywords: Optional[Dict[str, Any]] = None,
             template: Optional[JinjaXMLTemplate] = None
@@ -66,7 +66,7 @@ class JinjaProxy(RendererProtocol):
 
         Args:
             identifier (str): identifier of the embed
-            callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view
+            callbacks (Optional[Dict[str, Coroutine]]): callbacks that are attached to the components of the view
             timeout (Optional[int]): timeout of the view
             keywords (Optional[Dict[str, Any]]): keywords that are used to format the components'
             template (Optional[JinjaXMLTemplate]): JinjaXMLTemplate object that is used to render the components
