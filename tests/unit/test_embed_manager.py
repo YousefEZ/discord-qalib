@@ -92,16 +92,16 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         await test(ContextMocked())
 
-    def test_menu_manager(self):
+    async def test_menu_manager(self):
         @menu_manager("tests/routes/menus.json", "Menu1")
-        def test(ctx):
+        async def test(ctx):
             self.assertIsInstance(ctx, MenuManager)
 
-        test(self.ctx)
+        await test(ContextMocked())
 
-    def test_jinja_manager(self):
+    async def test_jinja_manager(self):
         @jinja_manager("jinja-test.xml", "tests/routes")
-        def test(ctx):
+        async def test(ctx):
             self.assertIsInstance(ctx, JinjaManager)
 
-        test(self.ctx)
+        await test(self.ctx)
