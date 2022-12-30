@@ -5,15 +5,16 @@ embeds stored in the format of .xml files.
 :copyright: (c) 2022-present YousefEZ
 :license: MIT, see LICENSE for more details.
 """
+from functools import wraps
 
 import discord.ext.commands
 import discord.ext.commands
 import jinja2
 
+from .qalib_context import QalibContext
 from .renderers.embed_proxy import EmbedProxy
 from .renderers.jinja_proxy import JinjaProxy
 from .renderers.menu_proxy import MenuProxy
-from .qalib_context import QalibContext
 from .utils import *
 
 __title__ = 'qalib'
@@ -43,8 +44,9 @@ class JinjaManager(QalibContext):
 
 def embed_manager(*manager_args):
     def manager(func):
-        def wrapper(*args, **kwargs):
-            return func(EmbedManager(args[0], *manager_args), *args[1:], **kwargs)
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            return await func(EmbedManager(args[0], *manager_args), *args[1:], **kwargs)
 
         return wrapper
 
@@ -53,15 +55,23 @@ def embed_manager(*manager_args):
 
 def menu_manager(*manager_args):
     def manager(func):
-        def wrapper(*args, **kwargs):
-            return func(MenuManager(args[0], *manager_args), *args[1:], **kwargs)
+        wraps(func)
+
+        async def wrapper(*args, **kwargs):
+            return await func(MenuManager(args[0], *manager_args), *args[1:], **kwargs)
+
         return wrapper
+
     return manager
 
 
 def jinja_manager(*manager_args):
     def manager(func):
-        def wrapper(*args, **kwargs):
-            return func(JinjaManager(args[0], *manager_args), *args[1:], **kwargs)
+        wraps(func)
+
+        async def wrapper(*args, **kwargs):
+            return await func(JinjaManager(args[0], *manager_args), *args[1:], **kwargs)
+
         return wrapper
+
     return manager

@@ -1,4 +1,4 @@
-from typing import Any, List, Dict, Callable, Optional
+from typing import Any, List, Dict, Coroutine, Optional
 
 import discord.ui
 
@@ -15,7 +15,7 @@ class RendererProxy(RendererProtocol):
     def render(
             self,
             identifier: str,
-            callbacks: Optional[Dict[str, Callable]] = None,
+            callbacks: Optional[Dict[str, Coroutine]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
     ) -> (discord.Embed, Optional[discord.ui.View]):
@@ -31,7 +31,7 @@ class RendererProxy(RendererProtocol):
     def render_view(
             self,
             identifier: str,
-            callbacks: Optional[Dict[str, Callable]] = None,
+            callbacks: Optional[Dict[str, Coroutine]] = None,
             timeout: Optional[int] = 180,
             keywords: Optional[Dict[str, Any]] = None
     ) -> Optional[discord.ui.View]:
@@ -39,7 +39,7 @@ class RendererProxy(RendererProtocol):
 
         Args:
             identifier (str): identifier of the embed
-            callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view
+            callbacks (Optional[Dict[str, Coroutine]]): callbacks that are attached to the components of the view
             timeout (Optional[int]): timeout of the view
             keywords (Optional[Dict[str, Any]]): keywords that are used to format the components
 

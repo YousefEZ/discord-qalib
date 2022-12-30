@@ -1,4 +1,3 @@
-from functools import reduce
 from typing import Dict, List, Optional, Union
 from typing import Type
 
@@ -58,7 +57,7 @@ def make_emoji(raw_emoji: Optional[Union[str, dict]]) -> Optional[Union[str, dis
     if raw_emoji is None:
         return None
 
-    if reduce(lambda r, k: r * k, [k in raw_emoji for k in ("name", "id", "animated")]):
+    if all(k in raw_emoji for k in ("name", "id", "animated")):
         return discord.emoji.PartialEmoji.from_dict(raw_emoji)
 
     if "id" in raw_emoji:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Optional, List, Dict, Callable, Any, cast, Type
+from typing import Optional, List, Dict, Coroutine, Any, cast, Type
 from xml.etree import ElementTree as ElementTree
 
 import discord
@@ -81,9 +81,9 @@ class XMLRenderer(Renderer):
         }
 
     def _render_fields(self, fields_element: ElementTree.Element, keywords: Dict[str, Any]) -> List[dict]:
-        return [{"name": self._render_attribute(field, "name", keywords),
-                 "value": self._render_element(field, keywords),
-                 "inline": self._render_attribute(field, "inline", keywords) == "True"}
+        return [{"name": self._render_element(field.find("name"), keywords),
+                 "value": self._render_element(field.find("value"), keywords),
+                 "inline": self._render_attribute(field, "inline", keywords).lower() == "true"}
                 for field in fields_element.findall("field")]
 
     @property
@@ -136,14 +136,14 @@ class XMLRenderer(Renderer):
     def _render_button(
             self,
             component: ElementTree.Element,
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.Button:
         """Renders a button based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The button to render, contains the template.
-            callback (Optional[Callable]): The callback to use if the user interacts with this button.
+            callback (Optional[Coroutine]): The callback to use if the user interacts with this button.
             keywords (Dict[str, Any]): The values to format the template with.
 
         Returns (ui.Button): The rendered button.
@@ -180,14 +180,14 @@ class XMLRenderer(Renderer):
     def _render_select(
             self,
             component: ElementTree.Element,
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.Select:
         """Renders a select based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The select to render, contains the template.
-            callback (Optional[Callable]): The callback to use if the user interacts with this select.
+            callback (Optional[Coroutine]): The callback to use if the user interacts with this select.
             keywords (Dict[str, Any]): The values to format the template with.
 
         Returns (ui.Select): The rendered select.
@@ -204,14 +204,14 @@ class XMLRenderer(Renderer):
     def _render_channel_select(
             self,
             component: ElementTree.Element,
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.ChannelSelect:
         """Renders a channel select based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The channel select to render, contains the template.
-            callback (Optional[Callable]): The callback to use if the user interacts with this channel select.
+            callback (Optional[Coroutine]): The callback to use if the user interacts with this channel select.
             keywords (Dict[str, Any]): The values to format the template with.
 
         Returns (ui.ChannelSelect): The rendered channel select.
@@ -222,7 +222,7 @@ class XMLRenderer(Renderer):
         if channel_types is not None:
             attributes["channel_types"] = make_channel_types(list(map(
                 lambda element: self._render_element(element, keywords),
-                channel_types
+                channel_types.findall("channel_type")
             )))
 
         select: ui.ChannelSelect = create_channel_select(**attributes)
@@ -233,14 +233,14 @@ class XMLRenderer(Renderer):
             self,
             select_type: Type[T],
             component: ElementTree.Element,
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> T:
         """Renders a type select based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The type select to render, contains the template.
-            callback (Optional[Callable]): The callback to use if the user interacts with this role select.
+            callback (Optional[Coroutine]): The callback to use if the user interacts with this role select.
             keywords (Dict[str, Any]): The values to format the template with.
 
         Returns (ui.RoleSelect): The rendered role select.
@@ -254,14 +254,14 @@ class XMLRenderer(Renderer):
     def _render_text_input(
             self,
             component: ElementTree.Element,
-            callback: (Optional[Callable]),
+            callback: (Optional[Coroutine]),
             keywords: (Dict[str, Any])
     ) -> ui.TextInput:
         """Renders a text input based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The text input to render, contains the template.
-            callback (Optional[Callable]): The callback to use if the user interacts with this text input.
+            callback (Optional[Coroutine]): The callback to use if the user interacts with this text input.
             keywords (Dict[str, Any]): The values to format the template with.
 
         Returns (ui.TextInput): The rendered text input.
@@ -275,14 +275,14 @@ class XMLRenderer(Renderer):
     def render_component(
             self,
             component: ElementTree.Element,
-            callback: Optional[Callable],
+            callback: Optional[Coroutine],
             keywords: Dict[str, Any]
     ) -> ui.Item:
         """Renders a component based on the tag in the element.
 
         Args:
             component (ElementTree.Element): The component to render, contains all template.
-            callback (Optional[Callable]): The callback to use if the user interacts with this component.
+            callback (Optional[Coroutine]): The callback to use if the user interacts with this component.
             keywords (Dict[str, Any]): The keywords to use to format the component before rendering.
 
         Returns (discord.ui.Item): The rendered component.
@@ -301,14 +301,14 @@ class XMLRenderer(Renderer):
     def render_components(
             self,
             identifier: str,
-            callables: Dict[str, Callable],
-            keywords: Optional[Dict[str, Any]] = None
+            callables: Dict[str, Coroutine],
+            kwargs: Optional[Dict[str, Any]] = None
     ) -> Optional[List[ui.Item]]:
         """Renders a list of components based on the identifier given.
 
         Args:
-            keywords (Optional[Dict[str, Any]]): The keywords to use to format the components before rendering.
-            callables (Dict[str, Callable]): The callbacks to use if the user interacts with the components.
+            kwargs (Optional[Dict[str, Any]]): The keywords to use to format the components before rendering.
+            callables (Dict[str, Coroutine]): The callbacks to use if the user interacts with the components.
             identifier (str): The identifier of the components to render.
 
         Returns (Optional[List[discord.ui.Item]]): The rendered components.
@@ -320,8 +320,8 @@ class XMLRenderer(Renderer):
         return [
             self.render_component(
                 component,
-                callables.get(key) if (key := self._render_attribute(component, "key", keywords)) else None,
-                keywords
+                callables.get(self._render_attribute(component, "key", kwargs), ui.Item.callback),
+                kwargs
             )
             for component in view
         ]
