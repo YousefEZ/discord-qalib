@@ -9,8 +9,10 @@ from .file_renderers.renderer_factory import RendererFactory
 class RendererProxy(RendererProtocol):
     __slots__ = ("_renderer",)
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, root: Optional[str] = None):
         self._renderer = RendererFactory.get_renderer(path)
+        if root is not None:
+            self.set_root(root)
 
     def render(
             self,
@@ -21,6 +23,9 @@ class RendererProxy(RendererProtocol):
     ) -> Display:
         return Display(self.render_embed(identifier, keywords),
                        self.render_view(identifier, callbacks, timeout, keywords))
+
+    def set_root(self, key: str):
+        self._renderer.set_root(key)
 
     def render_embed(self, identifier: str, keywords: Optional[Dict[str, Any]] = None):
         if keywords is None:

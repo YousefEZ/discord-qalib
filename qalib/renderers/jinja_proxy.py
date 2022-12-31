@@ -10,17 +10,22 @@ from . import RendererProtocol, Display, create_arrows
 class JinjaProxy(RendererProtocol):
     """Jinja Renderer for embeds"""
 
-    __slots__ = ("_template", "_environment")
+    __slots__ = ("_template", "_environment", "_root")
 
-    def __init__(self, template: str, environment: jinja2.Environment):
+    def __init__(self, environment: jinja2.Environment, template: str, root: Optional[str] = None):
         self._template = template
         self._environment = environment
+        self._root = [] if root is None else [root]
 
     def template(self, keywords: Optional[Dict[str, Any]] = None) -> JinjaXMLTemplate:
         if keywords is None:
             keywords = {}
 
-        return JinjaXMLTemplate(self._template, self._environment, keywords)
+        template = JinjaXMLTemplate(self._template, self._environment, keywords)
+        for root in self._root:
+            template.set_root(root)
+
+        return template
 
     def render(
             self,
@@ -45,6 +50,7 @@ class JinjaProxy(RendererProtocol):
         Args:
             identifier (str): identifier of the embed
             keywords (Optional[Dict[str, Any]]): keywords that are used to format the embed
+            template (Optional[JinjaXMLTemplate]): JinjaXMLTemplate object that is used to render the embed
 
         Returns (discord.Embed): Embed object that is rendered from the Renderer
         """
@@ -81,7 +87,7 @@ class JinjaProxy(RendererProtocol):
             keywords = {}
 
         if template is None:
-            template = JinjaXMLTemplate(self._template, self._environment, keywords)
+            template = self.template(keywords)
 
         components: Optional[List[discord.ui.Item]] = template.render_components(identifier, callbacks, keywords)
         if components is None:
@@ -101,7 +107,7 @@ class JinjaProxy(RendererProtocol):
             timeout (Optional[int]): timeout of the view
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
         """
-        template = JinjaXMLTemplate(self._template, self._environment, keywords)
+        template = self.template(keywords)
 
         keys = template.keys
 

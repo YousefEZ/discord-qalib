@@ -49,7 +49,7 @@ class RendererProtocol(Protocol):
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
     ) -> Display:
-        raise NotImplementedError
+        ...
 
     def render_menu(
             self,
@@ -57,4 +57,7 @@ class RendererProtocol(Protocol):
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
     ) -> Display:
-        raise NotImplementedError
+        ...
+
+    def set_root(self, key: str):
+        ...
