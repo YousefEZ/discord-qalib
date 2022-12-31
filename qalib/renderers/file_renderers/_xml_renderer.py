@@ -9,9 +9,9 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
+import qalib.renderers.file_renderers._item_wrappers
 from qalib.renderers.file_renderers._item_wrappers import *
 from qalib.renderers.file_renderers.renderer import Renderer
-from qalib.utils import colours
 
 
 class XMLRenderer(Renderer):
@@ -348,7 +348,7 @@ class XMLRenderer(Renderer):
 
         embed = discord.Embed(
             title=render("title"),
-            colour=colours.get_colour(render("colour")),
+            colour=qalib.renderers.file_renderers._item_wrappers.make_colour(render("colour")),
             type=embed_type,
             url=render("url"),
             description=render("description"),

@@ -1,5 +1,3 @@
-import functools
-
 from qalib.renderers.file_renderers._json_renderer import JSONRenderer
 from qalib.renderers.file_renderers._xml_renderer import XMLRenderer
 from qalib.renderers.file_renderers.renderer import Renderer
