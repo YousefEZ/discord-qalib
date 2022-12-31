@@ -312,7 +312,7 @@ class JSONRenderer(Renderer):
 
         embed = discord.Embed(
             title=render("title"),
-            colour=qalib.renderers.file_renderers._item_wrappers.get_colour(
+            colour=qalib.renderers.file_renderers._item_wrappers.make_colour(
                 colour if (colour := render("colour")) != "" else render("color")),
             type=embed_type,
             url=render("url"),

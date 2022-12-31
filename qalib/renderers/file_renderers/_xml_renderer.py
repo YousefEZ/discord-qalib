@@ -348,7 +348,7 @@ class XMLRenderer(Renderer):
 
         embed = discord.Embed(
             title=render("title"),
-            colour=qalib.renderers.file_renderers._item_wrappers.get_colour(render("colour")),
+            colour=qalib.renderers.file_renderers._item_wrappers.make_colour(render("colour")),
             type=embed_type,
             url=render("url"),
             description=render("description"),
