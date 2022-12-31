@@ -15,7 +15,6 @@ import jinja2
 from .qalib_context import QalibContext
 from .renderers.embed_proxy import EmbedProxy
 from .renderers.jinja_proxy import JinjaProxy
-from .utils import *
 
 __title__ = 'qalib'
 __author__ = 'YousefEZ'
