@@ -1,9 +1,9 @@
 from typing import Any, Optional, Dict, Coroutine
 
-import discord.message
-import discord.ui as ui
 import discord.ext.commands
+import discord.message
 
+from qalib.renderers import Display
 from qalib.renderers.renderer_proxy import RendererProtocol
 
 
@@ -59,9 +59,9 @@ class QalibContext(discord.ext.commands.Context):
             self,
             identifier: str,
             callables: Optional[Dict[str, Coroutine]] = None,
-            keywords: Dict[str, Any] = None,
+            keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
-    ) -> (discord.Embed, Optional[ui.View]):
+    ) -> Display:
         """This method renders the embed and the view based on the identifier string given.
 
         Args:
@@ -70,7 +70,7 @@ class QalibContext(discord.ext.commands.Context):
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             timeout (Optional[int]): timeout for the view
 
-        Returns (discord.Embed, Optional[ui.View]): tuple of the embed and the view
+        Returns (Display): tuple of the embed and the view
         """
         return self._renderer.render(identifier, callables, keywords, timeout=timeout)
 
@@ -78,7 +78,7 @@ class QalibContext(discord.ext.commands.Context):
             self,
             identifier: str,
             callables: Optional[Dict[str, Coroutine]] = None,
-            keywords: Dict[str, Any] = None,
+            keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180,
             **kwargs
     ) -> discord.message.Message:
@@ -101,7 +101,8 @@ class QalibContext(discord.ext.commands.Context):
             self,
             key: str,
             callables: Optional[Dict[str, Coroutine]] = None,
-            keywords: Dict[str, Any] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            timeout: Optional[int] = 180,
             **kwargs
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
@@ -111,15 +112,37 @@ class QalibContext(discord.ext.commands.Context):
             key (str): identifies the embed in the route file
             callables: callable coroutines that are called when the user interacts with the message
             keywords: keywords that are passed to the embed renderer to format the text
+            timeout (Optional[int]): timeout for the view
             **kwargs: kwargs that are passed to the context send method or the message edit method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        if keywords is None:
-            keywords = {}
+        embed, view = self._render(key, callables, keywords, timeout)
+        await self._display(embed=embed, view=view, **kwargs)
 
+    async def _display(self, **kwargs: Any) -> None:
+        """This method is responsible for sending the message to the client and keeping track of the message object.
+
+        Args:
+            **kwargs (Dict[str, Any]): kwargs that are passed to the context's send method
+        """
         if self._displayed is None:
-            self._displayed = await self.rendered_send(key, callables, keywords, **kwargs)
+            self._displayed = await self.send(**kwargs)
         else:
-            embed, view = self._render(key, callables, keywords)
-            await self._displayed.edit(embed=embed, view=view, **kwargs)
+            await self._displayed.edit(**kwargs)
+
+    async def menu(
+            self,
+            callbacks: Optional[Dict[str, Coroutine]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            **kwargs
+    ) -> None:
+        """This method is used to create a menu for the user to select from.
+
+        Args:
+            callbacks (Dict[str, Coroutine]): callbacks that are called when the user interacts with the menu
+            keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
+            **kwargs: kwargs that are passed to the context's send method
+        """
+        display = self._renderer.render_menu(callbacks=callbacks, keywords=keywords, **kwargs)
+        await self._display(embed=display.embed, view=display.view, **kwargs)
