@@ -7,9 +7,9 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
+import qalib.renderers.file_renderers._item_wrappers
 from qalib.renderers.file_renderers._item_wrappers import *
 from qalib.renderers.file_renderers.renderer import Renderer
-from qalib.utils import colours
 
 
 class JSONRenderer(Renderer):
@@ -312,7 +312,8 @@ class JSONRenderer(Renderer):
 
         embed = discord.Embed(
             title=render("title"),
-            colour=colours.get_colour(colour if (colour := render("colour")) != "" else render("color")),
+            colour=qalib.renderers.file_renderers._item_wrappers.get_colour(
+                colour if (colour := render("colour")) != "" else render("color")),
             type=embed_type,
             url=render("url"),
             description=render("description"),
