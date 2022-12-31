@@ -94,7 +94,7 @@ class XMLRenderer(Renderer):
     def keys(self) -> List[str]:
         return list(map(lambda element: element.get("key"), self.root.findall("embed")))
 
-    def set_menu(self, key: str):
+    def set_root(self, key: str):
         for menu in self.root.findall("menu"):
             if menu.get("key") == key:
                 self.root = menu

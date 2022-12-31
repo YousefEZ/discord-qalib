@@ -68,7 +68,7 @@ class JSONRenderer(Renderer):
             for field in fields
         ]
 
-    def set_menu(self, key: str):
+    def set_root(self, key: str):
         self._data = self._data[key]
 
     @property

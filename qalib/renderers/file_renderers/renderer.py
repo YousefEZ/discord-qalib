@@ -21,7 +21,7 @@ class Renderer(ABC):
         ...
 
     @abstractmethod
-    def set_menu(self, key: str):
+    def set_root(self, key: str):
         ...
 
     @property
