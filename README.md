@@ -1,10 +1,17 @@
-# discord-qalib
+# :black_joker: Discord-Qalib
 
 [![Discord-Qalib Tests](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml/badge.svg)](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml)
 [![codecov](https://codecov.io/gh/YousefEZ/discord-qalib/branch/main/graph/badge.svg?token=3EG4ZF8K3R)](https://codecov.io/gh/YousefEZ/discord-qalib)
+![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-informational)
+<a href="https://gitmoji.dev">
+  <img
+    src="https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square"
+    alt="Gitmoji"
+  />
+</a>
 
-Discord templating engine built on discord.py, to help separate text of embeds from the source code. Inspired by Django
-and Jinja.
+
+Discord templating engine built on discord.py, to help separate text of embeds from the source code. Inspired by Flask.
 
 -----
 Key Features:
@@ -14,11 +21,11 @@ Key Features:
 
 -----
 
-## Installing:
+## :gear: Installing:
 
 Python3.8 or higher is required
 
-# Tests
+## :test_tube: Tests
 
 To run the tests, run the following command in the root directory:
 
@@ -34,7 +41,7 @@ Linux:
 python3 -m unittest tests -v
 ```
 
-# Usage
+## :zap: Usage
 
 Wrap expressions that need to evaluated with ``{}``, such as ``{player.name}`` or ``{todays_date}``
 
