@@ -48,6 +48,9 @@ class QalibContext(discord.ext.commands.Context):
         """
         return message.author == self.message.author and message.channel == self.message.channel
 
+    def set_root(self, key: str):
+        self._renderer.set_root(key)
+
     async def get_message(self) -> Optional[str]:
         """This method waits for a message to be sent by the user"""
         confirm: Optional[discord.message.Message] = await self.bot.wait_for('message',
