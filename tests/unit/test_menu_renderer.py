@@ -23,13 +23,13 @@ class MenuRendererTest(unittest.TestCase):
 
     def test_xml_pages(self):
         path = "tests/routes/menus.xml"
-        renderer = MenuProxy(path, "Menu1")
-        self.assertEqual(renderer.size, 2)
+        proxy = MenuProxy(path, "Menu1")
+        self.assertEqual(proxy._renderer.size, 2)
 
     def test_xml_keys(self):
         path = "tests/routes/menus.xml"
-        renderer = MenuProxy(path, "Menu1")
-        self.assertEqual(renderer.keys, ["test_key1", "test_key2"])
+        proxy = MenuProxy(path, "Menu1")
+        self.assertEqual(proxy._renderer.keys, ["test_key1", "test_key2"])
 
     def test_json_render(self):
         path = "tests/routes/menus.json"
@@ -49,10 +49,10 @@ class MenuRendererTest(unittest.TestCase):
 
     def test_json_pages(self):
         path = "tests/routes/menus.json"
-        renderer = MenuProxy(path, "Menu1")
-        self.assertEqual(renderer.size, 2)
+        proxy = MenuProxy(path, "Menu1")
+        self.assertEqual(proxy._renderer.size, 2)
 
     def test_json_keys(self):
         path = "tests/routes/menus.json"
-        renderer = MenuProxy(path, "Menu1")
-        self.assertEqual(renderer.keys, ["test_key1", "test_key2"])
+        proxy = MenuProxy(path, "Menu1")
+        self.assertEqual(proxy._renderer.keys, ["test_key1", "test_key2"])

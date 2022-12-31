@@ -1,16 +1,15 @@
 import datetime
 import unittest
 
-from typing import Optional
-
 import discord.ext.commands
+import jinja2
 
 import qalib.qalib_context
-from qalib import EmbedManager, jinja_manager, menu_manager, embed_manager as embed_decorator, MenuManager, JinjaManager
+from qalib import EmbedManager, jinja_manager, menu_manager, embed_manager as embed_decorator
 from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
 
-async def send(self, embed: discord.Embed, view: discord.ui.View, **k) -> MessageMocked:
+async def send(self, embed: discord.Embed, view: discord.ui.View, **_) -> MessageMocked:
     self.message = MessageMocked(embed=embed, view=view)
     return self.message
 
@@ -88,20 +87,26 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_decorator(self):
         @embed_decorator("tests/routes/simple_embeds.json")
         async def test(ctx):
-            self.assertIsInstance(ctx, EmbedManager)
+            self.assertIsInstance(ctx, qalib.QalibContext)
 
         await test(ContextMocked())
 
     async def test_menu_manager(self):
         @menu_manager("tests/routes/menus.json", "Menu1")
         async def test(ctx):
-            self.assertIsInstance(ctx, MenuManager)
+            self.assertIsInstance(ctx, qalib.QalibContext)
 
         await test(ContextMocked())
 
     async def test_jinja_manager(self):
         @jinja_manager("jinja-test.xml", "tests/routes")
         async def test(ctx):
-            self.assertIsInstance(ctx, JinjaManager)
+            self.assertIsInstance(ctx, qalib.QalibContext)
 
         await test(self.ctx)
+
+    def test_menu_manager_class(self):
+        self.assertTrue(qalib.MenuManager(self.ctx, "tests/routes/menus.json", "Menu1"))
+
+    def test_jinja_manager_class(self):
+        self.assertTrue(qalib.JinjaManager(self.ctx, "jinja-test.xml", jinja2.Environment("tests/routes")))
