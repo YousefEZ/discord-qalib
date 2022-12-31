@@ -6,6 +6,7 @@ embeds stored in the format of .xml files.
 :license: MIT, see LICENSE for more details.
 """
 from functools import wraps
+from typing import Optional
 
 import discord.ext.commands
 import discord.ext.commands
@@ -14,7 +15,6 @@ import jinja2
 from .qalib_context import QalibContext
 from .renderers.embed_proxy import EmbedProxy
 from .renderers.jinja_proxy import JinjaProxy
-from .renderers.menu_proxy import MenuProxy
 from .utils import *
 
 __title__ = 'qalib'
@@ -26,39 +26,29 @@ __version__ = '1.0.0'
 
 class EmbedManager(QalibContext):
 
-    def __init__(self, ctx: discord.ext.commands.Context, file_path: str):
-        super().__init__(ctx, EmbedProxy(file_path))
-
-
-class MenuManager(QalibContext):
-
-    def __init__(self, ctx: discord.ext.commands.Context, file_path: str, menu_key: str):
-        super().__init__(ctx, MenuProxy(file_path, menu_key))
+    def __init__(self, ctx: discord.ext.commands.Context, file_path: str, root: Optional[str] = None):
+        super().__init__(ctx, EmbedProxy(file_path, root))
 
 
 class JinjaManager(QalibContext):
 
-    def __init__(self, ctx: discord.ext.commands.Context, template: str, environment: jinja2.Environment):
-        super().__init__(ctx, JinjaProxy(template, environment))
+    def __init__(
+            self,
+            ctx: discord.ext.commands.Context,
+            environment: jinja2.Environment,
+            template: str,
+            root: Optional[str] = None
+    ):
+        super().__init__(ctx, JinjaProxy(environment, template, root))
 
 
 def embed_manager(*manager_args):
     def manager(func):
+        proxy = EmbedProxy(*manager_args)
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(EmbedManager(args[0], *manager_args), *args[1:], **kwargs)
-
-        return wrapper
-
-    return manager
-
-
-def menu_manager(*manager_args):
-    def manager(func):
-        wraps(func)
-
-        async def wrapper(*args, **kwargs):
-            return await func(MenuManager(args[0], *manager_args), *args[1:], **kwargs)
+            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
 
         return wrapper
 
@@ -67,10 +57,11 @@ def menu_manager(*manager_args):
 
 def jinja_manager(*manager_args):
     def manager(func):
-        wraps(func)
+        proxy = JinjaProxy(*manager_args)
 
+        @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(JinjaManager(args[0], *manager_args), *args[1:], **kwargs)
+            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
 
         return wrapper
 

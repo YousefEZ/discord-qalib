@@ -1,26 +1,31 @@
-from typing import Any, Coroutine, Dict, Optional, List
+from typing import Any, Coroutine, Dict, Optional, List, Callable
 
 import discord
 import jinja2
 
 from qalib.renderers.file_renderers.jinja_renderer import JinjaXMLTemplate
-from . import RendererProtocol
+from . import RendererProtocol, Display, create_arrows
 
 
 class JinjaProxy(RendererProtocol):
     """Jinja Renderer for embeds"""
 
-    __slots__ = ("_template", "_environment")
+    __slots__ = ("_template", "_environment", "_root")
 
-    def __init__(self, template: str, environment: jinja2.Environment):
+    def __init__(self, environment: jinja2.Environment, template: str, root: Optional[str] = None):
         self._template = template
         self._environment = environment
+        self._root = [] if root is None else [root]
 
     def template(self, keywords: Optional[Dict[str, Any]] = None) -> JinjaXMLTemplate:
         if keywords is None:
             keywords = {}
 
-        return JinjaXMLTemplate(self._template, self._environment, keywords)
+        template = JinjaXMLTemplate(self._template, self._environment, keywords)
+        for root in self._root:
+            template.set_root(root)
+
+        return template
 
     def render(
             self,
@@ -28,11 +33,11 @@ class JinjaProxy(RendererProtocol):
             callbacks: Optional[Dict[str, Coroutine]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
-    ) -> (discord.Embed, Optional[discord.ui.View]):
+    ) -> Display:
 
         template = self.template(keywords)
-        return self.render_embed(identifier, keywords, template), self.render_view(identifier, callbacks, timeout,
-                                                                                   keywords, template)
+        return Display(self.render_embed(identifier, keywords, template),
+                       self.render_view(identifier, callbacks, timeout, keywords, template))
 
     def render_embed(
             self,
@@ -45,6 +50,7 @@ class JinjaProxy(RendererProtocol):
         Args:
             identifier (str): identifier of the embed
             keywords (Optional[Dict[str, Any]]): keywords that are used to format the embed
+            template (Optional[JinjaXMLTemplate]): JinjaXMLTemplate object that is used to render the embed
 
         Returns (discord.Embed): Embed object that is rendered from the Renderer
         """
@@ -81,7 +87,7 @@ class JinjaProxy(RendererProtocol):
             keywords = {}
 
         if template is None:
-            template = JinjaXMLTemplate(self._template, self._environment, keywords)
+            template = self.template(keywords)
 
         components: Optional[List[discord.ui.Item]] = template.render_components(identifier, callbacks, keywords)
         if components is None:
@@ -92,8 +98,31 @@ class JinjaProxy(RendererProtocol):
             view.add_item(component)
         return view
 
-    def size(self, keywords: Optional[Dict[str, Any]] = None) -> int:
-        return self.template(keywords).size
+    def render_menu(self, callbacks: Optional[Dict[str, Callable]], keywords: Optional[Dict[str, Any]] = None,
+                    timeout: Optional[int] = 180, **kwargs) -> Display:
+        """This method is used to create a menu for the user to select from.
 
-    def keys(self, keywords: Optional[Dict[str, Any]] = None) -> List[str]:
-        return self.template(keywords).keys
+        Args:
+            callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view
+            timeout (Optional[int]): timeout of the view
+            keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
+        """
+        template = self.template(keywords)
+
+        keys = template.keys
+
+        def create_display_with_default_view(identifier: str) -> Display:
+            embed = self.render_embed(identifier, template=template)
+            view = self.render_view(identifier, callbacks, timeout, template=template)
+            return Display(embed, discord.ui.View() if view is None else view)
+
+        displays = [create_display_with_default_view(key) for key in keys]
+
+        for i, display in enumerate(displays):
+            arrow_left = displays[i - 1] if i > 0 else None
+            arrow_right = displays[i + 1] if i + 1 < len(displays) else None
+
+            for arrow in create_arrows(arrow_left, arrow_right, **kwargs):
+                display.view.add_item(arrow)
+
+        return displays[0]

@@ -5,7 +5,7 @@
     "fields": [
       {
         "name": "hello world",
-        "inline": "true",
+        "inline": true,
         "value": "This is the body of the text"
       }
     ],

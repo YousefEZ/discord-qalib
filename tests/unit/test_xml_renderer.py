@@ -105,7 +105,7 @@ class TestXMLRenderer(unittest.TestCase):
         template = "jinja-test.xml"
         file_loader = FileSystemLoader("tests/routes/")
         env = Environment(loader=file_loader)
-        renderer = qalib.renderers.jinja_proxy.JinjaProxy(template, env)
+        renderer = qalib.renderers.jinja_proxy.JinjaProxy(env, template)
         embed = renderer.render_embed("test1")
         self.assertEqual(len(embed.fields), 3)
 
@@ -113,7 +113,7 @@ class TestXMLRenderer(unittest.TestCase):
         template = "jinja-test.xml"
         file_loader = FileSystemLoader("tests/routes/")
         env = Environment(loader=file_loader)
-        renderer = qalib.renderers.jinja_proxy.JinjaProxy(template, env)
+        renderer = qalib.renderers.jinja_proxy.JinjaProxy(env, template)
         view = renderer.render_view("test1")
         self.assertEqual(len(view.children), 1)
 
@@ -121,7 +121,7 @@ class TestXMLRenderer(unittest.TestCase):
         template = "jinja-test.xml"
         file_loader = FileSystemLoader("tests/routes/")
         env = Environment(loader=file_loader)
-        renderer = qalib.renderers.jinja_proxy.JinjaProxy(template, env)
+        renderer = qalib.renderers.jinja_proxy.JinjaProxy(env, template)
         embed, view = renderer.render("test1")
         self.assertEqual(len(embed.fields), 3)
         self.assertEqual(len(view.children), 1)
@@ -130,20 +130,20 @@ class TestXMLRenderer(unittest.TestCase):
         template = "jinja-test.xml"
         file_loader = FileSystemLoader("tests/routes/")
         env = Environment(loader=file_loader)
-        renderer = qalib.renderers.jinja_proxy.JinjaProxy(template, env)
-        self.assertEqual(renderer.size(), 2)
+        renderer = qalib.renderers.jinja_proxy.JinjaProxy(env, template)
+        self.assertEqual(renderer.template().size, 2)
 
     def test_jinja_keys(self):
         template = "jinja-test.xml"
         file_loader = FileSystemLoader("tests/routes/")
         env = Environment(loader=file_loader)
-        renderer = qalib.renderers.jinja_proxy.JinjaProxy(template, env)
-        self.assertEqual(renderer.keys(), ["test1", "test2"])
+        renderer = qalib.renderers.jinja_proxy.JinjaProxy(env, template)
+        self.assertEqual(renderer.template().keys, ["test1", "test2"])
 
     def test_jinja_empty_view(self):
         template = "jinja-test.xml"
         file_loader = FileSystemLoader("tests/routes/")
         env = Environment(loader=file_loader)
-        renderer = qalib.renderers.jinja_proxy.JinjaProxy(template, env)
+        renderer = qalib.renderers.jinja_proxy.JinjaProxy(env, template)
         view = renderer.render_view("test2")
         self.assertIs(view, None)
