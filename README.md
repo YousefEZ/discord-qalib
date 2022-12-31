@@ -1,4 +1,6 @@
-# :black_joker: Discord-Qalib
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/45167695/210134648-e954d124-a9bd-4d48-9cc1-e51f28241711.png" />
+</p>
 
 [![Discord-Qalib Tests](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml/badge.svg)](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml)
 [![codecov](https://codecov.io/gh/YousefEZ/discord-qalib/branch/main/graph/badge.svg?token=3EG4ZF8K3R)](https://codecov.io/gh/YousefEZ/discord-qalib)
