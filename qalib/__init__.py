@@ -44,9 +44,11 @@ class JinjaManager(QalibContext):
 
 def embed_manager(*manager_args):
     def manager(func):
+        proxy = EmbedProxy(*manager_args)
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(EmbedManager(args[0], *manager_args), *args[1:], **kwargs)
+            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
 
         return wrapper
 
@@ -55,10 +57,11 @@ def embed_manager(*manager_args):
 
 def menu_manager(*manager_args):
     def manager(func):
-        wraps(func)
+        proxy = MenuProxy(*manager_args)
 
+        @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(MenuManager(args[0], *manager_args), *args[1:], **kwargs)
+            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
 
         return wrapper
 
@@ -67,10 +70,11 @@ def menu_manager(*manager_args):
 
 def jinja_manager(*manager_args):
     def manager(func):
-        wraps(func)
+        proxy = JinjaProxy(*manager_args)
 
+        @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(JinjaManager(args[0], *manager_args), *args[1:], **kwargs)
+            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
 
         return wrapper
 
