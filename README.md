@@ -45,6 +45,8 @@ python3 -m unittest tests -v
 
 ## :zap: Usage
 
+_This is explained in more detail in the [wiki](https://github.com/YousefEZ/discord-qalib/wiki)_
+
 Wrap expressions that need to evaluated with ``{}``, such as ``{player.name}`` or ``{todays_date}``
 
 Sample XML file:
