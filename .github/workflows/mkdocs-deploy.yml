@@ -17,7 +17,8 @@ jobs:
           echo mkdocs-material >> docs/requirements.txt
           echo mkdocstrings >> docs/requirements.txt
           echo mkdocstrings-python >> docs/requirements.txt
-          echo mkdocspymdown-extensions >> docs/requirements.txt
+          echo mkdocs-material-extensions >> docs/requirements.txt
+          echo pymdown-extensions >> docs/requirements.txt
           cat requirements.txt >> docs/requirements.txt
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
