@@ -13,8 +13,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install mkdocs mkdocs-material mkdocstrings mkdocstrings-python pymdown-extensions
+          echo mkdocs >> docs/requirements.txt
+          echo mkdocs-material >> docs/requirements.txt
+          echo mkdocstrings >> docs/requirements.txt
+          echo mkdocstrings-python >> docs/requirements.txt
+          echo mkdocspymdown-extensions >> docs/requirements.txt
+          cat requirements.txt >> docs/requirements.txt
       - name: Deploy docs
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         # Or use mhausenblas/mkdocs-deploy-gh-pages@nomaterial to build without the mkdocs-material theme
@@ -22,4 +26,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CONFIG_FILE: mkdocs.yml
           EXTRA_PACKAGES: build-base
+          REQUIREMENTS: docs/requirements.txt
           # GITHUB_DOMAIN: github.myenterprise.com
