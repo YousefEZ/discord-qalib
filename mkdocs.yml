@@ -1,0 +1,51 @@
+site_name: Discord-Qalib
+site_url: https://discord-qalib.github.io
+nav:
+  - Home: index.md
+  - About: about.md
+  - Usage:
+      - Installation: usage/installation.md
+      - Getting Started: usage/getting-started.md
+      - Simple Usage: usage/simple-usage.md
+  - Qalib:
+      - Context: qalib/context.md
+      - Jinja: qalib/jinja2.md
+theme:
+  name: material
+  palette:
+
+    # Palette toggle for light mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+markdown_extensions:
+  - admonition
+  - codehilite
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [ qalib ]  # search packages in the src folder
+          options:
+            show_source: False
+            heading_level: 4
+            docstring_section_style: list
+extra_css:
+  - css/custom.css
