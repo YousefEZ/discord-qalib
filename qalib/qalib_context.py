@@ -1,10 +1,10 @@
-from typing import Any, Optional, Dict, Coroutine
+from typing import Any, Optional, Dict
 
 import discord.ext.commands
 import discord.message
 
 from qalib.renderer import Renderer
-from qalib.translators import Display
+from qalib.translators import Display, Callback
 
 
 class QalibContext(discord.ext.commands.Context):
@@ -58,7 +58,7 @@ class QalibContext(discord.ext.commands.Context):
     def _render(
             self,
             identifier: str,
-            callables: Optional[Dict[str, Coroutine]] = None,
+            callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
     ) -> Display:
@@ -66,7 +66,7 @@ class QalibContext(discord.ext.commands.Context):
 
         Parameters:
             identifier (str): identifies the embed in the route file
-            callables (Optional[Dict[str, Coroutine]]) : functions that are hooked to components
+            callables (Optional[Dict[str, Callback]]): item callbacks
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             timeout (Optional[int]): timeout for the view
 
@@ -77,7 +77,7 @@ class QalibContext(discord.ext.commands.Context):
     async def rendered_send(
             self,
             identifier: str,
-            callables: Optional[Dict[str, Coroutine]] = None,
+            callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180,
             **kwargs
@@ -87,7 +87,7 @@ class QalibContext(discord.ext.commands.Context):
 
         Parameters:
             identifier (str): identifies the embed in the route file
-            callables (Optional[Dict[str, Coroutine]]) : functions that are hooked to components
+            callables (Optional[Dict[str, Callback]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             timeout (Optional[int]): timeout for the view
             **kwargs: kwargs that are passed to the context's send method
@@ -100,7 +100,7 @@ class QalibContext(discord.ext.commands.Context):
     async def display(
             self,
             key: str,
-            callables: Optional[Dict[str, Coroutine]] = None,
+            callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180,
             **kwargs
@@ -134,7 +134,7 @@ class QalibContext(discord.ext.commands.Context):
     async def menu(
             self,
             key: str,
-            callbacks: Optional[Dict[str, Coroutine]] = None,
+            callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs
     ) -> None:
@@ -142,7 +142,7 @@ class QalibContext(discord.ext.commands.Context):
 
         Parameters:
             key (str): identifies the menu in the template file
-            callbacks (Dict[str, Coroutine]): callbacks that are called when the user interacts with the menu
+            callbacks (Dict[str, Callback]): callbacks that are called when the user interacts with the menu
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             **kwargs: kwargs that are passed to the context's send method
         """

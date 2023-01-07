@@ -4,13 +4,14 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Optional, Coroutine, Any, Union, cast, Type
+from typing import Dict, List, Optional, Any, Union, cast, Type
 
 import discord
 import discord.types.embed
 import discord.ui as ui
 
-from .deserializer import Deserializer, Display
+from . import Callback, Display
+from .deserializer import Deserializer
 from .parser import Parser
 from .utils import *
 from ..template_engines.template_engine import TemplateEngine
@@ -43,13 +44,13 @@ class JSONParser(Parser):
 
 class JSONDeserializer(Deserializer):
 
-    def deserialize(self, source: str, callables: Dict[str, Coroutine], **kw) -> Display:
+    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
         return self.deserialize_to_embed(json.loads(source), callables, kw)
 
     def deserialize_to_embed(
             self,
             embed_tree: Dict[str, Any],
-            callables: Dict[str, Coroutine],
+            callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> Display:
         view_tree = embed_tree.get("view")
@@ -57,14 +58,14 @@ class JSONDeserializer(Deserializer):
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
         return Display(embed, view)
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Coroutine], **kw) -> List[Display]:
+    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
         menu = json.loads(source)
         return [self.deserialize_to_embed(menu.get(embed), callables, kw) for embed in menu]
 
     def _render_view(
             self,
             raw_view: Dict[str, ...],
-            callables: Dict[str, Coroutine],
+            callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> ui.View:
         view = ui.View(**kw)
@@ -122,13 +123,13 @@ class JSONDeserializer(Deserializer):
     def _render_button(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> ui.Button:
         """Renders a button from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Coroutine]): the callback to be called when the button is pressed
+            callback (Optional[Callback]): the callback to be called when the button is pressed
 
         Returns (ui.Item): the rendered button
         """
@@ -165,13 +166,13 @@ class JSONDeserializer(Deserializer):
     def _render_channel_select(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> ui.ChannelSelect:
         """Renders a select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Coroutine]): the callback to be called when the select menu is pressed
+            callback (Optional[Callback]): the callback to be called when the select menu is pressed
 
         Returns (ui.Item): the rendered channel select menu
         """
@@ -189,13 +190,13 @@ class JSONDeserializer(Deserializer):
     def _render_select(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Coroutine]): the callback to be called when the select menu is pressed
+            callback (Optional[Callback]): the callback to be called when the select menu is pressed
 
         Returns (ui.Item): the rendered select menu
         """
@@ -212,13 +213,13 @@ class JSONDeserializer(Deserializer):
             self,
             select_type: Type[T],
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> T:
         """Renders a type select menu from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Coroutine]): the callback to be called it is selected from the select menu
+            callback (Optional[Callback]): the callback to be called it is selected from the select menu
 
         Returns (ui.Item): the rendered role select menu
         """
@@ -232,13 +233,13 @@ class JSONDeserializer(Deserializer):
     def _render_text_input(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> ui.TextInput:
         """Renders a text input form the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Coroutine]): the callback to be called when the text is submitted
+            callback (Optional[Callback]): the callback to be called when the text is submitted
 
         Returns (ui.TextInput): the rendered text input block.
         """
@@ -252,13 +253,13 @@ class JSONDeserializer(Deserializer):
     def render_component(
             self,
             component: Dict[str, Union[str, Dict[str, Any]]],
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> ui.Item:
         """ Renders a component from the given component's template
 
         Args:
             component (Dict[str, Union[str, Dict[str, Any]]]): the component's template
-            callback (Optional[Coroutine]): the callback to be called when the user interacts with the component
+            callback (Optional[Callback]): the callback to be called when the user interacts with the component
 
         Returns (ui.Item): the rendered component
         """
@@ -275,13 +276,13 @@ class JSONDeserializer(Deserializer):
     def render_components(
             self,
             view: Dict[str, ...],
-            callables: Dict[str, Coroutine]
+            callables: Dict[str, Callback]
     ) -> Optional[List[ui.Item]]:
         """Renders the components specified by the identifier
 
         Args:
             view (Dict[str, ...]): the dictionary containing the view component.
-            callables (Dict[str, Coroutine]): the callbacks to be called when the user interacts with the components
+            callables (Dict[str, Callback]): the callbacks to be called when the user interacts with the components
 
         Returns (Optional[List[ui.Item]]): the rendered components
         """

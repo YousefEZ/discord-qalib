@@ -1,6 +1,8 @@
-from typing import NamedTuple
+from typing import NamedTuple, Callable, Awaitable
 
 import discord.ui
+
+Callback = Callable[[discord.Interaction], Awaitable[None]]
 
 
 class Display(NamedTuple):

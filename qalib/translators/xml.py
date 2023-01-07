@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Optional, List, Dict, Coroutine, Any, cast, Type
+from typing import Optional, List, Dict, Any, cast, Type
 from xml.etree import ElementTree as ElementTree
 
 import discord
@@ -10,7 +10,7 @@ import discord.types.embed
 import discord.ui as ui
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Display
+from qalib.translators import Callback, Display
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
 from qalib.translators.utils import *
@@ -48,13 +48,13 @@ class XMLParser(Parser):
 class XMLDeserializer(Deserializer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
-    def deserialize(self, source: str, callables: Dict[str, Coroutine], **kw) -> Display:
+    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
         return self.deserialize_to_embed(ElementTree.fromstring(source), callables, kw)
 
     def deserialize_to_embed(
             self,
             embed_tree: ElementTree.Element,
-            callables: Dict[str, Coroutine],
+            callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> Display:
         view_tree: ElementTree.Element = embed_tree.find("view")
@@ -62,14 +62,14 @@ class XMLDeserializer(Deserializer):
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
         return Display(embed, view)
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Coroutine], **kw) -> List[Display]:
+    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
         menu_tree: ElementTree = ElementTree.fromstring(source)
         return [self.deserialize_to_embed(embed, callables, kw) for embed in menu_tree.findall("embed")]
 
     def _render_view(
             self,
             raw_view: ElementTree.Element,
-            callables: Dict[str, Coroutine],
+            callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> ui.View:
         view = ui.View(**kw)
@@ -141,12 +141,12 @@ class XMLDeserializer(Deserializer):
     def _extract_elements(self, tree: ElementTree.Element) -> Dict[str, Any]:
         return {element.tag: self._render_element(element) for element in tree}
 
-    def _render_button(self, component: ElementTree.Element, callback: Optional[Coroutine]) -> ui.Button:
+    def _render_button(self, component: ElementTree.Element, callback: Optional[Callback]) -> ui.Button:
         """Renders a button based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The button to render, contains the template.
-            callback (Optional[Coroutine]): The callback to use if the user interacts with this button.
+            callback (Optional[Callback]): The callback to use if the user interacts with this button.
 
         Returns (ui.Button): The rendered button.
         """
@@ -177,13 +177,13 @@ class XMLDeserializer(Deserializer):
     def _render_select(
             self,
             component: ElementTree.Element,
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The select to render, contains the template.
-            callback (Optional[Coroutine]): The callback to use if the user interacts with this select.
+            callback (Optional[Callback]): The callback to use if the user interacts with this select.
 
         Returns (ui.Select): The rendered select.
         """
@@ -196,12 +196,12 @@ class XMLDeserializer(Deserializer):
         select.callback = callback
         return select
 
-    def _render_channel_select(self, component: ElementTree.Element, callback: Optional[Coroutine]) -> ui.ChannelSelect:
+    def _render_channel_select(self, component: ElementTree.Element, callback: Optional[Callback]) -> ui.ChannelSelect:
         """Renders a channel select based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The channel select to render, contains the template.
-            callback (Optional[Coroutine]): The callback to use if the user interacts with this channel select.
+            callback (Optional[Callback]): The callback to use if the user interacts with this channel select.
 
         Returns (ui.ChannelSelect): The rendered channel select.
         """
@@ -222,13 +222,13 @@ class XMLDeserializer(Deserializer):
             self,
             select_type: Type[T],
             component: ElementTree.Element,
-            callback: Optional[Coroutine],
+            callback: Optional[Callback],
     ) -> T:
         """Renders a type select based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The type select to render, contains the template.
-            callback (Optional[Coroutine]): The callback to use if the user interacts with this role select.
+            callback (Optional[Callback]): The callback to use if the user interacts with this role select.
 
         Returns (ui.RoleSelect): The rendered role select.
         """
@@ -238,12 +238,12 @@ class XMLDeserializer(Deserializer):
         select.callback = callback
         return select
 
-    def _render_text_input(self, component: ElementTree.Element, callback: (Optional[Coroutine])) -> ui.TextInput:
+    def _render_text_input(self, component: ElementTree.Element, callback: (Optional[Callback])) -> ui.TextInput:
         """Renders a text input based on the template in the element, and formatted values given by the keywords.
 
         Args:
             component (ElementTree.Element): The text input to render, contains the template.
-            callback (Optional[Coroutine]): The callback to use if the user interacts with this text input.
+            callback (Optional[Callback]): The callback to use if the user interacts with this text input.
 
         Returns (ui.TextInput): The rendered text input.
         """
@@ -253,12 +253,12 @@ class XMLDeserializer(Deserializer):
         text_input.callback = callback
         return text_input
 
-    def render_component(self, component: ElementTree.Element, callback: Optional[Coroutine]) -> ui.Item:
+    def render_component(self, component: ElementTree.Element, callback: Optional[Callback]) -> ui.Item:
         """Renders a component based on the tag in the element.
 
         Args:
             component (ElementTree.Element): The component to render, contains all template.
-            callback (Optional[Coroutine]): The callback to use if the user interacts with this component.
+            callback (Optional[Callback]): The callback to use if the user interacts with this component.
 
         Returns (discord.ui.Item): The rendered component.
         """
@@ -276,13 +276,13 @@ class XMLDeserializer(Deserializer):
     def render_components(
             self,
             view: ElementTree.Element,
-            callables: Dict[str, Coroutine]
+            callables: Dict[str, Callback]
     ) -> List[ui.Item]:
         """Renders a list of components based on the identifier given.
 
         Args:
             view (ui.View): The raw view.
-            callables (Dict[str, Coroutine]): The callbacks to use if the user interacts with the components.
+            callables (Dict[str, Callback]): The callbacks to use if the user interacts with the components.
 
         Returns (Optional[List[discord.ui.Item]]): The rendered components.
         """
