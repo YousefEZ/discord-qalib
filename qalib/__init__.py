@@ -8,13 +8,7 @@ embeds stored in the format of .xml files.
 from functools import wraps
 from typing import Optional
 
-import discord.ext.commands
-import discord.ext.commands
-import jinja2
-
 from .qalib_context import QalibContext
-from .renderers.embed_proxy import EmbedProxy
-from .renderers.jinja_proxy import JinjaProxy
 
 __title__ = 'qalib'
 __author__ = 'YousefEZ'
@@ -22,45 +16,19 @@ __license__ = 'MIT'
 __copyright__ = 'Copyright 2022-present YousefEZ'
 __version__ = '1.0.0'
 
-
-class EmbedManager(QalibContext):
-
-    def __init__(self, ctx: discord.ext.commands.Context, file_path: str, root: Optional[str] = None):
-        super().__init__(ctx, EmbedProxy(file_path, root))
-
-
-class JinjaManager(QalibContext):
-
-    def __init__(
-            self,
-            ctx: discord.ext.commands.Context,
-            environment: jinja2.Environment,
-            template: str,
-            root: Optional[str] = None
-    ):
-        super().__init__(ctx, JinjaProxy(environment, template, root))
+from .renderer import Renderer, RenderingOptions
+from .template_engines.formatter import Formatter
+from .template_engines.jinja2 import Jinja2
+from .template_engines.template_engine import TemplateEngine
 
 
-def embed_manager(*manager_args):
+def qalib_context(template_engine: TemplateEngine, filename: str, renderer_options: Optional[RenderingOptions] = None):
     def manager(func):
-        proxy = EmbedProxy(*manager_args)
+        renderer_instance = Renderer(template_engine, filename, renderer_options)
 
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
-
-        return wrapper
-
-    return manager
-
-
-def jinja_manager(*manager_args):
-    def manager(func):
-        proxy = JinjaProxy(*manager_args)
-
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            return await func(QalibContext(args[0], proxy), *args[1:], **kwargs)
+            return await func(QalibContext(args[0], renderer_instance), *args[1:], **kwargs)
 
         return wrapper
 
