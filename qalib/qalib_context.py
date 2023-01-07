@@ -13,7 +13,7 @@ class QalibContext(discord.ext.commands.Context):
     def __init__(self, ctx: discord.ext.commands.context, renderer: Renderer):
         """Constructor for the QalibContext object
 
-        Parameters:
+        Args:
             ctx (commands.context): context object that is passed to the command
             renderer (RendererProxy): renderer object that is used to render the embeds and views
         """
@@ -40,7 +40,7 @@ class QalibContext(discord.ext.commands.Context):
     def verify(self, message: discord.message.Message) -> bool:
         """Method verifies if the content of the message is in the contents
 
-        Parameters:
+        Args:
             message (discord.message.Message): message that is getting verified
 
         Returns:
@@ -64,7 +64,7 @@ class QalibContext(discord.ext.commands.Context):
     ) -> Display:
         """This method renders the embed and the view based on the identifier string given.
 
-        Parameters:
+        Args:
             identifier (str): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]): item callbacks
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
@@ -85,7 +85,7 @@ class QalibContext(discord.ext.commands.Context):
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
         message.
 
-        Parameters:
+        Args:
             identifier (str): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
@@ -108,7 +108,7 @@ class QalibContext(discord.ext.commands.Context):
         """this is the main function that we use to send one message, and one message only. However, edits to that
         message can take place.
 
-        Parameters:
+        Args:
             key (str): identifies the embed in the route file
             callables: callable coroutines that are called when the user interacts with the message
             keywords: keywords that are passed to the embed renderer to format the text
@@ -123,7 +123,7 @@ class QalibContext(discord.ext.commands.Context):
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client and keeping track of the message object.
 
-        Parameters:
+        Args:
             **kwargs (Dict[str, Any]): kwargs that are passed to the context's send method
         """
         if self._displayed is None:
@@ -140,7 +140,7 @@ class QalibContext(discord.ext.commands.Context):
     ) -> None:
         """This method is used to create a menu for the user to select from.
 
-        Parameters:
+        Args:
             key (str): identifies the menu in the template file
             callbacks (Dict[str, Callback]): callbacks that are called when the user interacts with the menu
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text

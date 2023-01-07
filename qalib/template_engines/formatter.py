@@ -21,6 +21,9 @@ class FormatPlaceholder:
 
 
 class FormatDict(dict):
+    """This class is used to format a string using the format method, and will use the FormatPlaceholder class to
+    handle missing keys, so that if they do not raise a KeyError, and are not removed."""
+
     def __missing__(self, key):
         return FormatPlaceholder(key)
 
@@ -28,5 +31,13 @@ class FormatDict(dict):
 class Formatter(TemplateEngine):
 
     def template(self, document: str, keywords: Dict[str, Any]) -> str:
+        """This method is used to format a string using the format method.
+
+        Parameters:
+            document (str): string that is formatted
+            keywords (Dict[str, Any]): keywords that are used to format the string
+
+        Returns (str): formatted string
+        """
         formatter = string.Formatter()
         return formatter.vformat(document, (), FormatDict(keywords))

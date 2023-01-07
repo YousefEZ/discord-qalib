@@ -1,6 +1,5 @@
 """
-Extensions to the Rapptz Discord.py library, adding the use of templating on
-embeds stored in the format of .xml files.
+Extensions to the Rapptz Discord.py library, adding the use of templating on embeds stored in files.
 
 :copyright: (c) 2022-present YousefEZ
 :license: MIT, see LICENSE for more details.
@@ -23,9 +22,19 @@ from .template_engines.template_engine import TemplateEngine
 
 
 def qalib_context(template_engine: TemplateEngine, filename: str, renderer_options: Optional[RenderingOptions] = None):
-    def manager(func):
-        renderer_instance = Renderer(template_engine, filename, renderer_options)
+    """This decorator is used to create a QalibContext object, and pass it to the function as it's first argument,
+    overriding the default context.
 
+    Args:
+        template_engine (TemplateEngine): template engine that is used to template the document
+        filename (str): filename of the document
+        renderer_options (Optional[RenderingOptions]): options for the renderer
+
+    Returns (QalibContext): decorated function that takes the Context object and using the extended QalibContext object
+    """
+    renderer_instance = Renderer(template_engine, filename, renderer_options)
+
+    def manager(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             return await func(QalibContext(args[0], renderer_instance), *args[1:], **kwargs)
