@@ -52,8 +52,7 @@
             <button key="button1">
                 <style>primary</style>
                 <emoji>
-                    <name>randomemoji</name>
-                    <id>123456789</id>
+                    <name>🦺</name>
                 </emoji>
                 <label>Test Button</label>
                 <url>https://www.discord.com</url>
