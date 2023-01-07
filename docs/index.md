@@ -21,7 +21,7 @@ A simple example ``.xml`` file would be
         <fields>
             <field>
                 <title>Balance Remaining</title>
-                <value>${player.balance}</value>
+                <value>£ {player.balance}</value>
             </field>
         </fields>
     </embed>
@@ -39,6 +39,7 @@ import discord
 from discord.ext import commands
 
 import qalib
+from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
@@ -50,7 +51,7 @@ class Player:
 
 
 @bot.command()
-@qalib.embed_manager("templates/balance.xml")
+@qalib.qalib_context(Formatter(), "templates/balance.xml")
 def balance(ctx, name: str):
     await ctx.rendered_send("balance", keywords={"player": Player(name, 1000.0)})
 

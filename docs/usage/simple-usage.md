@@ -7,6 +7,7 @@ Here we will be talking about how to use the interface of the QalibContext
 This is a simple XML file that contains a barebones embed
 
 ```xml
+
 <discord>
     <embed key="test_key">
         <title>Hello World</title>
@@ -56,6 +57,7 @@ Each embed can be extended to leverage more the things that an embed can offer s
 So an example of fully using all the features an embed could offer is as such:
 
 ```xml
+
 <discord>
     <embed key="test_key">
         <title>Test</title>
@@ -95,6 +97,7 @@ anything within a double braces ``{{ }}`` will be evaluated as well as all the f
 loops. Simple example of this with the EmbedManager (so ``{}`` for formatting) will be
 
 ```xml
+
 <discord>
     <embed key="bank">
         <title>Balance {player.name}</title>
@@ -116,6 +119,7 @@ loops. Simple example of this with the EmbedManager (so ``{}`` for formatting) w
 so if we have this sample file called ``player.xml`` that is in the ``templates/`` directory:
 
 ```xml
+
 <discord>
     <embed key="army">
         <title>Army of {player.name}</title>
@@ -149,8 +153,10 @@ import discord
 from discord.ext import commands
 
 import qalib
+from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
+
 
 @dataclass
 class Player:
@@ -159,13 +165,15 @@ class Player:
     funds: float
     army_name: str
     soldiers: int
-    
+
+
 def fetch_player(name: str) -> Player:
     ...
 
+
 @bot.command()
-@qalib.embed_manager("templates/player.xml")
-async def test(ctx):
+@qalib.qalib_context(Formatter(), "templates/player.xml")
+async def test(ctx, name: str):
     await ctx.rendered_send("army", keywords={
         "player": fetch_player(name)
     })
@@ -178,6 +186,7 @@ async def test(ctx):
 We also support the rendering of views, and the different UI Components for each embed.
 
 ```xml
+
 <discord>
     <embed key="welcome">
         <title>Greet</title>
@@ -210,16 +219,19 @@ import discord
 from discord.ext import commands
 
 import qalib
+from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
+
 
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)
 
+
 @bot.command()
-@qalib.embed_manager("templates/button.xml")
+@qalib.qalib_context(Formatter(), "templates/button.xml")
 async def greet(ctx):
-    await ctx.rendered_send("welcome", callables={"greet":acknowledged})
+    await ctx.rendered_send("welcome", callables={"greet": acknowledged})
 ```
 
 ---
@@ -274,14 +286,15 @@ import discord
 from discord.ext import commands
 
 import qalib
-
+from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+
 @bot.command()
-@qalib.embed_manager("templates/player.xml", "menu1")
+@qalib.qalib_context(Formatter(), "templates/player.xml")
 async def test(ctx):
-    await ctx.menu()
+    await ctx.menu("menu1")
 ```
 
 or you can manually define it as so:
@@ -291,14 +304,15 @@ import discord
 from discord.ext import commands
 
 import qalib
-
+from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+
 @bot.command()
 async def test(ctx):
-    manager = EmbedManager(ctx, "templates/player.xml", "menu1")
-    await manager.menu()
+    manager = qalib.QalibContext(ctx, qalib.Renderer(Formatter(), "templates/player.xml"))
+    await manager.menu("menu1")
 ```
 
 its also possible to set the menu, by using the ``set_root`` method which sets the root to a menu (instead of the
