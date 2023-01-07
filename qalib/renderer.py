@@ -1,11 +1,11 @@
 from enum import Enum, auto
-from typing import Optional, Any, Dict, Coroutine, List
+from typing import Optional, Any, Dict, List
 
 import discord.ui
 from discord.enums import ButtonStyle
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Display
+from qalib.translators import Display, Callback
 from qalib.translators.factory import ParserFactory, DeserializerFactory
 from qalib.translators.parser import Parser
 
@@ -71,7 +71,7 @@ class Renderer:
     def render(
             self,
             key: str,
-            callbacks: Optional[Dict[str, Coroutine]] = None,
+            callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: int = 180
     ) -> Display:
@@ -88,7 +88,7 @@ class Renderer:
     def render_menu(
             self,
             key: str,
-            callbacks: Optional[Dict[str, Coroutine]] = None,
+            callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180,
             **kwargs
