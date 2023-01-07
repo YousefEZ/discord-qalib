@@ -5,7 +5,6 @@ nav:
   - About: about.md
   - Usage:
       - Installation: usage/installation.md
-      - Getting Started: usage/getting-started.md
       - Simple Usage: usage/simple-usage.md
   - Qalib:
       - Context: qalib/context.md
