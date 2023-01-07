@@ -91,10 +91,15 @@ So an example of fully using all the features an embed could offer is as such:
 
 ## :art: Rendering Values
 
-If you are using the EmbedManager as a wrapper (QalibContext with a EmbedProxy) over the default context, then any value
-within braces ``{}`` will be treated as an object (will apply ``.format()``). If you are using the JinjaManager then
-anything within a double braces ``{{ }}`` will be evaluated as well as all the features that Jinja utilises such as for
-loops. Simple example of this with the EmbedManager (so ``{}`` for formatting) will be
+You can choose your ``TemplateEngine``. The ones that are currently defined is ``Formatter`` which uses python's format
+method, and the ``Jinja2`` template engine, which is an adapter over Jinja2. The ``TemplateEngine``
+is used in the form of a Dependency Injection into the ``Renderer`` instance via its constructor. The ``Renderer``
+templates and deserializes the files into a ``Display``. The ``Renderer`` instance is injected into the ``QalibContext``
+which extends the ``discord.ext.commands.Context``.
+
+You can use the ``qalib_context`` decorator over a ``bot.command`` so that it overrides
+the ``discord.ext.commands.Context``
+with its subclass [``QalibContext``](../qalib/context.md).
 
 ```xml
 
@@ -114,7 +119,7 @@ loops. Simple example of this with the EmbedManager (so ``{}`` for formatting) w
 
 ---
 
-## :crystal_ball: Embed Manager
+## :crystal_ball: QalibContext
 
 so if we have this sample file called ``player.xml`` that is in the ``templates/`` directory:
 
@@ -278,8 +283,8 @@ unique ``key`` attribute, and you can use that to make a sequential menu (order 
 </discord>
 ```
 
-Then you can use them in two ways. The first is passing the key menu key as the second argument to the embed manger, and
-it will automatically set that menu as the root.
+To render the menu you have to use [.menu()](../qalib/context.md) method with the key as the first argument, and that
+will render the menu.
 
 ```py
 import discord
@@ -314,6 +319,3 @@ async def test(ctx):
     manager = qalib.QalibContext(ctx, qalib.Renderer(Formatter(), "templates/player.xml"))
     await manager.menu("menu1")
 ```
-
-its also possible to set the menu, by using the ``set_root`` method which sets the root to a menu (instead of the
-default ``<discord>`` tag).

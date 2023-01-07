@@ -9,8 +9,11 @@ pip install discord-qalib
 To test this is working simply open an interactive shell and run:
 
 ```py
->>> import qalib
->>> qalib.__version__
+import qalib
 
->>> '1.0.0'
+print(qalib.__version__)
+```
+
+```bash
+>>> 1.0.0
 ```
