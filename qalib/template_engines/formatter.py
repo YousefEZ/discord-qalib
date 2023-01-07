@@ -28,5 +28,13 @@ class FormatDict(dict):
 class Formatter(TemplateEngine):
 
     def template(self, document: str, keywords: Dict[str, Any]) -> str:
+        """This method is used to format a string using the format method.
+
+        Parameters:
+            document (str): string that is formatted
+            keywords (Dict[str, Any]): keywords that are used to format the string
+
+        Returns (str): formatted string
+        """
         formatter = string.Formatter()
         return formatter.vformat(document, (), FormatDict(keywords))
