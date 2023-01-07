@@ -97,20 +97,21 @@ import discord
 from discord.ext import commands
 
 import qalib
+from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 
 async def acknowledged(interaction: discord.Interaction):
-    await interaction.response.send_message("Acknowledged", ephemeral=True)
+  await interaction.response.send_message("Acknowledged", ephemeral=True)
 
 
 @bot.command()
-@qalib.embed_manager("templates/test.xml")
+@qalib.qalib_context(Formatter(), "templates/test.xml")
 async def test(ctx: qalib.QalibContext):
-    callables = {"understood_button": acknowledged}
+  callables = {"understood_button": acknowledged}
 
-    await ctx.rendered_send("test_key", callables, keywords={
-        "todays_date": datetime.datetime.now()
-    })
+  await ctx.rendered_send("test_key", callables, keywords={
+    "todays_date": datetime.datetime.now()
+  })
 ```
