@@ -9,7 +9,18 @@ nav:
       - Simple Usage: usage/simple-usage.md
   - Qalib:
       - Context: qalib/context.md
-      - Jinja: qalib/jinja2.md
+      - Renderer: qalib/renderer.md
+      - Template Engines:
+          - Formatter: qalib/template_engines/formatter.md
+          - Jinja2: qalib/template_engines/jinja2.md
+      - Parsers:
+          - Parser: qalib/parsers/parser.md
+          - JSON: qalib/parsers/json.md
+          - XML: qalib/parsers/xml.md
+      - Deserializers:
+          - Deserializer: qalib/deserializers/deserializer.md
+          - JSON: qalib/deserializers/json.md
+          - XML: qalib/deserializers/xml.md
 theme:
   name: material
   palette:

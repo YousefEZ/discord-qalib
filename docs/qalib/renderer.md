@@ -1,4 +1,4 @@
-::: qalib.template_engines.formatter.Formatter
+::: qalib.renderer.Renderer
 :docstring:
 :members:
 option:

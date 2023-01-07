@@ -1,4 +1,4 @@
-::: qalib.template_engines.formatter.Formatter
+::: qalib.translators.xml.XMLParser
 :docstring:
 :members:
 option:
