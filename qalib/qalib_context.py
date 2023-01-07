@@ -3,14 +3,14 @@ from typing import Any, Optional, Dict, Coroutine
 import discord.ext.commands
 import discord.message
 
-from qalib.renderers import Display
-from qalib.renderers.renderer_proxy import RendererProtocol
+from qalib.renderer import Renderer
+from qalib.translators import Display
 
 
 class QalibContext(discord.ext.commands.Context):
     """QalibContext object is responsible for handling messages that are to be sent to the client."""
 
-    def __init__(self, ctx: discord.ext.commands.context, renderer: RendererProtocol):
+    def __init__(self, ctx: discord.ext.commands.context, renderer: Renderer):
         """Constructor for the QalibContext object
 
         Parameters:
@@ -34,7 +34,7 @@ class QalibContext(discord.ext.commands.Context):
             current_argument=ctx.current_argument,
             interaction=ctx.interaction
         )
-        self._renderer: RendererProtocol = renderer
+        self._renderer = renderer
         self._displayed: Optional[discord.message.Message] = None
 
     def verify(self, message: discord.message.Message) -> bool:
@@ -47,9 +47,6 @@ class QalibContext(discord.ext.commands.Context):
             bool: true of false that indicates whether the data is valid.
         """
         return message.author == self.message.author and message.channel == self.message.channel
-
-    def set_root(self, key: str):
-        self._renderer.set_root(key)
 
     async def get_message(self) -> Optional[str]:
         """This method waits for a message to be sent by the user"""
@@ -136,6 +133,7 @@ class QalibContext(discord.ext.commands.Context):
 
     async def menu(
             self,
+            key: str,
             callbacks: Optional[Dict[str, Coroutine]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs
@@ -143,9 +141,10 @@ class QalibContext(discord.ext.commands.Context):
         """This method is used to create a menu for the user to select from.
 
         Parameters:
+            key (str): identifies the menu in the template file
             callbacks (Dict[str, Coroutine]): callbacks that are called when the user interacts with the menu
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             **kwargs: kwargs that are passed to the context's send method
         """
-        display = self._renderer.render_menu(callbacks=callbacks, keywords=keywords, **kwargs)
+        display = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
         await self._display(embed=display.embed, view=display.view, **kwargs)

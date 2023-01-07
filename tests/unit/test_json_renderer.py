@@ -3,7 +3,8 @@ import unittest
 
 import discord.ui
 
-import qalib.renderers.embed_proxy
+from qalib.renderer import Renderer
+from qalib.template_engines.formatter import Formatter
 
 
 class TestJSONRenderer(unittest.TestCase):
@@ -11,31 +12,31 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_render(self):
         path = "tests/routes/simple_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        embed = renderer.render_embed("Launch")
+        renderer = Renderer(Formatter(), path)
+        embed, _ = renderer.render("Launch")
         self.assertEqual(embed.title, "Hello World")
 
     def test_full_render(self):
         path = "tests/routes/full_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        embed = renderer.render_embed("test_key", keywords={"todays_date": datetime.datetime.now()})
+        renderer = Renderer(Formatter(), path)
+        embed, _ = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(embed.title, "Test")
 
     def test_key_not_exist(self):
         path = "tests/routes/full_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
+        renderer = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render, "not_a_key")
 
     def test_button_rendering(self):
         path = "tests/routes/full_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(len(view.children), 5)
 
     def test_select_rendering(self):
         path = "tests/routes/full_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
         self.assertGreater(len(view.children), 0)
         child = view.children[0]
         assert isinstance(child, discord.ui.Select)
@@ -43,8 +44,8 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_channel_select_rendering(self):
         path = "tests/routes/full_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
         self.assertGreater(len(view.children), 0)
         child = view.children[1]
         assert isinstance(child, discord.ui.ChannelSelect)
@@ -52,8 +53,8 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_role_select_rendering(self):
         path = "tests/routes/select_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("Launch")
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("Launch")
         self.assertGreater(len(view.children), 0)
         child = view.children[0]
         assert isinstance(child, discord.ui.RoleSelect)
@@ -61,8 +62,8 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_user_select_rendering(self):
         path = "tests/routes/select_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("Launch")
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("Launch")
         self.assertGreater(len(view.children), 0)
         child = view.children[1]
         assert isinstance(child, discord.ui.UserSelect)
@@ -70,8 +71,8 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_mentionable_select_rendering(self):
         path = "tests/routes/select_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("Launch")
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("Launch")
         self.assertGreater(len(view.children), 0)
         child = view.children[2]
         assert isinstance(child, discord.ui.MentionableSelect)
@@ -79,8 +80,8 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_text_input_rendering(self):
         path = "tests/routes/select_embeds.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        view = renderer.render_view("Launch")
+        renderer = Renderer(Formatter(), path)
+        _, view = renderer.render("Launch")
         self.assertGreater(len(view.children), 0)
         child = view.children[3]
         assert isinstance(child, discord.ui.TextInput)
@@ -88,10 +89,10 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_emoji_error(self):
         path = "tests/routes/error.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        self.assertRaises(ValueError, renderer.render_view, "test1")
+        renderer = Renderer(Formatter(), path)
+        self.assertRaises(ValueError, renderer.render, "test1")
 
     def test_element_error(self):
         path = "tests/routes/error.json"
-        renderer = qalib.renderers.embed_proxy.EmbedProxy(path)
-        self.assertRaises(KeyError, renderer.render_view, "test2")
+        renderer = Renderer(Formatter(), path)
+        self.assertRaises(KeyError, renderer.render, "test2")
