@@ -1,5 +1,5 @@
 ::: qalib.translators.xml.XMLParser
-:docstring:
-:members:
-option:
-show_source: False
+    :docstring:
+    :members:
+    option:
+        show_source: False

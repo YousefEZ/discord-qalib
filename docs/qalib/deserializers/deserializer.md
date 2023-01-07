@@ -1,5 +1,5 @@
 ::: qalib.translators.deserializer.Deserializer
-:docstring:
-:members:
-option:
-show_source: False
+    :docstring:
+    :members:
+    option:
+        show_source: False
