@@ -49,9 +49,9 @@ class XMLDeserializer(Deserializer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
     def deserialize(self, source: str, callables: Dict[str, Coroutine], **kw) -> Display:
-        return self.compile_embed(ElementTree.fromstring(source), callables, kw)
+        return self.deserialize_to_embed(ElementTree.fromstring(source), callables, kw)
 
-    def compile_embed(
+    def deserialize_to_embed(
             self,
             embed_tree: ElementTree.Element,
             callables: Dict[str, Coroutine],
@@ -64,7 +64,7 @@ class XMLDeserializer(Deserializer):
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Coroutine], **kw) -> List[Display]:
         menu_tree: ElementTree = ElementTree.fromstring(source)
-        return [self.compile_embed(embed, callables, kw) for embed in menu_tree.findall("embed")]
+        return [self.deserialize_to_embed(embed, callables, kw) for embed in menu_tree.findall("embed")]
 
     def _render_view(
             self,

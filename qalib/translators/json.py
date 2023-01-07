@@ -44,9 +44,9 @@ class JSONParser(Parser):
 class JSONDeserializer(Deserializer):
 
     def deserialize(self, source: str, callables: Dict[str, Coroutine], **kw) -> Display:
-        return self.compile_embed(json.loads(source), callables, kw)
+        return self.deserialize_to_embed(json.loads(source), callables, kw)
 
-    def compile_embed(
+    def deserialize_to_embed(
             self,
             embed_tree: Dict[str, Any],
             callables: Dict[str, Coroutine],
@@ -59,7 +59,7 @@ class JSONDeserializer(Deserializer):
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Coroutine], **kw) -> List[Display]:
         menu = json.loads(source)
-        return [self.compile_embed(menu.get(embed), callables, kw) for embed in menu]
+        return [self.deserialize_to_embed(menu.get(embed), callables, kw) for embed in menu]
 
     def _render_view(
             self,

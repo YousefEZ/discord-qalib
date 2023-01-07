@@ -46,7 +46,7 @@ def create_arrows(left: Optional[Display], right: Optional[Display], **kwargs) -
 
 
 class Renderer:
-    __slots__ = ("_template_engine", "_parser", "_filename", "_compiler")
+    __slots__ = ("_template_engine", "_parser", "_filename", "_deserializer")
 
     def __init__(
             self,
@@ -59,7 +59,7 @@ class Renderer:
         if rendering_option is None:
             self._parser = ParserFactory.get_parser(filename)
         self._filename = filename
-        self._compiler = DeserializerFactory.get_deserializer(filename)
+        self._deserializer = DeserializerFactory.get_deserializer(filename)
 
     def _pre_template(self, keywords: Dict[str, Any]) -> Parser:
         if self._parser is None:
@@ -83,7 +83,7 @@ class Renderer:
 
         embed = self._pre_template(keywords).template_embed(key, self._template_engine, keywords)
 
-        return self._compiler.deserialize(embed, callbacks, timeout=timeout)
+        return self._deserializer.deserialize(embed, callbacks, timeout=timeout)
 
     def render_menu(
             self,
@@ -108,13 +108,13 @@ class Renderer:
             keywords = {}
 
         menu = self._pre_template(keywords).template_menu(key, self._template_engine, keywords)
-        displays = self._compiler.deserialize_into_menu(menu, callbacks, timeout=timeout)
+        displays = self._deserializer.deserialize_into_menu(menu, callbacks, timeout=timeout)
 
         for i, display in enumerate(displays):
             arrow_left = displays[i - 1] if i > 0 else None
             arrow_right = displays[i + 1] if i + 1 < len(displays) else None
 
-            for arrow in create_arrows(arrow_left, arrow_right, timeout=timeout, **kwargs):
+            for arrow in create_arrows(arrow_left, arrow_right, **kwargs):
                 display.view.add_item(arrow)
 
         return displays[0]
