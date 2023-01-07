@@ -6,12 +6,10 @@
 [![codecov](https://codecov.io/gh/YousefEZ/discord-qalib/branch/main/graph/badge.svg?token=3EG4ZF8K3R)](https://codecov.io/gh/YousefEZ/discord-qalib)
 ![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-informational)
 <a href="https://gitmoji.dev">
-  <img
-    src="https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square"
-    alt="Gitmoji"
-  />
+<img src="https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square"
+alt="Gitmoji"
+/>
 </a>
-
 
 Discord templating engine built on discord.py, to help separate text of embeds from the source code. Inspired by Flask.
 
@@ -58,12 +56,12 @@ Sample XML file:
         <title>Test</title>
         <description>Test Description</description>
         <colour>magenta</colour>
-        <timestamp format="%Y-%m-%s %H:%M:%S.%f">{todays_date}</timestamp>
+        <timestamp format="%Y-%m-%d %H:%M:%S.%f">{todays_date}</timestamp>
         <url>https://www.discord.com</url>
         <fields>
             <field>
                 <name>Test Field</name>
-                <text>Test Text</text>
+                <value>Test Text</value>
             </field>
         </fields>
         <footer>
@@ -81,7 +79,6 @@ Sample XML file:
             <button key="understood_button">
                 <label>Understood</label>
                 <style>success</style>
-                <url>https://discordapp.com</url>
             </button>
         </view>
     </embed>
@@ -97,21 +94,21 @@ import discord
 from discord.ext import commands
 
 import qalib
-from qalib.template_engines.formatter import Formatter
+from qalib.template_engines import formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 
 async def acknowledged(interaction: discord.Interaction):
-  await interaction.response.send_message("Acknowledged", ephemeral=True)
+    await interaction.response.send_message("Acknowledged", ephemeral=True)
 
 
 @bot.command()
-@qalib.qalib_context(Formatter(), "templates/test.xml")
+@qalib.qalib_context(formatter.Formatter(), "templates/test.xml")
 async def test(ctx: qalib.QalibContext):
-  callables = {"understood_button": acknowledged}
+    callables = {"understood_button": acknowledged}
 
-  await ctx.rendered_send("test_key", callables, keywords={
-    "todays_date": datetime.datetime.now()
-  })
+    await ctx.rendered_send("test_key", callables, keywords={
+        "todays_date": datetime.datetime.now()
+    })
 ```
