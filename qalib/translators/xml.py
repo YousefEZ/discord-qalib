@@ -21,34 +21,77 @@ class XMLParser(Parser):
     def __init__(self, source: str):
         """Initialisation of the XML Parser
 
-        Keyword Arguments:
+        Args:
             source (str): the text of the XML file
         """
         self.root = ElementTree.fromstring(source)
 
     def get_embed(self, identifier: str) -> str:
+        """This method is used to get an embed by its key.
+
+        Args:
+            identifier (str): key of the embed
+
+        Returns (str): a raw string containing the embed.
+        """
         for embed in self.root.findall("embed"):
             if embed.get("key") == identifier:
                 return ElementTree.tostring(embed, encoding='unicode', method='xml')
         raise KeyError(f"Embed with key {identifier} not found")
 
     def get_menu(self, identifier: str) -> str:
+        """This method is used to get a menu by its key.
+
+        Args:
+            identifier (str): key of the menu
+
+        Returns (str): a raw string containing the menu.
+        """
         for menu in self.root.findall("menu"):
             if menu.get("key") == identifier:
                 return ElementTree.tostring(menu, encoding='unicode', method='xml')
         raise KeyError(f"Menu with key {identifier} not found")
 
-    def template_embed(self, key: str, templater: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        return templater.template(self.get_embed(key), keywords)
+    def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """This method is used to template an embed, by identifying it by its key and using the template engine to
+        template it.
 
-    def template_menu(self, key: str, templater: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        return templater.template(self.get_menu(key), keywords)
+        Args:
+            key (str): key of the embed
+            template_engine (TemplateEngine): template engine that is used to template the embed
+            keywords (Dict[str, Any]): keywords that are used to template the embed
+
+        Returns (str): templated embed
+        """
+        return template_engine.template(self.get_embed(key), keywords)
+
+    def template_menu(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """This method is used to template an menu, by identifying it by its key and using the template engine to
+        template it.
+
+        Args:
+            key (str): key of the menu
+            template_engine (TemplateEngine): template engine that is used to template the menu
+            keywords (Dict[str, Any]): keywords that are used to template the menu
+
+        Returns (str): templated menu
+        """
+        return template_engine.template(self.get_menu(key), keywords)
 
 
 class XMLDeserializer(Deserializer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
     def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
+        """Deserializes an embed from an XML file, and returns it as a Display object.
+
+        Args:
+            source (str): templated document contents to deserialize.
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
+            **kw (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
+
+        Returns (Display): A display object containing the embed and its view.
+        """
         return self.deserialize_to_embed(ElementTree.fromstring(source), callables, kw)
 
     def deserialize_to_embed(
@@ -57,12 +100,31 @@ class XMLDeserializer(Deserializer):
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> Display:
+        """Deserializes an embed from an ElementTree.Element, and returns it as a Display object.
+
+        Args:
+            embed_tree (ElementTree.Element): The element to deserialize the embed from.
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
+            kw (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
+
+        Returns (Display): A display object containing the embed and its view.
+        """
         view_tree: ElementTree.Element = embed_tree.find("view")
         embed = self.render(embed_tree)
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
         return Display(embed, view)
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
+        """Deserializes a menu from an XML file, by generating a list of displays that are connected by buttons in their
+        views to navigate between them.
+
+        Args:
+            source (str): The XML file to deserialize.
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
+            **kw (Dict[str, Any]): A dictionary containing the keyword arguments to use for the views.
+
+        Returns (List[Display]): List of displays that are connected by buttons in their views to navigate between them.
+        """
         menu_tree: ElementTree = ElementTree.fromstring(source)
         return [self.deserialize_to_embed(embed, callables, kw) for embed in menu_tree.findall("embed")]
 
@@ -72,6 +134,15 @@ class XMLDeserializer(Deserializer):
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> ui.View:
+        """Renders a view from an ElementTree.Element.
+
+        Args:
+            raw_view (ElementTree.Element): The element to render the view from.
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
+            kw (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
+
+        Returns (ui.View): A view object containing the components.
+        """
         view = ui.View(**kw)
         for component in self.render_components(raw_view, callables):
             view.add_item(component)
@@ -79,13 +150,36 @@ class XMLDeserializer(Deserializer):
 
     @staticmethod
     def _render_element(element: ElementTree.Element) -> str:
+        """Renders the given ElementTree.Element by returning its text.
+
+        Args:
+            element (ElementTree.Element): The element to render.
+
+        Returns (str): The rendered element.
+        """
         return "" if element is None else element.text
 
     @staticmethod
     def _render_attribute(element: ElementTree.Element, attribute: str) -> str:
+        """Renders an attribute from an ElementTree.Element.
+
+        Args:
+            element (ElementTree.Element): The element to render the attribute from.
+            attribute (str): The name of the attribute to render.
+
+        Returns (str): The value of the attribute.
+        """
         return "" if (value := element.get(attribute)) is None else value
 
     def _render_timestamp(self, timestamp_element: ElementTree.Element) -> Optional[datetime]:
+        """Renders the timestamp from an ElementTree.Element. Element may contain an attribute "format" which will be
+        used to parse the timestamp.
+
+        Args:
+            timestamp_element (ElementTree.Element): The element to render the timestamp from.
+
+        Returns (Optional[datetime]): A datetime object containing the timestamp.
+        """
         if timestamp_element is not None:
             timestamp = self._render_element(timestamp_element)
             date_format = self._render_attribute(timestamp_element, "format")
@@ -94,6 +188,13 @@ class XMLDeserializer(Deserializer):
             return datetime.strptime(timestamp, date_format) if timestamp != "" else None
 
     def _render_author(self, author_element: ElementTree.Element) -> Optional[dict]:
+        """Renders the author from an ElementTree.Element.
+
+        Args:
+            author_element (ElementTree.Element): The element to render the author information from.
+
+        Returns (Optional[dict]): A dictionary containing the raw author.
+        """
         return {
             "name": self._render_element(author_element.find("name")),
             "url": self._render_element(author_element.find("url")),
@@ -101,12 +202,26 @@ class XMLDeserializer(Deserializer):
         }
 
     def _render_footer(self, footer_element: ElementTree.Element) -> Optional[dict]:
+        """Renders the footer from an ElementTree.Element.
+
+        Args:
+            footer_element (ElementTree.Element): The element to render the footer from.
+
+        Returns (Optional[dict]): A dictionary containing the raw footer.
+        """
         return {
             "text": self._render_element(footer_element.find("text")),
             "icon_url": self._render_element(footer_element.find("icon"))
         }
 
     def _render_fields(self, fields_element: ElementTree.Element) -> List[dict]:
+        """Renders the fields from an ElementTree.Element.
+
+        Args:
+            fields_element (ElementTree.Element): The element to render the fields from.
+
+        Returns (List[dict]): A list of dictionaries containing the raw fields.
+        """
         return [{"name": self._render_element(field.find("name")),
                  "value": self._render_element(field.find("value")),
                  "inline": self._render_attribute(field, "inline").lower() == "true"}
@@ -126,6 +241,13 @@ class XMLDeserializer(Deserializer):
         return child_component
 
     def _render_emoji(self, emoji_element: Optional[ElementTree.Element]) -> Optional[Dict[str, str]]:
+        """Renders an ElementTree.Element into a dictionary.
+
+        Args:
+            emoji_element (Optional[ElementTree.Element]): The element to render into a Dictionary of emoji data
+
+        Returns (Optional[Dict[str, str]]): The rendered emoji, or None if the element is None.
+        """
         if emoji_element is None:
             return
 
@@ -139,6 +261,13 @@ class XMLDeserializer(Deserializer):
         return (None, emoji)[len(emoji) > 0]
 
     def _extract_elements(self, tree: ElementTree.Element) -> Dict[str, Any]:
+        """Extracts the elements from the given ElementTree.Element, and returns them as a dictionary.
+
+        Args:
+            tree (ElementTree.Element): The element to extract the elements from.
+
+        Returns (Dict[str, Any]): A dictionary containing the extracted elements.
+        """
         return {element.tag: self._render_element(element) for element in tree}
 
     def _render_button(self, component: ElementTree.Element, callback: Optional[Callback]) -> ui.Button:

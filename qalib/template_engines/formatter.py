@@ -21,6 +21,9 @@ class FormatPlaceholder:
 
 
 class FormatDict(dict):
+    """This class is used to format a string using the format method, and will use the FormatPlaceholder class to
+    handle missing keys, so that if they do not raise a KeyError, and are not removed."""
+
     def __missing__(self, key):
         return FormatPlaceholder(key)
 

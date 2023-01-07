@@ -18,33 +18,78 @@ from ..template_engines.template_engine import TemplateEngine
 
 
 class JSONParser(Parser):
+    """This method is used to parse the document into a menu and a list of callables for .json files"""
+
     __slots__ = ("_data",)
 
-    def __init__(self, source: str = str):
+    def __init__(self, source: str):
+        """This method is used to initialize the parser by parsing the source text.
+
+        Args:
+            source (str): source text that is parsed
+        """
         self._data = json.loads(source)
 
-    def recursive_template(self, obj: Any, templater: TemplateEngine, keywords: Dict[str, Any]) -> Dict[str, Any]:
+    def recursive_template(self, obj: Any, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> Dict[str, Any]:
+        """Method that is used to recursively template the object using the templater and the keywords.
+
+        Args:
+            obj (Any): object that is templated
+            template_engine (TemplateEngine): template engine that is used to template the object
+            keywords (Dict[str, Any]): keywords that are used to template the object
+
+        Returns (Dict[str, Any]): templated object
+        """
         if isinstance(obj, dict):
             for key in obj:
-                obj[key] = self.recursive_template(obj[key], templater, keywords)
+                obj[key] = self.recursive_template(obj[key], template_engine, keywords)
         elif isinstance(obj, list):
             for i in range(len(obj)):
-                obj[i] = self.recursive_template(obj[i], templater, keywords)
+                obj[i] = self.recursive_template(obj[i], template_engine, keywords)
         elif isinstance(obj, str):
-            obj = templater.template(obj, keywords)
+            obj = template_engine.template(obj, keywords)
 
         return obj
 
-    def template_embed(self, key: str, templater: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        return json.dumps(self.recursive_template(deepcopy(self._data[key]), templater, keywords))
+    def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """This method is used to template the embed by first retrieving it using its key, and then templating it using
+        the template_engine
 
-    def template_menu(self, key: str, templater: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        return json.dumps(self.recursive_template(deepcopy(self._data[key]), templater, keywords))
+        Args:
+            key (str): key of the embed
+            template_engine (TemplateEngine): template engine that is used to template the embed
+            keywords (Dict[str, Any]): keywords that are used to template the embed
+
+        Returns (str): templated embed in the form of string.
+        """
+        return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
+
+    def template_menu(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """Method that is used to template the menu by first retrieving it using its key, and then templating it using
+        the template_engine
+
+        Args:
+            key (str): key of the menu
+            template_engine (TemplateEngine): template engine that is used to template the menu
+            keywords (Dict[str, Any]): keywords that are used to template the menu
+
+        Returns (str): templated menu in the form of string.
+        """
+        return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
 
 
 class JSONDeserializer(Deserializer):
 
     def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
+        """Method to deserialize a source into a Display object
+
+        Args:
+            source (str): The source text to deserialize
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            **kw: Additional keyword arguments
+
+        Returns (Display): A Display object
+        """
         return self.deserialize_to_embed(json.loads(source), callables, kw)
 
     def deserialize_to_embed(
@@ -53,14 +98,31 @@ class JSONDeserializer(Deserializer):
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> Display:
+        """Method to deserialize an embed into a Display NamedTuple containing the embed and the view
+
+        Args:
+            embed_tree (Dict[str, Any]): The embed to deserialize
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            kw (Dict[str, Any]): A dictionary containing the attributes to use for the view
+
+        Returns (Display): A Display NamedTuple containing the embed and the view
+        """
         view_tree = embed_tree.get("view")
         embed = self.render(embed_tree)
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
         return Display(embed, view)
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
-        menu = json.loads(source)
-        return [self.deserialize_to_embed(menu.get(embed), callables, kw) for embed in menu]
+        """Method to deserialize a menu into a list of Display objects
+
+        Args:
+            source (str): The source text to deserialize int a Menu
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            **kw (Dict[str, Any]): A dictionary containing the keywords to use for the view
+
+        Returns (List[Display]): A list of Display objects
+        """
+        return [self.deserialize_to_embed(embed, callables, kw) for embed in json.loads(source).values()]
 
     def _render_view(
             self,
@@ -68,24 +130,56 @@ class JSONDeserializer(Deserializer):
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
     ) -> ui.View:
+        """Method to render a view element into a discord.ui.View object
+
+        Args:
+            raw_view (Dict[str, ...]): The view element to render
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            kw (Dict[str, Any]): A dictionary containing the attributes to use for the view
+
+        Returns (ui.View): A discord.ui.View object
+        """
         view = ui.View(**kw)
         for component in self.render_components(raw_view, callables):
             view.add_item(component)
         return view
 
     def _render_attribute(self, element: Dict[str, str], attribute) -> str:
+        """Render an attribute of an element
+
+        Args:
+            element (Dict[str, str]): The element to render the attribute from
+            attribute (str): The attribute to render
+
+        Returns (str): The attribute that is extracted from the element.
+        """
         return "" if (value := element.get(attribute)) is None else value
 
     def _render_timestamp(self, timestamp: Optional[Dict[str, str]]) -> Optional[datetime]:
-        if timestamp is not None:
+        """Method to render a timestamp element into a datetime object
 
-            date = self._render_attribute(timestamp, "timestamp")
-            date_format = self._render_attribute(timestamp, "format")
-            if date_format == "":
-                date_format = "%Y-%m-%d %H:%M:%S.%f"
-            return datetime.strptime(date, date_format) if date != "" else None
+        Args:
+            timestamp (Optional[Dict[str, str]]): The timestamp element to render
+
+        Returns (Optional[datetime]): A datetime object
+        """
+        if timestamp is None:
+            return None
+
+        date = self._render_attribute(timestamp, "timestamp")
+        date_format = self._render_attribute(timestamp, "format")
+        if date_format == "":
+            date_format = "%Y-%m-%d %H:%M:%S.%f"
+        return datetime.strptime(date, date_format) if date != "" else None
 
     def _render_author(self, author: Dict[str, str]) -> Optional[dict]:
+        """Method to render an author element into a dictionary containing the author attributes
+
+        Args:
+            author (Dict[str, str]): The author element to render
+
+        Returns (Optional[dict]): A dictionary containing the author attributes
+        """
         return {
             "name": self._render_attribute(author, "name"),
             "url": self._render_attribute(author, "url"),
@@ -93,12 +187,26 @@ class JSONDeserializer(Deserializer):
         }
 
     def _render_footer(self, footer: Dict[str, str]) -> Optional[dict]:
+        """Method to render a footer element into a dictionary containing the footer attributes
+
+        Args:
+            footer (Dict[str, str]): The footer element to render
+
+        Returns (Optional[dict]): A dictionary containing the footer attributes
+        """
         return {
             "text": self._render_attribute(footer, "text"),
             "icon_url": self._render_attribute(footer, "icon")
         }
 
     def _render_fields(self, fields: List[Dict[str, str]]) -> List[dict]:
+        """Method that renders a list of fields into a list of dictionaries containing the field attributes
+
+        Args:
+            fields (List[Dict[str, str]]): The list of fields to render
+
+        Returns (List[dict]): A list of dictionaries containing the field attributes
+        """
         return [{
             "name": self._render_attribute(field, "name"),
             "value": self._render_attribute(field, "text"),
@@ -107,6 +215,13 @@ class JSONDeserializer(Deserializer):
         ]
 
     def _render_emoji(self, emoji_element: Dict[str, str]) -> Optional[Dict[str, str]]:
+        """Method to render an emoji element into a dictionary containing the emoji attributes
+
+        Args:
+            emoji_element (Dict[str, str]): The emoji element to render
+
+        Returns (Optional[Dict[str, str]]): A dictionary containing the emoji attributes
+        """
         emoji = {}
         if "name" in emoji_element:
             emoji["name"] = self._render_attribute(emoji_element, "name")
@@ -118,6 +233,13 @@ class JSONDeserializer(Deserializer):
         return (None, emoji)[len(emoji) > 0]
 
     def _extract_attributes(self, element: Dict[str, Any]) -> Dict[str, Union[str, Dict[str, str]]]:
+        """Method to extract attributes from a component element and return them as a dictionary
+
+        Args:
+            element (Dict[str, Any]): The element to extract attributes from
+
+        Returns (Dict[str, Union[str, Dict[str, str]]]): A dictionary containing the attributes
+        """
         return {attribute: self._render_attribute(element, attribute) for attribute in element.keys()}
 
     def _render_button(

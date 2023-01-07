@@ -46,6 +46,9 @@ def create_arrows(left: Optional[Display], right: Optional[Display], **kwargs) -
 
 
 class Renderer:
+    """This object is responsible for rendering the embeds, views, and menus, by first using the templating engine to
+    template the document, and then using the deserializer to deserialize the document into embeds and views."""
+
     __slots__ = ("_template_engine", "_parser", "_filename", "_deserializer")
 
     def __init__(
@@ -62,6 +65,14 @@ class Renderer:
         self._deserializer = DeserializerFactory.get_deserializer(filename)
 
     def _pre_template(self, keywords: Dict[str, Any]) -> Parser:
+        """Pre-Template templates the document before further processing. It returns a Parser instance that contains
+        the data that is used to render the embeds and views.
+
+        Args:
+            keywords (Dict[str, Any]): keywords that are passed to the templating engine to template the document.
+
+        Returns (Parser): Parser instance that contains the data that is used to render the embeds and views.
+        """
         if self._parser is None:
             with open(self._filename, "r") as file:
                 return ParserFactory.get_parser(self._filename,
@@ -75,6 +86,16 @@ class Renderer:
             keywords: Optional[Dict[str, Any]] = None,
             timeout: int = 180
     ) -> Display:
+        """This method is used to render an embed and a view, and places it in a NamedTuple
+
+        Args:
+            key (str): key of the embed,
+            callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view,
+            keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text,
+            timeout (int): timeout of the view
+
+        Returns (Display): embed and view that can be sent for display.
+        """
         if callbacks is None:
             callbacks = {}
 
@@ -100,6 +121,9 @@ class Renderer:
             callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view
             timeout (Optional[int]): timeout of the view
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
+
+        Returns (Display): Returns the NamedTuple Display, which contains the embed and the view that has arrow buttons
+        that edit the embed and view
         """
         if callbacks is None:
             callbacks = {}
