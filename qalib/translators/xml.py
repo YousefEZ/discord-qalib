@@ -170,7 +170,7 @@ class XMLDeserializer(Deserializer):
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
         title = self._render_attribute(tree, "title")
-        modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods, **kw))()
+        modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods, **kw))(title=title)
 
         for component in self.render_components(tree):
             modal.add_item(component)
