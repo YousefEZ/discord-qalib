@@ -5,7 +5,7 @@ from typing import cast
 import discord.ext.commands
 
 import qalib.context
-from qalib import Renderer, Formatter, qalib_context, Jinja2, RenderingOptions
+from qalib import Renderer, Formatter, qalib_context, Jinja2, RenderingOptions, qalib_interaction
 from tests.unit.mocked_classes import ContextMocked, MessageMocked, MockedInteraction
 
 
@@ -122,14 +122,14 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(modal.title, "Questionnaire")
 
     async def test_xml_modal_decorator(self):
-        @qalib.qalib_interaction(Formatter(), "tests/routes/modal.xml")
+        @qalib_interaction(Formatter(), "tests/routes/modal.xml")
         async def test_modal(interaction):
             return await interaction.respond_with_modal("modal1")
 
         await test_modal(MockedInteraction())
 
     async def test_interaction_rendered_send(self):
-        @qalib.qalib_interaction(Formatter(), "tests/routes/simple_embeds.xml")
+        @qalib_interaction(Formatter(), "tests/routes/simple_embeds.xml")
         async def test_modal(interaction):
             return await interaction.rendered_send("Launch")
 
