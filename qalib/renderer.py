@@ -59,7 +59,7 @@ class Renderer:
     ):
         self._template_engine = template_engine
         self._parser: Optional[Parser] = None
-        if RenderingOptions.PRE_TEMPLATE in rendering_options:
+        if RenderingOptions.PRE_TEMPLATE not in rendering_options:
             self._parser = ParserFactory.get_parser(filename)
         self._filename = filename
         self._deserializer = DeserializerFactory.get_deserializer(filename)
@@ -147,7 +147,7 @@ class Renderer:
             self,
             key: str,
             methods: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict, Any] = None
+            keywords: Optional[Dict[str, Any]] = None
     ) -> discord.ui.Modal:
         if methods is None:
             methods = {}
