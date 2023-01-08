@@ -54,6 +54,8 @@ Each embed can be extended to leverage more the things that an embed can offer s
   </ol>
 </ol>
 
+You can view how to write them in different file formats, such as [xml](../qalib/deserializers/xml.md) and [json](../qalib/deserializers/json.md)
+
 So an example of fully using all the features an embed could offer is as such:
 
 ```xml
@@ -183,6 +185,46 @@ async def test(ctx, name: str):
         "player": fetch_player(name)
     })
 ```
+
+---
+
+## :money_with_wings: QalibInteraction
+
+There is also a ``QalibInteraction``, so that it extends the ``discord.Interaction`` instance. Using the same ``.xml`` file as the previous section we are able to use the ``QalibInteraction`` with a slash command as such:
+
+```py
+from dataclasses import dataclass
+
+import discord
+from discord.ext import commands
+
+import qalib
+from qalib.template_engines.formatter import Formatter
+
+bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
+
+@dataclass
+class Player:
+    name: str
+    bank: str
+    funds: float
+    army_name: str
+    soldiers: int
+    
+def fetch_player(name: str) -> Player:
+    ...
+
+@bot.tree.command(name="test")
+@discord.app_commands.describe(player_name="What is the name of the player?")
+@qalib.qalib_interaction(Formatter(), "templates/player.xml")
+async def test(interaction, name):
+    await interaction.rendered_send("army", keywords={
+        "player": fetch_player(name)
+    })
+```
+
+``QalibInteractions`` are also able to render Modals from their documents using the ``.respond_with_modal(key, methods, keywords)`` method.
+
 
 ---
 
