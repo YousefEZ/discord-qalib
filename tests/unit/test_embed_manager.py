@@ -4,7 +4,7 @@ from typing import cast
 
 import discord.ext.commands
 
-import qalib.qalib_context
+import qalib.context
 from qalib import Renderer, Formatter, qalib_context, Jinja2, RenderingOptions
 from tests.unit.mocked_classes import ContextMocked, MessageMocked
 
