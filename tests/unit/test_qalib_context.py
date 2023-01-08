@@ -10,8 +10,12 @@ from tests.unit.mocked_classes import ContextMocked, MessageMocked, MockedIntera
 
 
 async def send(self, embed: discord.Embed, view: discord.ui.View, **_) -> MessageMocked:
-    self.message = MessageMocked(embed=embed, view=view)
-    return self.message
+    try:
+        self.message = MessageMocked(embed=embed, view=view)
+    except AttributeError:
+        return MessageMocked(embed=embed, view=view)
+    else:
+        return self.message
 
 
 async def send_modal(self, modal):
@@ -19,9 +23,12 @@ async def send_modal(self, modal):
 
 
 qalib.QalibContext.send = send
+discord.InteractionResponse.send_message = send
 discord.InteractionResponse.send_modal = send_modal
+discord.Interaction.edit_original_response = send
 
 
+# noinspection PyTypeChecker
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
@@ -79,6 +86,11 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await context.menu("Menu1")
         self.assertEqual(context._displayed.embed.title, "Hello World")
 
+    async def test_interaction_menu(self):
+        interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/menus.xml"))
+
+        await interaction.menu("Menu1")
+
     async def test_xml_modal_rendering(self):
         path = "tests/routes/modal.xml"
         renderer = Renderer(Formatter(), path)
@@ -108,6 +120,40 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         modal = await interaction.respond_with_modal("modal1")
         modal = cast(discord.ui.Modal, modal)
         self.assertEqual(modal.title, "Questionnaire")
+
+    async def test_xml_modal_decorator(self):
+        @qalib.qalib_interaction(Formatter(), "tests/routes/modal.xml")
+        async def test_modal(interaction):
+            return await interaction.respond_with_modal("modal1")
+
+        await test_modal(MockedInteraction())
+
+    async def test_interaction_rendered_send(self):
+        @qalib.qalib_interaction(Formatter(), "tests/routes/simple_embeds.xml")
+        async def test_modal(interaction):
+            return await interaction.rendered_send("Launch")
+
+        await test_modal(MockedInteraction())
+
+    async def test_xml_interaction(self):
+        interaction = qalib.QalibInteraction(MockedInteraction(),
+                                             Renderer(Formatter(), "tests/routes/simple_embeds.xml"))
+        await interaction.display("Launch")
+
+    async def test_rendered_send_interaction(self):
+        interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml"))
+
+        e = await interaction.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
+        self.assertEqual(e.embed.title, "Test")
+
+        e2 = await interaction.rendered_send("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        self.assertEqual(e2.embed.title, "Test2")
+
+    async def test_xml_display_message_interaction(self):
+        interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml"))
+
+        await interaction.display("test_key", keywords={"todays_date": datetime.datetime.now()})
+        await interaction.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
 
     async def test_json_context(self):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.json"))
