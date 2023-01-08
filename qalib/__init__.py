@@ -7,7 +7,7 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 from functools import wraps
 
 from .context import QalibContext
-from .interaction import QalibInteractionResponse
+from .interaction import QalibInteraction
 from .renderer import Renderer, RenderingOptions
 from .template_engines.formatter import Formatter
 from .template_engines.jinja2 import Jinja2
@@ -41,16 +41,3 @@ def qalib_context(template_engine: TemplateEngine, filename: str, *renderer_opti
         return wrapper
 
     return command
-
-
-def qalib_interaction(template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions):
-    renderer_instance = Renderer(template_engine, filename, *renderer_options)
-
-    def modal_function(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            return await func(args[0], QalibInteractionResponse(args[0], renderer_instance), *args[1:], **kwargs)
-
-        return wrapper
-
-    return modal_function
