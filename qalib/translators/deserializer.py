@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Protocol, Dict, List, Any
 
+import discord.ui
+
 from qalib.translators import Display, Callback
 
 
@@ -31,5 +33,17 @@ class Deserializer(Protocol):
             **kw (Any): additional arguments that are used to deserialize the document
 
         Returns (List[Display]): list of NamedTuple Displays, that are connected by arrows in their views.
+        """
+        ...
+
+    def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
+        """This method is used to deserialize a document into a modal.
+
+        Args:
+            source (str): document that is deserialized
+            methods (Dict[str, Callback]): methods that are used to deserialize the document
+            **kw (Any): additional arguments that are used to deserialize the document
+
+        Returns (discord.ui.Modal): modal that is deserialized from the document.
         """
         ...

@@ -55,11 +55,11 @@ class Renderer:
             self,
             template_engine: TemplateEngine,
             filename: str,
-            rendering_option: Optional[RenderingOptions] = None
+            *rendering_options
     ):
         self._template_engine = template_engine
         self._parser: Optional[Parser] = None
-        if rendering_option is None:
+        if RenderingOptions.PRE_TEMPLATE not in rendering_options:
             self._parser = ParserFactory.get_parser(filename)
         self._filename = filename
         self._deserializer = DeserializerFactory.get_deserializer(filename)
@@ -142,3 +142,18 @@ class Renderer:
                 display.view.add_item(arrow)
 
         return displays[0]
+
+    def render_modal(
+            self,
+            key: str,
+            methods: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None
+    ) -> discord.ui.Modal:
+        if methods is None:
+            methods = {}
+
+        if keywords is None:
+            keywords = {}
+
+        modal = self._pre_template(keywords).template_modal(key, self._template_engine, keywords)
+        return self._deserializer.deserialize_into_modal(modal, methods)

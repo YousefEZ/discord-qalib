@@ -4,6 +4,19 @@ import discord.ui
 from mock import Mock
 
 
+class MockedInteraction(discord.Interaction):
+    data = {
+        "id": 0,
+        "application_id": 0,
+        "token": "token",
+        "version": 1,
+        "type": 1
+    }
+
+    def __init__(self):
+        super().__init__(data=MockedInteraction.data, state=Mock())
+
+
 class MockedView:
 
     def __init__(self, timeout: Optional[int] = 180):

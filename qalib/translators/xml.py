@@ -52,6 +52,19 @@ class XMLParser(Parser):
                 return ElementTree.tostring(menu, encoding='unicode', method='xml')
         raise KeyError(f"Menu with key {identifier} not found")
 
+    def get_modal(self, identifier: str) -> str:
+        """This method is used to get a modal by its key.
+
+        Args:
+            identifier (str): key of the modal
+
+        Returns (str): a raw string containing the modal.
+        """
+        for modal in self.root.findall("modal"):
+            if modal.get("key") == identifier:
+                return ElementTree.tostring(modal, encoding='unicode', method='xml')
+        raise KeyError(f"Modal with key {identifier} not found")
+
     def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template an embed, by identifying it by its key and using the template engine to
         template it.
@@ -66,7 +79,7 @@ class XMLParser(Parser):
         return template_engine.template(self.get_embed(key), keywords)
 
     def template_menu(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        """This method is used to template an menu, by identifying it by its key and using the template engine to
+        """This method is used to template a menu, by identifying it by its key and using the template engine to
         template it.
 
         Args:
@@ -77,6 +90,19 @@ class XMLParser(Parser):
         Returns (str): templated menu
         """
         return template_engine.template(self.get_menu(key), keywords)
+
+    def template_modal(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """This method is used to template a modal, by identifying it by its key and using the template engine to
+        template it.
+
+        Args:
+            key (str): key of the modal
+            template_engine (TemplateEngine): template engine that is used to template the modal
+            keywords (Dict[str, Any]): keywords that are used to template the modal
+
+        Returns (str): templated modal
+        """
+        return template_engine.template(self.get_modal(key), keywords)
 
 
 class XMLDeserializer(Deserializer):
@@ -127,6 +153,42 @@ class XMLDeserializer(Deserializer):
         """
         menu_tree: ElementTree = ElementTree.fromstring(source)
         return [self.deserialize_to_embed(embed, callables, kw) for embed in menu_tree.findall("embed")]
+
+    def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
+        """Method to deserialize a modal into a discord.ui.Modal object
+
+        Args:
+            source (str): The source text to deserialize into a modal
+            methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            **kw (Dict[str, Any]): A dictionary containing the keywords to use for the view
+
+        Returns (discord.ui.Modal): A discord.ui.Modal object
+        """
+        modal_tree = ElementTree.fromstring(source)
+        return self._render_modal(modal_tree, methods, kw)
+
+    def _render_modal(
+            self,
+            tree: ElementTree.Element,
+            methods: Dict[str, Callback],
+            kw: Any
+    ) -> discord.ui.Modal:
+        """Method to render a modal from a modal tree
+
+        Args:
+            tree (Dict[str, Any]): The modal tree to render
+            methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            kw (Dict[str, Any]): A dictionary containing the keywords to use for the view
+
+        Returns (discord.ui.Modal): A discord.ui.Modal object
+        """
+        title = self._render_attribute(tree, "title")
+        modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods, **kw))(title=title)
+
+        for component in self.render_components(tree):
+            modal.add_item(component)
+
+        return modal
 
     def _render_view(
             self,
@@ -405,7 +467,7 @@ class XMLDeserializer(Deserializer):
     def render_components(
             self,
             view: ElementTree.Element,
-            callables: Dict[str, Callback]
+            callables: Optional[Dict[str, Callback]] = None
     ) -> List[ui.Item]:
         """Renders a list of components based on the identifier given.
 
@@ -415,6 +477,9 @@ class XMLDeserializer(Deserializer):
 
         Returns (Optional[List[discord.ui.Item]]): The rendered components.
         """
+        if callables is None:
+            callables = {}
+
         return [
             self.render_component(
                 component,

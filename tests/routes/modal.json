@@ -1,0 +1,17 @@
+{
+  "modal1": {
+    "title": "Modal 1",
+    "components": {
+      "name": {
+        "type": "text_input",
+        "label": "What is your name?",
+        "placeholder": "Enter your name"
+      },
+      "age": {
+        "type": "text_input",
+        "label": "What is your age?",
+        "placeholder": "Enter your age"
+      }
+    }
+  }
+}

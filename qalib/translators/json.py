@@ -77,6 +77,19 @@ class JSONParser(Parser):
         """
         return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
 
+    def template_modal(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """Method that is used to template the modal by first retrieving it using its key, and then templating it using
+        the template_engine
+
+        Args:
+            key (str): key of the modal
+            template_engine (TemplateEngine): template engine that is used to template the modal
+            keywords (Dict[str, Any]): keywords that are used to template the modal
+
+        Returns (str): templated modal in the form of string.
+        """
+        return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
+
 
 class JSONDeserializer(Deserializer):
 
@@ -123,6 +136,37 @@ class JSONDeserializer(Deserializer):
         Returns (List[Display]): A list of Display objects
         """
         return [self.deserialize_to_embed(embed, callables, kw) for embed in json.loads(source).values()]
+
+    def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
+        """Method to deserialize a modal into a discord.ui.Modal object
+
+        Args:
+            source (str): The source text to deserialize into a modal
+            methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            **kw (Dict[str, Any]): A dictionary containing the keywords to use for the view
+
+        Returns (discord.ui.Modal): A discord.ui.Modal object
+        """
+        modal_tree = json.loads(source)
+        return self._render_modal(modal_tree, methods, kw)
+
+    def _render_modal(self, tree: Dict[str, Any], methods: Dict[str, Callback], kw: Dict[str, Any]) -> discord.ui.Modal:
+        """Method to render a modal from a modal tree
+
+        Args:
+            tree (Dict[str, Any]): The modal tree to render
+            methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            kw (Dict[str, Any]): A dictionary containing the keywords to use for the view
+
+        Returns (discord.ui.Modal): A discord.ui.Modal object
+        """
+        title = self._render_attribute(tree, "title")
+        modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods))(title=title, **kw)
+
+        for component in self.render_components(tree.get("components"), {}):
+            modal.add_item(component)
+
+        return modal
 
     def _render_view(
             self,

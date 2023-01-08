@@ -44,3 +44,16 @@ class Parser(ABC):
         Returns (str): templated menu in the form of string.
         """
         ...
+
+    def template_modal(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """Method that is used to template the modal by first retrieving it using its key, and then templating it using
+        the template_engine
+
+        Args:
+            key (str): key of the modal
+            template_engine (TemplateEngine): template engine that is used to template the modal
+            keywords (Dict[str, Any]): keywords that are used to template the modal
+
+        Returns (str): templated modal in the form of string.
+        """
+        ...
