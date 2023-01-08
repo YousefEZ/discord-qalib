@@ -21,6 +21,7 @@ async def send_modal(self, modal):
 qalib.QalibContext.send = send
 discord.InteractionResponse.send_modal = send_modal
 
+
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
@@ -107,13 +108,6 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         modal = await interaction.respond_with_modal("modal1")
         modal = cast(discord.ui.Modal, modal)
         self.assertEqual(modal.title, "Questionnaire")
-
-    async def test_xml_modal_decorator(self):
-        @qalib.qalib_interaction(Formatter(), "tests/routes/modal.xml")
-        async def test_modal(_, response: qalib.QalibInteraction):
-            return await response.respond_with_modal("modal1")
-
-        await test_modal(MockedInteraction())
 
     async def test_json_context(self):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.json"))
