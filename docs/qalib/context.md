@@ -1,4 +1,4 @@
-::: qalib.qalib_context.QalibContext
+::: qalib.context.QalibContext
     :docstring:
     :members:
     option:
