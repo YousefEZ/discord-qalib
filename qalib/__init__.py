@@ -60,7 +60,7 @@ def qalib_interaction(template_engine: TemplateEngine, filename: str, *renderer_
     """
     renderer_instance = Renderer(template_engine, filename, *renderer_options)
 
-    def command(func) -> Callable[[tuple[discord.Interaction, ...], dict[str, Any]], Coroutine[Any, Any, Any]]:
+    def command(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             return await func(QalibInteraction(args[0], renderer_instance), *args[1:], **kwargs)
