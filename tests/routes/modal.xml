@@ -3,10 +3,12 @@
         <text_input>
             <label>What is your name?</label>
             <placeholder>Enter your name</placeholder>
+            <style>long</style>
         </text_input>
         <text_input>
             <label>What is your age?</label>
             <placeholder>Enter your age</placeholder>
+            <style>long</style>
         </text_input>
     </modal>
 </discord>
