@@ -101,8 +101,8 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
 
     async def test_xml_modal_display(self):
-        interaction = qalib.QalibInteractionResponse(MockedInteraction(),
-                                                     Renderer(Formatter(), "tests/routes/modal.xml"))
+        interaction = qalib.QalibInteraction(MockedInteraction(),
+                                             Renderer(Formatter(), "tests/routes/modal.xml"))
 
         modal = await interaction.respond_with_modal("modal1")
         modal = cast(discord.ui.Modal, modal)
@@ -110,7 +110,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
     async def test_xml_modal_decorator(self):
         @qalib.qalib_interaction(Formatter(), "tests/routes/modal.xml")
-        async def test_modal(_, response: qalib.QalibInteractionResponse):
+        async def test_modal(_, response: qalib.QalibInteraction):
             return await response.respond_with_modal("modal1")
 
         await test_modal(MockedInteraction())

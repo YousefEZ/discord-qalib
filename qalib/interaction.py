@@ -6,14 +6,14 @@ from qalib.renderer import Renderer
 from qalib.translators import Callback
 
 
-class QalibInteractionResponse(discord.InteractionResponse):
+class QalibInteraction:
     """The QalibInteraction class is a subclass of discord.Interaction, and is used to add additional functionality to
     the interaction. It is meant to be used in the on_interaction event, and is responsible for deserializing the
     requested modal and sending it to the user."""
 
     def __init__(self, interaction: discord.Interaction, renderer: Renderer):
         """Constructor method for the QalibInteraction class."""
-        super().__init__(parent=interaction)
+        self._interaction = interaction
         self._renderer = renderer
 
     async def respond_with_modal(
@@ -34,4 +34,4 @@ class QalibInteractionResponse(discord.InteractionResponse):
 
         if keywords is None:
             keywords = {}
-        return await self.send_modal(self._renderer.render_modal(key, methods, keywords))
+        return await self._interaction.response.send_modal(self._renderer.render_modal(key, methods, keywords))
