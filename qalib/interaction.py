@@ -7,8 +7,12 @@ from qalib.translators import Callback
 
 
 class QalibInteraction(discord.Interaction):
+    """The QalibInteraction class is a subclass of discord.Interaction, and is used to add additional functionality to
+    the interaction. It is meant to be used in the on_interaction event, and is responsible for deserializing the
+    requested modal and sending it to the user."""
 
     def __init__(self, interaction: discord.Interaction, renderer: Renderer):
+        """Constructor method for the QalibInteraction class."""
         super().__init__(data=interaction.__dict__, state=interaction._state)
         self._renderer = renderer
 
