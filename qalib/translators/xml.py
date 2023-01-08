@@ -52,6 +52,19 @@ class XMLParser(Parser):
                 return ElementTree.tostring(menu, encoding='unicode', method='xml')
         raise KeyError(f"Menu with key {identifier} not found")
 
+    def get_modal(self, identifier: str) -> str:
+        """This method is used to get a modal by its key.
+
+        Args:
+            identifier (str): key of the modal
+
+        Returns (str): a raw string containing the modal.
+        """
+        for modal in self.root.findall("modal"):
+            if modal.get("key") == identifier:
+                return ElementTree.tostring(modal, encoding='unicode', method='xml')
+        raise KeyError(f"Modal with key {identifier} not found")
+
     def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template an embed, by identifying it by its key and using the template engine to
         template it.
@@ -89,7 +102,7 @@ class XMLParser(Parser):
 
         Returns (str): templated modal
         """
-        return template_engine.template(self.get_menu(key), keywords)
+        return template_engine.template(self.get_modal(key), keywords)
 
 
 class XMLDeserializer(Deserializer):
