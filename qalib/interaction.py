@@ -17,6 +17,7 @@ class QalibInteraction(discord.Interaction):
         its key and sending it to the user.
 
         Args:
+            methods (Dict[str, Callback]): methods that are used to override the default methods of the modal
             key (str): key that identifies the modal in the route file
             keywords (Any): keywords that are passed to the modal renderer to format the text
         """
