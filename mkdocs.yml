@@ -8,6 +8,7 @@ nav:
       - Simple Usage: usage/simple-usage.md
   - Qalib:
       - Context: qalib/context.md
+      - Interaction: qalib/interaction.md
       - Renderer: qalib/renderer.md
       - Template Engines:
           - Formatter: qalib/template_engines/formatter.md

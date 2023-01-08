@@ -117,7 +117,8 @@ class QalibInteraction(discord.Interaction):
         await self._display(embed=embed, view=view, **kwargs)
 
     async def _display(self, **kwargs: Any) -> None:
-        """This method is responsible for sending the message to the client and keeping track of the message object.
+        """This method is responsible for sending the message to the client, and editing the message if there is one
+        that has already been sent.
 
         Args:
             **kwargs (Dict[str, Any]): kwargs that are passed to the context's send method
