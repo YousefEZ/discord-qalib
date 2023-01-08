@@ -6,7 +6,7 @@ import discord.ext.commands
 
 import qalib.context
 from qalib import Renderer, Formatter, qalib_context, Jinja2, RenderingOptions
-from tests.unit.mocked_classes import ContextMocked, MessageMocked
+from tests.unit.mocked_classes import ContextMocked, MessageMocked, MockedInteraction
 
 
 async def send(self, embed: discord.Embed, view: discord.ui.View, **_) -> MessageMocked:
@@ -14,8 +14,12 @@ async def send(self, embed: discord.Embed, view: discord.ui.View, **_) -> Messag
     return self.message
 
 
-qalib.QalibContext.send = send
+async def send_modal(self, modal):
+    return modal
 
+
+qalib.QalibContext.send = send
+discord.InteractionResponse.send_modal = send_modal
 
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
@@ -73,6 +77,43 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         await context.menu("Menu1")
         self.assertEqual(context._displayed.embed.title, "Hello World")
+
+    async def test_xml_modal_rendering(self):
+        path = "tests/routes/modal.xml"
+        renderer = Renderer(Formatter(), path)
+        modal = renderer.render_modal("modal1")
+        self.assertEqual(len(modal.children), 2)
+
+    async def test_json_modal_rendering(self):
+        path = "tests/routes/modal.json"
+        renderer = Renderer(Formatter(), path)
+        modal = renderer.render_modal("modal1")
+        self.assertEqual(len(modal.children), 2)
+
+    async def test_json_missing_modal_key(self):
+        path = "tests/routes/modal.json"
+        renderer = Renderer(Formatter(), path)
+        self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
+
+    async def test_xml_missing_modal_key(self):
+        path = "tests/routes/modal.xml"
+        renderer = Renderer(Formatter(), path)
+        self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
+
+    async def test_xml_modal_display(self):
+        interaction = qalib.QalibInteractionResponse(MockedInteraction(),
+                                                     Renderer(Formatter(), "tests/routes/modal.xml"))
+
+        modal = await interaction.respond_with_modal("modal1")
+        modal = cast(discord.ui.Modal, modal)
+        self.assertEqual(modal.title, "Questionnaire")
+
+    async def test_xml_modal_decorator(self):
+        @qalib.qalib_interaction(Formatter(), "tests/routes/modal.xml")
+        async def test_modal(_, response: qalib.QalibInteractionResponse):
+            return await response.respond_with_modal("modal1")
+
+        await test_modal(MockedInteraction())
 
     async def test_json_context(self):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.json"))
