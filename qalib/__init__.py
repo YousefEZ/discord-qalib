@@ -5,6 +5,9 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 :license: MIT, see LICENSE for more details.
 """
 from functools import wraps
+from typing import Callable, Any, Coroutine
+
+import discord
 
 from .context import QalibContext
 from .interaction import QalibInteraction
@@ -37,6 +40,30 @@ def qalib_context(template_engine: TemplateEngine, filename: str, *renderer_opti
         @wraps(func)
         async def wrapper(*args, **kwargs):
             return await func(QalibContext(args[0], renderer_instance), *args[1:], **kwargs)
+
+        return wrapper
+
+    return command
+
+
+def qalib_interaction(template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions):
+    """This decorator is used to create a QalibInteraction object, and pass it to the function as it's first argument,
+    overriding the default interaction.
+
+    Args:
+        template_engine (TemplateEngine): template engine that is used to template the document
+        filename (str): filename of the document
+        renderer_options (RenderingOptions): options for the renderer
+
+    Returns (Callable): decorated function that takes the Interaction object and using the extended
+    QalibInteraction object
+    """
+    renderer_instance = Renderer(template_engine, filename, *renderer_options)
+
+    def command(func) -> Callable[[tuple[discord.Interaction, ...], dict[str, Any]], Coroutine[Any, Any, Any]]:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            return await func(QalibInteraction(args[0], renderer_instance), *args[1:], **kwargs)
 
         return wrapper
 
