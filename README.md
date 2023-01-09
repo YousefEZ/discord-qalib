@@ -10,8 +10,8 @@
 alt="Gitmoji"
 />
 </a>
-<img alt="PyPI" src="https://img.shields.io/pypi/v/discord-qalib">
-<img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/discord-qalib">
+<a href="https://pypi.org/project/discord-qalib/"><img alt="PyPI" src="https://img.shields.io/pypi/v/discord-qalib"></a>
+<a href="https://pypi.org/project/discord-qalib/"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/discord-qalib"></a>
 
 Discord templating engine built on discord.py, to help separate text of embeds from the source code. Inspired by Flask.
 
