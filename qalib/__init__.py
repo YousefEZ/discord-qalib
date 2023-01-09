@@ -5,9 +5,6 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 :license: MIT, see LICENSE for more details.
 """
 from functools import wraps
-from typing import Callable, Any, Coroutine
-
-import discord
 
 from .context import QalibContext
 from .interaction import QalibInteraction
