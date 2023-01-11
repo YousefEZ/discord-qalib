@@ -1,4 +1,5 @@
 from typing import Optional
+import discord.ext.commands
 
 import discord.ui
 from mock import Mock
@@ -61,7 +62,7 @@ class BotMocked:
             return message
 
 
-class ContextMocked:
+class ContextMocked(discord.ext.commands.Context):
 
     def __init__(self):
         self.message = MessageMocked()
