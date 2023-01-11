@@ -128,6 +128,15 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         await test_modal(MockedInteraction())
 
+    async def test_xml_modal_decorator_method(self):
+        class T:
+            @qalib_interaction(Formatter(), "tests/routes/modal.xml")
+            async def test_modal(self, interaction):
+                return await interaction.respond_with_modal("modal1")
+
+        t = T()
+        await t.test_modal(MockedInteraction())
+
     async def test_interaction_rendered_send(self):
         @qalib_interaction(Formatter(), "tests/routes/simple_embeds.xml")
         async def test_modal(interaction):
@@ -220,3 +229,23 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(ctx, qalib.QalibContext)
 
         await test(ContextMocked())
+
+    async def test_decorator_method_context(self):
+        @qalib_context(Formatter(), "tests/routes/simple_embeds.json")
+        async def test(ctx):
+            self.assertIsInstance(ctx, qalib.QalibContext)
+
+        await test(ContextMocked())
+
+        with self.assertRaises(TypeError):
+            await test(object())
+
+    async def test_decorator_method_interaction(self):
+        @qalib_interaction(Formatter(), "tests/routes/simple_embeds.json")
+        async def test(ctx):
+            self.assertIsInstance(ctx, qalib.QalibInteraction)
+
+        await test(MockedInteraction())
+
+        with self.assertRaises(TypeError):
+            await test(object())
