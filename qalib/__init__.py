@@ -6,6 +6,9 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 """
 from functools import wraps
 
+import discord
+import discord.ext.commands
+
 from .context import QalibContext
 from .interaction import QalibInteraction
 from .renderer import Renderer, RenderingOptions
@@ -36,7 +39,15 @@ def qalib_context(template_engine: TemplateEngine, filename: str, *renderer_opti
     def command(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(QalibContext(args[0], renderer_instance), *args[1:], **kwargs)
+            arguments = list(args)
+            for i, argument in enumerate(arguments):
+                if isinstance(argument, discord.ext.commands.Context):
+                    arguments[i] = QalibContext(argument, renderer_instance)
+                    break
+            else:
+                raise TypeError("Interaction object not found in arguments")
+
+            return await func(*arguments, **kwargs)
 
         return wrapper
 
@@ -60,7 +71,16 @@ def qalib_interaction(template_engine: TemplateEngine, filename: str, *renderer_
     def command(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            return await func(QalibInteraction(args[0], renderer_instance), *args[1:], **kwargs)
+
+            arguments = list(args)
+            for i, argument in enumerate(arguments):
+                if isinstance(argument, discord.Interaction):
+                    arguments[i] = QalibInteraction(argument, renderer_instance)
+                    break
+            else:
+                raise TypeError("Interaction object not found in arguments")
+
+            return await func(*arguments, **kwargs)
 
         return wrapper
 
