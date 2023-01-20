@@ -8,8 +8,14 @@ jobs:
     name: codacy-coverage-reporter
     steps:
       - uses: actions/checkout@v2
-      - name: Run tests and collect coverage
-        run: coverage run -m pytest .
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest coverage
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run Coverage
+        run: |
+          coverage run -m pytest .
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
