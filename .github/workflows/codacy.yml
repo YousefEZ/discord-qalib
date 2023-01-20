@@ -16,8 +16,9 @@ jobs:
       - name: Run Coverage
         run: |
           coverage run -m pytest .
+          coverage xml
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: .coverage
+          coverage-reports: coverage.xml
