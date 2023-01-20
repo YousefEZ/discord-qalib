@@ -4,6 +4,7 @@
 
 [![Discord-Qalib Tests](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml/badge.svg)](https://github.com/YousefEZ/discord-qalib/actions/workflows/discord-qalib.yml)
 [![codecov](https://codecov.io/gh/YousefEZ/discord-qalib/branch/main/graph/badge.svg?token=3EG4ZF8K3R)](https://codecov.io/gh/YousefEZ/discord-qalib)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b6a528f00dc7418c9cd15b0d120d8297)](https://www.codacy.com/gh/YousefEZ/discord-qalib/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=YousefEZ/discord-qalib&amp;utm_campaign=Badge_Grade)
 ![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10-informational)
 <a href="https://gitmoji.dev">
 <img src="https://img.shields.io/badge/gitmoji-%20😜%20😍-FFDD67.svg?style=flat-square"
