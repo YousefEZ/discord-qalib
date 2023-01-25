@@ -19,7 +19,7 @@ class Parser(ABC):
         """
         ...
 
-    def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+    def template_message(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template the embed by first retrieving it using its key, and then templating it using
         the template_engine
 
