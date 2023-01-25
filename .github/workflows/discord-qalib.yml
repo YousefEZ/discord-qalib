@@ -3,11 +3,6 @@
 
 name: Discord-Qalib Tests
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
