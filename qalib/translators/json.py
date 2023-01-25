@@ -10,7 +10,7 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from . import Callback, Display
+from . import Callback, Message
 from .deserializer import Deserializer
 from .parser import Parser
 from .utils import *
@@ -51,7 +51,7 @@ class JSONParser(Parser):
 
         return obj
 
-    def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+    def template_message(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template the embed by first retrieving it using its key, and then templating it using
         the template_engine
 
@@ -93,7 +93,7 @@ class JSONParser(Parser):
 
 class JSONDeserializer(Deserializer):
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
+    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
         """Method to deserialize a source into a Display object
 
         Args:
@@ -103,29 +103,29 @@ class JSONDeserializer(Deserializer):
 
         Returns (Display): A Display object
         """
-        return self.deserialize_to_embed(json.loads(source), callables, kw)
+        return self.deserialize_to_message(json.loads(source), callables, kw)
 
-    def deserialize_to_embed(
+    def deserialize_to_message(
             self,
-            embed_tree: Dict[str, Any],
+            message_tree: Dict[str, Any],
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
-    ) -> Display:
+    ) -> Message:
         """Method to deserialize an embed into a Display NamedTuple containing the embed and the view
 
         Args:
-            embed_tree (Dict[str, Any]): The embed to deserialize
+            message_tree (Dict[str, Any]): The embed to deserialize
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
             kw (Dict[str, Any]): A dictionary containing the attributes to use for the view
 
         Returns (Display): A Display NamedTuple containing the embed and the view
         """
-        view_tree = embed_tree.get("view")
-        embed = self.render(embed_tree)
+        view_tree = message_tree.get("view")
+        embed = self.render(message_tree["embed"])
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
-        return Display(embed, view)
+        return Message(embed, view)
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
+    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Method to deserialize a menu into a list of Display objects
 
         Args:
@@ -135,7 +135,7 @@ class JSONDeserializer(Deserializer):
 
         Returns (List[Display]): A list of Display objects
         """
-        return [self.deserialize_to_embed(embed, callables, kw) for embed in json.loads(source).values()]
+        return [self.deserialize_to_message(embed, callables, kw) for embed in json.loads(source).values()]
 
     def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
@@ -310,7 +310,7 @@ class JSONDeserializer(Deserializer):
         button.callback = callback
         return button
 
-    def _render_options(self, raw_options: List[Dict[str, Union[str, str]]]) -> List[discord.SelectOption]:
+    def _render_options(self, raw_options: List[Dict[str, Dict[str, str]]]) -> List[discord.SelectOption]:
         """Renders the options for a select menu
 
         Args:
@@ -331,7 +331,7 @@ class JSONDeserializer(Deserializer):
 
     def _render_channel_select(
             self,
-            component: Dict[str, Union[str, Dict[str, Any]]],
+            component: Dict[str, Union[str, List[str], Dict[str, Any]]],
             callback: Optional[Callback],
     ) -> ui.ChannelSelect:
         """Renders a select menu from the given component's template
@@ -355,7 +355,7 @@ class JSONDeserializer(Deserializer):
 
     def _render_select(
             self,
-            component: Dict[str, Union[str, Dict[str, Any]]],
+            component: Dict[str, Union[str, List[Dict[str, ...]], Dict[str, Any]]],
             callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select menu from the given component's template

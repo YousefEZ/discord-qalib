@@ -10,7 +10,7 @@ import discord.types.embed
 import discord.ui as ui
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, Display
+from qalib.translators import Callback, Message
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
 from qalib.translators.utils import *
@@ -26,7 +26,7 @@ class XMLParser(Parser):
         """
         self.root = ElementTree.fromstring(source)
 
-    def get_embed(self, identifier: str) -> str:
+    def get_message(self, identifier: str) -> str:
         """This method is used to get an embed by its key.
 
         Args:
@@ -34,10 +34,10 @@ class XMLParser(Parser):
 
         Returns (str): a raw string containing the embed.
         """
-        for embed in self.root.findall("embed"):
+        for embed in self.root.findall("message"):
             if embed.get("key") == identifier:
                 return ElementTree.tostring(embed, encoding='unicode', method='xml')
-        raise KeyError(f"Embed with key {identifier} not found")
+        raise KeyError(f"Message with key {identifier} not found")
 
     def get_menu(self, identifier: str) -> str:
         """This method is used to get a menu by its key.
@@ -65,7 +65,7 @@ class XMLParser(Parser):
                 return ElementTree.tostring(modal, encoding='unicode', method='xml')
         raise KeyError(f"Modal with key {identifier} not found")
 
-    def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+    def template_message(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template an embed, by identifying it by its key and using the template engine to
         template it.
 
@@ -76,7 +76,7 @@ class XMLParser(Parser):
 
         Returns (str): templated embed
         """
-        return template_engine.template(self.get_embed(key), keywords)
+        return template_engine.template(self.get_message(key), keywords)
 
     def template_menu(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template a menu, by identifying it by its key and using the template engine to
@@ -108,7 +108,7 @@ class XMLParser(Parser):
 class XMLDeserializer(Deserializer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
+    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
         """Deserializes an embed from an XML file, and returns it as a Display object.
 
         Args:
@@ -118,29 +118,29 @@ class XMLDeserializer(Deserializer):
 
         Returns (Display): A display object containing the embed and its view.
         """
-        return self.deserialize_to_embed(ElementTree.fromstring(source), callables, kw)
+        return self.deserialize_to_message(ElementTree.fromstring(source), callables, kw)
 
-    def deserialize_to_embed(
+    def deserialize_to_message(
             self,
-            embed_tree: ElementTree.Element,
+            message_tree: ElementTree.Element,
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
-    ) -> Display:
+    ) -> Message:
         """Deserializes an embed from an ElementTree.Element, and returns it as a Display object.
 
         Args:
-            embed_tree (ElementTree.Element): The element to deserialize the embed from.
+            message_tree (ElementTree.Element): The element to deserialize the embed from.
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
             kw (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
 
         Returns (Display): A display object containing the embed and its view.
         """
-        view_tree: ElementTree.Element = embed_tree.find("view")
-        embed = self.render(embed_tree)
+        view_tree: ElementTree.Element = message_tree.find("view")
+        embed = self._render_embed(message_tree.find("embed"))
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
-        return Display(embed, view)
+        return Message(embed, view)
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
+    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Deserializes a menu from an XML file, by generating a list of displays that are connected by buttons in their
         views to navigate between them.
 
@@ -152,7 +152,7 @@ class XMLDeserializer(Deserializer):
         Returns (List[Display]): List of displays that are connected by buttons in their views to navigate between them.
         """
         menu_tree: ElementTree = ElementTree.fromstring(source)
-        return [self.deserialize_to_embed(embed, callables, kw) for embed in menu_tree.findall("embed")]
+        return [self.deserialize_to_message(embed, callables, kw) for embed in menu_tree.findall("message")]
 
     def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
@@ -488,7 +488,7 @@ class XMLDeserializer(Deserializer):
             for component in view
         ]
 
-    def render(self, raw_embed: ElementTree.Element) -> discord.Embed:
+    def _render_embed(self, raw_embed: ElementTree.Element) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance.
 
         Args:
