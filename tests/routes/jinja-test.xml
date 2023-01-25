@@ -1,15 +1,17 @@
 <discord>
-    <embed key="test1">
-        <title>test</title>
-        <colour>magenta</colour>
-        <fields>
-            {% for i in range(0, 3) %}
-            <field>
-                <name>test</name>
-                <value>test</value>
-            </field>
-            {% endfor %}
-        </fields>
+    <message key="test1">
+        <embed>
+            <title>test</title>
+            <colour>magenta</colour>
+            <fields>
+                {% for i in range(0, 3) %}
+                <field>
+                    <name>test</name>
+                    <value>test</value>
+                </field>
+                {% endfor %}
+            </fields>
+        </embed>
         <view>
             <button key="button1">
                 <style>primary</style>
@@ -21,17 +23,19 @@
                 <url>https://www.discord.com</url>
             </button>
         </view>
-    </embed>
-    <embed key="test2">
-        <title>test</title>
-        <colour>magenta</colour>
-        <fields>
-            {% for i in range(0, 3) %}
-            <field>
-                <name>test</name>
-                <value>test</value>
-            </field>
-            {% endfor %}
-        </fields>
-    </embed>
+    </message>
+    <message key="test2">
+        <embed>
+            <title>test</title>
+            <colour>magenta</colour>
+            <fields>
+                {% for i in range(0, 3) %}
+                <field>
+                    <name>test</name>
+                    <value>test</value>
+                </field>
+                {% endfor %}
+            </fields>
+        </embed>
+    </message>
 </discord>

@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 import discord
 
 from qalib.renderer import Renderer
-from qalib.translators import Callback, Display
+from qalib.translators import Callback, Message
 
 
 class QalibInteraction(discord.Interaction):
@@ -57,7 +57,7 @@ class QalibInteraction(discord.Interaction):
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
-    ) -> Display:
+    ) -> Message:
         """This method renders the embed and the view based on the identifier string given.
 
         Args:

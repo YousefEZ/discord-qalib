@@ -1,53 +1,57 @@
 <discord>
-    <embed key="test_key">
-        <title>Test</title>
-        <description>Test Description</description>
-        <type>rich</type>
-        <colour>55,55,55</colour>
-        <timestamp>{todays_date}</timestamp>
-        <url>https://www.discord.com</url>
-        <fields>
-            <field>
-                <name>Test Field</name>
-                <text>Test Text</text>
-            </field>
-        </fields>
-        <footer>
-            <text>Test Footer</text>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-        </footer>
-        <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
-        <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
-        <author>
-            <name>Test Author</name>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-            <url>https://discordapp.com</url>
-        </author>
-    </embed>
-    <embed key="test_key2">
-        <title>Test2</title>
-        <description>Test Description</description>
-        <type>rich</type>
-        <colour>magenta</colour>
-        <timestamp>{todays_date}</timestamp>
-        <url>https://www.discord.com</url>
-        <fields>
-            <field>
-                <name>Test Field</name>
-                <text>Test Text</text>
-            </field>
-        </fields>
-        <footer>
-            <text>Test Footer</text>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-        </footer>
-        <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
-        <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
-        <author>
-            <name>Test Author</name>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-            <url>https://discordapp.com</url>
-        </author>
+    <message key="test_key">
+        <embed>
+            <title>Test</title>
+            <description>Test Description</description>
+            <type>rich</type>
+            <colour>55,55,55</colour>
+            <timestamp>{todays_date}</timestamp>
+            <url>https://www.discord.com</url>
+            <fields>
+                <field>
+                    <name>Test Field</name>
+                    <text>Test Text</text>
+                </field>
+            </fields>
+            <footer>
+                <text>Test Footer</text>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+            </footer>
+            <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
+            <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
+            <author>
+                <name>Test Author</name>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+                <url>https://discordapp.com</url>
+            </author>
+        </embed>
+    </message>
+    <message key="test_key2">
+        <embed>
+            <title>Test2</title>
+            <description>Test Description</description>
+            <type>rich</type>
+            <colour>magenta</colour>
+            <timestamp>{todays_date}</timestamp>
+            <url>https://www.discord.com</url>
+            <fields>
+                <field>
+                    <name>Test Field</name>
+                    <text>Test Text</text>
+                </field>
+            </fields>
+            <footer>
+                <text>Test Footer</text>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+            </footer>
+            <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
+            <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
+            <author>
+                <name>Test Author</name>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+                <url>https://discordapp.com</url>
+            </author>
+        </embed>
         <view>
             <button key="button1">
                 <style>primary</style>
@@ -92,31 +96,34 @@
                 <url>https://www.discord.com</url>
             </button>
         </view>
-    </embed>
-    <embed key="test_key3">
-        <title>Test2</title>
-        <description>Test Description</description>
-        <type>rich</type>
-        <colour>magenta</colour>
-        <timestamp>{todays_date}</timestamp>
-        <url>https://www.discord.com</url>
-        <fields>
-            <field>
-                <name>Test Field</name>
-                <text>Test Text</text>
-            </field>
-        </fields>
-        <footer>
-            <text>Test Footer</text>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-        </footer>
-        <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
-        <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
-        <author>
-            <name>Test Author</name>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-            <url>https://discordapp.com</url>
-        </author>
+
+    </message>
+    <message key="test_key3">
+        <embed>
+            <title>Test2</title>
+            <description>Test Description</description>
+            <type>rich</type>
+            <colour>magenta</colour>
+            <timestamp>{todays_date}</timestamp>
+            <url>https://www.discord.com</url>
+            <fields>
+                <field>
+                    <name>Test Field</name>
+                    <text>Test Text</text>
+                </field>
+            </fields>
+            <footer>
+                <text>Test Footer</text>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+            </footer>
+            <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
+            <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
+            <author>
+                <name>Test Author</name>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+                <url>https://discordapp.com</url>
+            </author>
+        </embed>
         <view>
             <select key="select1">
                 <placeholder>Select a date</placeholder>
@@ -146,5 +153,5 @@
                 </channel_types>
             </channel_select>
         </view>
-    </embed>
+    </message>
 </discord>

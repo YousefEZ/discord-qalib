@@ -4,7 +4,7 @@ import discord.ext.commands
 import discord.message
 
 from qalib.renderer import Renderer
-from qalib.translators import Display, Callback
+from qalib.translators import Message, Callback
 
 
 class QalibContext(discord.ext.commands.Context):
@@ -61,7 +61,7 @@ class QalibContext(discord.ext.commands.Context):
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
-    ) -> Display:
+    ) -> Message:
         """This method renders the embed and the view based on the identifier string given.
 
         Args:

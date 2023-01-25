@@ -4,14 +4,14 @@ from typing import Protocol, Dict, List, Any
 
 import discord.ui
 
-from qalib.translators import Display, Callback
+from qalib.translators import Message, Callback
 
 
 class Deserializer(Protocol):
     """Protocol that represents the deserializer. It is meant to be placed into a Renderer, and is responsible for
     deserializing the document into embeds and views."""
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw: Any) -> Display:
+    def deserialize(self, source: str, callables: Dict[str, Callback], **kw: Any) -> Message:
         """This method is used to deserialize a document into an embed and a view.
 
         Parameters:
@@ -23,7 +23,7 @@ class Deserializer(Protocol):
         """
         ...
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw: Any) -> List[Display]:
+    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw: Any) -> List[Message]:
         """This method is used to deserialize a document into a list of NamedTuple Displays, that are connected by
         arrows in their views.
 

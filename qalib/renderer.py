@@ -5,7 +5,7 @@ import discord.ui
 from discord.enums import ButtonStyle
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Display, Callback
+from qalib.translators import Message, Callback
 from qalib.translators.factory import ParserFactory, DeserializerFactory
 from qalib.translators.parser import Parser
 
@@ -15,11 +15,11 @@ class RenderingOptions(Enum):
     PRE_TEMPLATE = auto()
 
 
-def create_arrows(left: Optional[Display], right: Optional[Display], **kwargs) -> List[discord.ui.Button]:
+def create_arrows(left: Optional[Message], right: Optional[Message], **kwargs) -> List[discord.ui.Button]:
     """This function creates the arrow buttons that are used to navigate between the pages.
 
     Args:
-        left (Optional[Display]): embed and view of the left page
+        left (Optional[Message]): embed and view of the left page
         right (Optional[Display]): embed and view of the right page
 
     Returns (List[discord.ui.Button]): list of the arrow buttons
@@ -85,7 +85,7 @@ class Renderer:
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: int = 180
-    ) -> Display:
+    ) -> Message:
         """This method is used to render an embed and a view, and places it in a NamedTuple
 
         Args:
@@ -102,7 +102,7 @@ class Renderer:
         if keywords is None:
             keywords = {}
 
-        embed = self._pre_template(keywords).template_embed(key, self._template_engine, keywords)
+        embed = self._pre_template(keywords).template_message(key, self._template_engine, keywords)
 
         return self._deserializer.deserialize(embed, callbacks, timeout=timeout)
 
@@ -113,7 +113,7 @@ class Renderer:
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180,
             **kwargs
-    ) -> Display:
+    ) -> Message:
         """This method is used to create a menu for the user to select from.
 
         Args:
