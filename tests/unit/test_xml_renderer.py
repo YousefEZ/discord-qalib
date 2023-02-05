@@ -146,5 +146,5 @@ class TestXMLRenderer(unittest.TestCase):
         template = "tests/routes/complete_messages.xml"
 
         renderer = Renderer(Formatter(), template)
-        content, embed = renderer.render("content_test")
+        content, _ = renderer.render("content_test")
         self.assertEqual(content, "This is a test message")
