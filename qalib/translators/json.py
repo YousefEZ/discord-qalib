@@ -122,7 +122,7 @@ class JSONDeserializer(Deserializer):
         """
         view_tree = message_tree.get("view")
         embed = self.render(embed_tree) if (embed_tree := message_tree.get("embed")) is not None else MISSING
-        view = discord.ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
+        view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
         return Message(
             embed=embed,
             content=message_tree.get("content", MISSING),

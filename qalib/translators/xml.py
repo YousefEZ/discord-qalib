@@ -137,7 +137,7 @@ class XMLDeserializer(Deserializer):
         """
         view_tree: ElementTree.Element = message_tree.find("view")
         embed = MISSING if (tree := message_tree.find("embed")) is None else self._render_embed(tree)
-        view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
+        view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
         return Message(embed=embed,
                        content=MISSING if (content := message_tree.find("content")) is None else content.text,
                        view=view)
