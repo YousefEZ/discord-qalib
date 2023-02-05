@@ -100,5 +100,5 @@ class TestJSONRenderer(unittest.TestCase):
     def test_content_rendering(self):
         path = "tests/routes/complete_messages.json"
         renderer = Renderer(Formatter(), path)
-        content, embed = renderer.render("content_test")
+        content, _ = renderer.render("content_test")
         self.assertEqual(content, "This is a test message")
