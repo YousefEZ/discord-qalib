@@ -140,6 +140,7 @@ class XMLDeserializer(Deserializer):
         view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
         return Message(embed=embed,
                        content=MISSING if (content := message_tree.find("content")) is None else content.text,
+                       tts=MISSING if (tts := message_tree.find("tts")) is None else tts.text.lower() == "true",
                        view=view)
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
