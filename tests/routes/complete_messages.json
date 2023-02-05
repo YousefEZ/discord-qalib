@@ -12,5 +12,9 @@
         }
       ]
     }
+  },
+  "tts_test": {
+    "content": "This is a test message",
+    "tts": true
   }
 }
