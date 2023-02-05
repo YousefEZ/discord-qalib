@@ -126,6 +126,8 @@ class JSONDeserializer(Deserializer):
         return Message(
             embed=embed,
             content=message_tree.get("content", MISSING),
+            tts=MISSING if (tts_element := message_tree.get("tts")) is None else (
+                        type(tts_element) == bool or tts_element.lower() == "true"),
             view=view
         )
 

@@ -13,4 +13,8 @@
             </fields>
         </embed>
     </message>
+    <message key="tts_test">
+        <content>This is a test message</content>
+        <tts>true</tts>
+    </message>
 </discord>
