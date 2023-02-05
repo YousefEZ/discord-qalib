@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 import discord
 
 from qalib.renderer import Renderer
-from qalib.translators import Callback, Message, MISSING
+from qalib.translators import Callback, Message
 
 
 class QalibInteraction(discord.Interaction):
