@@ -94,8 +94,8 @@ class QalibContext(discord.ext.commands.Context):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        embed, view = self._render(identifier, callables, keywords, timeout)
-        return await self.send(embed=embed, view=view, **kwargs)
+        message = self._render(identifier, callables, keywords, timeout)
+        return await self.send(**{**message, **kwargs})
 
     async def display(
             self,
@@ -117,8 +117,8 @@ class QalibContext(discord.ext.commands.Context):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        embed, view = self._render(key, callables, keywords, timeout)
-        await self._display(embed=embed, view=view, **kwargs)
+        message = self._render(key, callables, keywords, timeout)
+        await self._display(**{**message, **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client and keeping track of the message object.
@@ -147,4 +147,4 @@ class QalibContext(discord.ext.commands.Context):
             **kwargs: kwargs that are passed to the context's send method
         """
         display = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
-        await self._display(embed=display.embed, view=display.view, **kwargs)
+        await self._display(**{**display, **kwargs})
