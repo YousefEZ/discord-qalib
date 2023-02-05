@@ -3,10 +3,9 @@ from typing import Callable, Awaitable, Optional, Sequence, Union
 
 import discord.ui
 from discord import Embed, File, GuildSticker, StickerItem, AllowedMentions, MessageReference, PartialMessage, Message
+from discord.utils import MISSING
 
 Callback = Callable[[discord.Interaction], Awaitable[None]]
-
-MISSING = object()
 
 
 @dataclass
