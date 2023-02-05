@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import Callable, Awaitable, Optional, Sequence, Union
 
-import discord.ui
-from discord import Embed, File, GuildSticker, StickerItem, AllowedMentions, MessageReference, PartialMessage, Message
+import discord
 from discord.utils import MISSING
 
 Callback = Callable[[discord.Interaction], Awaitable[None]]
@@ -16,15 +15,15 @@ class Message:
     """
     content: Optional[str] = MISSING
     tts: bool = MISSING
-    embed: Optional[Embed] = MISSING
-    embeds: Optional[Sequence[Embed]] = MISSING
-    file: Optional[File] = MISSING
-    files: Optional[Sequence[File]] = MISSING
-    stickers: Optional[Sequence[Union[GuildSticker, StickerItem]]] = MISSING
+    embed: Optional[discord.Embed] = MISSING
+    embeds: Optional[Sequence[discord.Embed]] = MISSING
+    file: Optional[discord.File] = MISSING
+    files: Optional[Sequence[discord.File]] = MISSING
+    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]] = MISSING
     delete_after: Optional[float] = MISSING
     nonce: Optional[Union[str, int]] = MISSING
-    allowed_mentions: Optional[AllowedMentions] = MISSING
-    reference: Optional[Union[Message, MessageReference, PartialMessage]] = MISSING
+    allowed_mentions: Optional[discord.AllowedMentions] = MISSING
+    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]] = MISSING
     mention_author: Optional[bool] = MISSING
     view: Optional[discord.ui.View] = MISSING
     suppress_embeds: bool = MISSING
