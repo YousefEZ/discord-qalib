@@ -10,11 +10,11 @@ import discord
 import discord.types.embed
 import discord.ui as ui
 
-from . import Callback, Message
-from .deserializer import Deserializer
-from .parser import Parser
-from .utils import *
-from ..template_engines.template_engine import TemplateEngine
+from qalib.translators import Callback, Message, MISSING
+from qalib.translators.deserializer import Deserializer
+from qalib.translators.parser import Parser
+from qalib.translators.utils import *
+from qalib.template_engines.template_engine import TemplateEngine
 
 
 class JSONParser(Parser):
@@ -93,7 +93,7 @@ class JSONParser(Parser):
 
 class JSONDeserializer(Deserializer):
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
+    def deserialize_into_message(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
         """Method to deserialize a source into a Display object
 
         Args:
@@ -103,9 +103,9 @@ class JSONDeserializer(Deserializer):
 
         Returns (Display): A Display object
         """
-        return self.deserialize_to_message(json.loads(source), callables, kw)
+        return self.deserialize_message(json.loads(source), callables, kw)
 
-    def deserialize_to_message(
+    def deserialize_message(
             self,
             message_tree: Dict[str, Any],
             callables: Dict[str, Callback],
@@ -121,9 +121,13 @@ class JSONDeserializer(Deserializer):
         Returns (Display): A Display NamedTuple containing the embed and the view
         """
         view_tree = message_tree.get("view")
-        embed = self.render(message_tree["embed"])
-        view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
-        return Message(embed, view)
+        embed = self.render(embed_tree) if (embed_tree := message_tree.get("embed")) is not None else MISSING
+        view = discord.ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
+        return Message(
+            embed=embed,
+            content=message_tree.get("content", MISSING),
+            view=view
+        )
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Method to deserialize a menu into a list of Display objects
@@ -135,7 +139,7 @@ class JSONDeserializer(Deserializer):
 
         Returns (List[Display]): A list of Display objects
         """
-        return [self.deserialize_to_message(embed, callables, kw) for embed in json.loads(source).values()]
+        return [self.deserialize_message(embed, callables, kw) for embed in json.loads(source).values()]
 
     def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object

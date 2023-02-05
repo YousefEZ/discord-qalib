@@ -10,7 +10,7 @@ import discord.types.embed
 import discord.ui as ui
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, Message
+from qalib.translators import Callback, Message, MISSING
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
 from qalib.translators.utils import *
@@ -108,7 +108,7 @@ class XMLParser(Parser):
 class XMLDeserializer(Deserializer):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
+    def deserialize_into_message(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
         """Deserializes an embed from an XML file, and returns it as a Display object.
 
         Args:
@@ -118,9 +118,9 @@ class XMLDeserializer(Deserializer):
 
         Returns (Display): A display object containing the embed and its view.
         """
-        return self.deserialize_to_message(ElementTree.fromstring(source), callables, kw)
+        return self.deserialize_message(ElementTree.fromstring(source), callables, kw)
 
-    def deserialize_to_message(
+    def deserialize_message(
             self,
             message_tree: ElementTree.Element,
             callables: Dict[str, Callback],
@@ -136,9 +136,11 @@ class XMLDeserializer(Deserializer):
         Returns (Display): A display object containing the embed and its view.
         """
         view_tree: ElementTree.Element = message_tree.find("view")
-        embed = self._render_embed(message_tree.find("embed"))
+        embed = MISSING if (tree := message_tree.find("embed")) is None else self._render_embed(tree)
         view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
-        return Message(embed, view)
+        return Message(embed=embed,
+                       content=MISSING if (content := message_tree.find("content")) is None else content.text,
+                       view=view)
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Deserializes a menu from an XML file, by generating a list of displays that are connected by buttons in their
@@ -152,7 +154,7 @@ class XMLDeserializer(Deserializer):
         Returns (List[Display]): List of displays that are connected by buttons in their views to navigate between them.
         """
         menu_tree: ElementTree = ElementTree.fromstring(source)
-        return [self.deserialize_to_message(embed, callables, kw) for embed in menu_tree.findall("message")]
+        return [self.deserialize_message(embed, callables, kw) for embed in menu_tree.findall("message")]
 
     def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
