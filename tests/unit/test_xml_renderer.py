@@ -148,3 +148,10 @@ class TestXMLRenderer(unittest.TestCase):
         renderer = Renderer(Formatter(), template)
         content, _ = renderer.render("content_test")
         self.assertEqual(content, "This is a test message")
+
+    def test_tts_rendering(self):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer = Renderer(Formatter(), template)
+        _, tts = renderer.render("tts_test")
+        self.assertTrue(tts)
