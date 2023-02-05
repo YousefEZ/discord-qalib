@@ -96,7 +96,6 @@
                 <url>https://www.discord.com</url>
             </button>
         </view>
-
     </message>
     <message key="test_key3">
         <embed>

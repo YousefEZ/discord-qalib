@@ -90,8 +90,8 @@ class QalibInteraction(discord.Interaction):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        embed, view = self._render(identifier, callables, keywords, timeout)
-        return await self.response.send_message(embed=embed, view=view, **kwargs)
+        display = self._render(identifier, callables, keywords, timeout)
+        return await self.response.send_message(**{**display, **kwargs})
 
     async def display(
             self,
@@ -113,8 +113,8 @@ class QalibInteraction(discord.Interaction):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        embed, view = self._render(key, callables, keywords, timeout)
-        await self._display(embed=embed, view=view, **kwargs)
+        display = self._render(key, callables, keywords, timeout)
+        await self._display(**{**display, **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client, and editing the message if there is one
@@ -145,4 +145,4 @@ class QalibInteraction(discord.Interaction):
             **kwargs: kwargs that are passed to the context's send method
         """
         display = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
-        await self._display(embed=display.embed, view=display.view, **kwargs)
+        await self._display(**{**display, **kwargs})

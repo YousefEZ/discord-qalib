@@ -5,7 +5,7 @@ import discord.ui
 from discord.enums import ButtonStyle
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Message, Callback
+from qalib.translators import Message, Callback, MISSING
 from qalib.translators.factory import ParserFactory, DeserializerFactory
 from qalib.translators.parser import Parser
 
@@ -25,15 +25,15 @@ def create_arrows(left: Optional[Message], right: Optional[Message], **kwargs) -
     Returns (List[discord.ui.Button]): list of the arrow buttons
     """
 
-    def view(display: List):
+    def view(display: Message):
         async def callback(interaction):
-            await interaction.response.edit_message(embed=display[0], view=display[1], **kwargs)
+            await interaction.response.edit_message(embed=display.embed, view=display.view, **kwargs)
 
         return callback
 
     buttons = []
 
-    def construct_button(display: Optional[List], emoji: str):
+    def construct_button(display: Optional[Message], emoji: str):
         if display is None:
             return
         buttons.append(discord.ui.Button(style=ButtonStyle.grey, emoji=emoji))
@@ -104,7 +104,7 @@ class Renderer:
 
         embed = self._pre_template(keywords).template_message(key, self._template_engine, keywords)
 
-        return self._deserializer.deserialize(embed, callbacks, timeout=timeout)
+        return self._deserializer.deserialize_into_message(embed, callbacks, timeout=timeout)
 
     def render_menu(
             self,
@@ -132,16 +132,17 @@ class Renderer:
             keywords = {}
 
         menu = self._pre_template(keywords).template_menu(key, self._template_engine, keywords)
-        displays = self._deserializer.deserialize_into_menu(menu, callbacks, timeout=timeout)
+        messages = self._deserializer.deserialize_into_menu(menu, callbacks, timeout=timeout)
 
-        for i, display in enumerate(displays):
-            arrow_left = displays[i - 1] if i > 0 else None
-            arrow_right = displays[i + 1] if i + 1 < len(displays) else None
+        for i, message in enumerate(messages):
+            arrow_left = messages[i - 1] if i > 0 else None
+            arrow_right = messages[i + 1] if i + 1 < len(messages) else None
 
+            message.view = discord.ui.View(timeout=timeout) if message.view is MISSING else message.view
             for arrow in create_arrows(arrow_left, arrow_right, **kwargs):
-                display.view.add_item(arrow)
+                message.view.add_item(arrow)
 
-        return displays[0]
+        return messages[0]
 
     def render_modal(
             self,

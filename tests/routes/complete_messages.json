@@ -1,0 +1,16 @@
+{
+  "content_test": {
+    "content": "This is a test message",
+    "embed": {
+      "title": "Test1",
+      "description": "Test1",
+      "color": "teal",
+      "fields": [
+        {
+          "name": "Test1",
+          "value": "Test1"
+        }
+      ]
+    }
+  }
+}

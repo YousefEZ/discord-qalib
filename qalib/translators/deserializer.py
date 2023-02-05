@@ -11,7 +11,7 @@ class Deserializer(Protocol):
     """Protocol that represents the deserializer. It is meant to be placed into a Renderer, and is responsible for
     deserializing the document into embeds and views."""
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw: Any) -> Message:
+    def deserialize_into_message(self, source: str, callables: Dict[str, Callback], **kw: Any) -> Message:
         """This method is used to deserialize a document into an embed and a view.
 
         Parameters:
