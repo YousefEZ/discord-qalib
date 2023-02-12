@@ -141,6 +141,7 @@ class XMLDeserializer(Deserializer):
         return Message(embed=embed,
                        content=MISSING if (content := message_tree.find("content")) is None else content.text,
                        tts=MISSING if (tts := message_tree.find("tts")) is None else tts.text.lower() == "true",
+                       nonce=MISSING if (nonce := message_tree.find("nonce")) is None else int(nonce.text),
                        view=view)
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
@@ -185,7 +186,7 @@ class XMLDeserializer(Deserializer):
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        title = self._render_attribute(tree, "title")
+        title = self.get_attribute(tree, "title")
         modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods, **kw))(title=title)
 
         for component in self.render_components(tree):
@@ -214,7 +215,7 @@ class XMLDeserializer(Deserializer):
         return view
 
     @staticmethod
-    def _render_element(element: ElementTree.Element) -> str:
+    def get_element_text(element: Optional[ElementTree.Element]) -> str:
         """Renders the given ElementTree.Element by returning its text.
 
         Args:
@@ -225,7 +226,7 @@ class XMLDeserializer(Deserializer):
         return "" if element is None else element.text
 
     @staticmethod
-    def _render_attribute(element: ElementTree.Element, attribute: str) -> str:
+    def get_attribute(element: ElementTree.Element, attribute: str) -> str:
         """Renders an attribute from an ElementTree.Element.
 
         Args:
@@ -246,8 +247,8 @@ class XMLDeserializer(Deserializer):
         Returns (Optional[datetime]): A datetime object containing the timestamp.
         """
         if timestamp_element is not None:
-            timestamp = self._render_element(timestamp_element)
-            date_format = self._render_attribute(timestamp_element, "format")
+            timestamp = self.get_element_text(timestamp_element)
+            date_format = self.get_attribute(timestamp_element, "format")
             if date_format == "":
                 date_format = "%Y-%m-%d %H:%M:%S.%f"
             return datetime.strptime(timestamp, date_format) if timestamp != "" else None
@@ -261,9 +262,9 @@ class XMLDeserializer(Deserializer):
         Returns (Optional[dict]): A dictionary containing the raw author.
         """
         return {
-            "name": self._render_element(author_element.find("name")),
-            "url": self._render_element(author_element.find("url")),
-            "icon_url": self._render_element(author_element.find("icon"))
+            "name": self.get_element_text(author_element.find("name")),
+            "url": self.get_element_text(author_element.find("url")),
+            "icon_url": self.get_element_text(author_element.find("icon"))
         }
 
     def _render_footer(self, footer_element: ElementTree.Element) -> Optional[dict]:
@@ -275,8 +276,8 @@ class XMLDeserializer(Deserializer):
         Returns (Optional[dict]): A dictionary containing the raw footer.
         """
         return {
-            "text": self._render_element(footer_element.find("text")),
-            "icon_url": self._render_element(footer_element.find("icon"))
+            "text": self.get_element_text(footer_element.find("text")),
+            "icon_url": self.get_element_text(footer_element.find("icon"))
         }
 
     def _render_fields(self, fields_element: ElementTree.Element) -> List[dict]:
@@ -287,12 +288,13 @@ class XMLDeserializer(Deserializer):
 
         Returns (List[dict]): A list of dictionaries containing the raw fields.
         """
-        return [{"name": self._render_element(field.find("name")),
-                 "value": self._render_element(field.find("value")),
-                 "inline": self._render_attribute(field, "inline").lower() == "true"}
+        return [{"name": self.get_element_text(field.find("name")),
+                 "value": self.get_element_text(field.find("value")),
+                 "inline": self.get_attribute(field, "inline").lower() == "true"}
                 for field in fields_element.findall("field")]
 
-    def _pop_component(self, component: ElementTree.Element, key: str) -> Optional[ElementTree.Element]:
+    @staticmethod
+    def pop_component(component: ElementTree.Element, key: str) -> Optional[ElementTree.Element]:
         """Pops a component from the given element, and returns it.
 
         Args:
@@ -318,11 +320,11 @@ class XMLDeserializer(Deserializer):
 
         emoji = {}
         if (name := emoji_element.find("name")) is not None:
-            emoji["name"] = self._render_element(name)
+            emoji["name"] = self.get_element_text(name)
         if (identifier := emoji_element.find("id")) is not None:
-            emoji["id"] = self._render_element(identifier)
+            emoji["id"] = self.get_element_text(identifier)
         if (animated := emoji_element.find("animated")) is not None:
-            emoji["animated"] = self._render_element(animated) == "True"
+            emoji["animated"] = self.get_element_text(animated) == "True"
         return (None, emoji)[len(emoji) > 0]
 
     def _extract_elements(self, tree: ElementTree.Element) -> Dict[str, Any]:
@@ -333,7 +335,7 @@ class XMLDeserializer(Deserializer):
 
         Returns (Dict[str, Any]): A dictionary containing the extracted elements.
         """
-        return {element.tag: self._render_element(element) for element in tree}
+        return {element.tag: self.get_element_text(element) for element in tree}
 
     def _render_button(self, component: ElementTree.Element, callback: Optional[Callback]) -> ui.Button:
         """Renders a button based on the template in the element, and formatted values given by the keywords.
@@ -344,7 +346,7 @@ class XMLDeserializer(Deserializer):
 
         Returns (ui.Button): The rendered button.
         """
-        emoji_component = self._pop_component(component, "emoji")
+        emoji_component = self.pop_component(component, "emoji")
         attributes = self._extract_elements(component)
         attributes["emoji"] = make_emoji(self._render_emoji(emoji_component))
 
@@ -362,7 +364,7 @@ class XMLDeserializer(Deserializer):
         """
         options = []
         for option in (raw_options or []):
-            emoji_component = self._pop_component(option, "emoji")
+            emoji_component = self.pop_component(option, "emoji")
             option_attributes = self._extract_elements(option)
             option_attributes["emoji"] = make_emoji(self._render_emoji(emoji_component))
             options.append(discord.SelectOption(**option_attributes))
@@ -381,7 +383,7 @@ class XMLDeserializer(Deserializer):
 
         Returns (ui.Select): The rendered select.
         """
-        options = self._render_options(self._pop_component(component, "options"))
+        options = self._render_options(self.pop_component(component, "options"))
 
         attributes = self._extract_elements(component)
         attributes["options"] = options
@@ -399,12 +401,12 @@ class XMLDeserializer(Deserializer):
 
         Returns (ui.ChannelSelect): The rendered channel select.
         """
-        channel_types: ElementTree.Element = self._pop_component(component, "channel_types")
+        channel_types: ElementTree.Element = self.pop_component(component, "channel_types")
 
         attributes = self._extract_elements(component)
         if channel_types is not None:
             attributes["channel_types"] = make_channel_types(list(map(
-                lambda element: self._render_element(element),
+                lambda element: self.get_element_text(element),
                 channel_types.findall("channel_type")
             )))
 
@@ -486,7 +488,7 @@ class XMLDeserializer(Deserializer):
         return [
             self.render_component(
                 component,
-                callables.get(self._render_attribute(component, "key"), ui.Item.callback),
+                callables.get(self.get_attribute(component, "key"), ui.Item.callback),
             )
             for component in view
         ]
@@ -502,7 +504,7 @@ class XMLDeserializer(Deserializer):
         """
 
         def render(name: str):
-            return self._render_element(raw_embed.find(name))
+            return self.get_element_text(raw_embed.find(name))
 
         embed_type: discord.types.embed.EmbedType = "rich"
         if cast(discord.types.embed.EmbedType, given_type := render("type")) != "":
@@ -523,8 +525,8 @@ class XMLDeserializer(Deserializer):
         if (footer := raw_embed.find("footer")) is not None:
             embed.set_footer(**self._render_footer(footer))
 
-        embed.set_thumbnail(url=self._render_element(raw_embed.find("thumbnail")))
-        embed.set_image(url=self._render_element(raw_embed.find("image")))
+        embed.set_thumbnail(url=self.get_element_text(raw_embed.find("thumbnail")))
+        embed.set_image(url=self.get_element_text(raw_embed.find("image")))
 
         if (author := raw_embed.find("author")) is not None:
             embed.set_author(**self._render_author(author))

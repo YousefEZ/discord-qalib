@@ -127,7 +127,8 @@ class JSONDeserializer(Deserializer):
             embed=embed,
             content=message_tree.get("content", MISSING),
             tts=MISSING if (tts_element := message_tree.get("tts")) is None else (
-                        type(tts_element) == bool or tts_element.lower() == "true"),
+                    (type(tts_element) == bool and tts_element) or str(tts_element).lower() == "true"),
+            nonce=MISSING if (nonce_element := message_tree.get("nonce")) is None else int(nonce_element),
             view=view
         )
 
@@ -166,7 +167,7 @@ class JSONDeserializer(Deserializer):
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        title = self._render_attribute(tree, "title")
+        title = self.get_attribute(tree, "title")
         modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods))(title=title, **kw)
 
         for component in self.render_components(tree.get("components"), {}):
@@ -194,7 +195,8 @@ class JSONDeserializer(Deserializer):
             view.add_item(component)
         return view
 
-    def _render_attribute(self, element: Dict[str, str], attribute) -> str:
+    @staticmethod
+    def get_attribute(element: Dict[str, str], attribute) -> str:
         """Render an attribute of an element
 
         Args:
@@ -216,8 +218,8 @@ class JSONDeserializer(Deserializer):
         if timestamp is None:
             return None
 
-        date = self._render_attribute(timestamp, "timestamp")
-        date_format = self._render_attribute(timestamp, "format")
+        date = self.get_attribute(timestamp, "timestamp")
+        date_format = self.get_attribute(timestamp, "format")
         if date_format == "":
             date_format = "%Y-%m-%d %H:%M:%S.%f"
         return datetime.strptime(date, date_format) if date != "" else None
@@ -231,9 +233,9 @@ class JSONDeserializer(Deserializer):
         Returns (Optional[dict]): A dictionary containing the author attributes
         """
         return {
-            "name": self._render_attribute(author, "name"),
-            "url": self._render_attribute(author, "url"),
-            "icon_url": self._render_attribute(author, "icon")
+            "name": self.get_attribute(author, "name"),
+            "url": self.get_attribute(author, "url"),
+            "icon_url": self.get_attribute(author, "icon")
         }
 
     def _render_footer(self, footer: Dict[str, str]) -> Optional[dict]:
@@ -245,8 +247,8 @@ class JSONDeserializer(Deserializer):
         Returns (Optional[dict]): A dictionary containing the footer attributes
         """
         return {
-            "text": self._render_attribute(footer, "text"),
-            "icon_url": self._render_attribute(footer, "icon")
+            "text": self.get_attribute(footer, "text"),
+            "icon_url": self.get_attribute(footer, "icon")
         }
 
     def _render_fields(self, fields: List[Dict[str, str]]) -> List[dict]:
@@ -258,9 +260,9 @@ class JSONDeserializer(Deserializer):
         Returns (List[dict]): A list of dictionaries containing the field attributes
         """
         return [{
-            "name": self._render_attribute(field, "name"),
-            "value": self._render_attribute(field, "text"),
-            "inline": (attr := self._render_attribute(field, "inline")) or attr.lower() == "true"}
+            "name": self.get_attribute(field, "name"),
+            "value": self.get_attribute(field, "text"),
+            "inline": (attr := self.get_attribute(field, "inline")) or attr.lower() == "true"}
             for field in fields
         ]
 
@@ -274,11 +276,11 @@ class JSONDeserializer(Deserializer):
         """
         emoji = {}
         if "name" in emoji_element:
-            emoji["name"] = self._render_attribute(emoji_element, "name")
+            emoji["name"] = self.get_attribute(emoji_element, "name")
         if "id" in emoji_element:
-            emoji["id"] = self._render_attribute(emoji_element, "id")
+            emoji["id"] = self.get_attribute(emoji_element, "id")
         if "animated" in emoji_element:
-            animated = self._render_attribute(emoji_element, "animated")
+            animated = self.get_attribute(emoji_element, "animated")
             emoji["animated"] = animated if type(animated) == bool else animated.lower() == "true"
         return (None, emoji)[len(emoji) > 0]
 
@@ -290,7 +292,7 @@ class JSONDeserializer(Deserializer):
 
         Returns (Dict[str, Union[str, Dict[str, str]]]): A dictionary containing the attributes
         """
-        return {attribute: self._render_attribute(element, attribute) for attribute in element.keys()}
+        return {attribute: self.get_attribute(element, attribute) for attribute in element.keys()}
 
     def _render_button(
             self,
@@ -473,7 +475,7 @@ class JSONDeserializer(Deserializer):
         """
 
         def render(attribute: str) -> str:
-            return self._render_attribute(raw_embed, attribute)
+            return self.get_attribute(raw_embed, attribute)
 
         embed_type: discord.types.embed.EmbedType = "rich"
         if cast(discord.types.embed.EmbedType, given_type := render("type")) != "":
@@ -495,8 +497,8 @@ class JSONDeserializer(Deserializer):
         if (footer := raw_embed.get("footer")) is not None:
             embed.set_footer(**self._render_footer(footer))
 
-        embed.set_thumbnail(url=self._render_attribute(raw_embed, "thumbnail"))
-        embed.set_image(url=self._render_attribute(raw_embed, "image"))
+        embed.set_thumbnail(url=self.get_attribute(raw_embed, "thumbnail"))
+        embed.set_image(url=self.get_attribute(raw_embed, "image"))
 
         if (author := raw_embed.get("author")) is not None:
             embed.set_author(**self._render_author(author))
