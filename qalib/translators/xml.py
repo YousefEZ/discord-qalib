@@ -153,6 +153,8 @@ class XMLDeserializer(Deserializer):
                        file=MISSING if (file := message_tree.find("file")) is None else self._render_file(file),
                        files=MISSING if (files := message_tree.find("files")) is None else list(
                            map(self._render_file, files)),
+                       mention_author=MISSING if (mention := message_tree.find(
+                           "mention_author")) is None else self.get_attribute(mention, "value") in ("", "true")
                        )
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
