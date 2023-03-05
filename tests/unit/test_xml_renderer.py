@@ -155,3 +155,11 @@ class TestXMLRenderer(unittest.TestCase):
         renderer = Renderer(Formatter(), template)
         _, tts = renderer.render("tts_test")
         self.assertTrue(tts)
+
+    def test_file_rendering(self):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("file_test")
+        self.assertIsInstance(message.file, discord.File)
+        self.assertEqual(message.file.filename, "complete_messages.xml")

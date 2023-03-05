@@ -13,7 +13,7 @@ import discord.ui as ui
 from qalib.translators import Callback, Message, MISSING
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
-from qalib.translators.utils import *
+from qalib.translators.message_parsing import *
 from qalib.template_engines.template_engine import TemplateEngine
 
 
@@ -125,14 +125,17 @@ class JSONDeserializer(Deserializer):
         view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
         return Message(
             embed=embed,
-            embeds=MISSING if (embeds := message_tree.get("embeds")) is None else \
-                list(map(self.render, embeds.values())),
+            embeds=MISSING if (embeds := message_tree.get("embeds")) is None else list(
+                map(self.render, embeds.values())),
             content=message_tree.get("content", MISSING),
             tts=MISSING if (tts_element := message_tree.get("tts")) is None else (
                     (type(tts_element) == bool and tts_element) or str(tts_element).lower() == "true"),
             nonce=MISSING if (nonce_element := message_tree.get("nonce")) is None else int(nonce_element),
             delete_after=MISSING if (delete_after := message_tree.get("delete_after")) is None else float(delete_after),
             suppress_embeds=MISSING if (suppress := message_tree.get("supress_embeds")) is None else suppress,
+            file=MISSING if (file := message_tree.get("file")) is None else self._render_file(file),
+            files=MISSING if (files := message_tree.get("files")) is None else list(
+                map(self._render_file, files)),
             view=view
         )
 
@@ -179,6 +182,20 @@ class JSONDeserializer(Deserializer):
 
         return modal
 
+    def _render_file(self, raw_file: Dict[str, str | bool]) -> discord.File:
+        """Method to render a file from a file tree
+
+        Args:
+            raw_file (Dict[str, Any]): The file tree to render
+
+        Returns (discord.File): A discord.File object
+        """
+        return discord.File(
+            fp=self.get_attribute(raw_file, "filename"),
+            description=self.get_attribute(raw_file, "description"),
+            spoiler=spoiler if (spoiler := self.get_attribute(raw_file, "spoiler")) != "" else False
+        )
+
     def _render_view(
             self,
             raw_view: Dict[str, ...],
@@ -200,7 +217,7 @@ class JSONDeserializer(Deserializer):
         return view
 
     @staticmethod
-    def get_attribute(element: Dict[str, str], attribute) -> str:
+    def get_attribute(element: Dict[str, Any], attribute) -> Any:
         """Render an attribute of an element
 
         Args:
