@@ -13,7 +13,7 @@ from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, Message, MISSING
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
-from qalib.translators.utils import *
+from qalib.translators.message_parsing import *
 
 
 class XMLParser(Parser):
@@ -139,16 +139,20 @@ class XMLDeserializer(Deserializer):
         embed = MISSING if (tree := message_tree.find("embed")) is None else self._render_embed(tree)
         view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
         return Message(embed=embed,
-                       embeds=MISSING if (embeds := message_tree.find("embeds")) is None else \
-                           list(map(self._render_embed, embeds)),
+                       embeds=MISSING if (embeds := message_tree.find("embeds")) is None else list(
+                           map(self._render_embed, embeds)),
                        view=view,
                        content=MISSING if (content := message_tree.find("content")) is None else content.text,
                        tts=MISSING if (tts := message_tree.find("tts")) is None else tts.text.lower() == "true",
                        nonce=MISSING if (nonce := message_tree.find("nonce")) is None else int(nonce.text),
-                       delete_after=MISSING if (delete_after := message_tree.find("delete_after")) is None else \
-                           float(delete_after.text),
-                       suppress_embeds=MISSING if (suppress := message_tree.find("suppress_embeds")) is None else \
-                           self.get_attribute(suppress, "value").lower() in ("", "true")
+                       delete_after=MISSING if (delete_after := message_tree.find("delete_after")) is None else float(
+                           delete_after.text),
+                       suppress_embeds=MISSING if (suppress := message_tree.find(
+                           "suppress_embeds")) is None else self.get_attribute(suppress, "value").lower() in (
+                           "", "true"),
+                       file=MISSING if (file := message_tree.find("file")) is None else self._render_file(file),
+                       files=MISSING if (files := message_tree.find("files")) is None else list(
+                           map(self._render_file, files)),
                        )
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
@@ -201,6 +205,11 @@ class XMLDeserializer(Deserializer):
             modal.add_item(component)
 
         return modal
+
+    def _render_file(self, raw_file: ElementTree.Element) -> discord.File:
+        return discord.File(fp=self.get_element_text(raw_file.find("filename")),
+                            spoiler=self.get_element_text(raw_file.find("spoilers")).lower() == "true",
+                            description=self.get_element_text(raw_file.find("description")))
 
     def _render_view(
             self,
