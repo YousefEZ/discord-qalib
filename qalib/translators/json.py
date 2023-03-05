@@ -125,6 +125,8 @@ class JSONDeserializer(Deserializer):
         view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
         return Message(
             embed=embed,
+            embeds=MISSING if (embeds := message_tree.get("embeds")) is None else \
+                list(map(self.render, embeds.values())),
             content=message_tree.get("content", MISSING),
             tts=MISSING if (tts_element := message_tree.get("tts")) is None else (
                     (type(tts_element) == bool and tts_element) or str(tts_element).lower() == "true"),
