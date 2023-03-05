@@ -16,5 +16,12 @@
   "tts_test": {
     "content": "This is a test message",
     "tts": true
+  },
+  "file_test": {
+    "file": {
+      "filename": "tests/routes/complete_messages.xml",
+      "description": "This is a test file",
+      "spoilers": false
+    }
   }
 }

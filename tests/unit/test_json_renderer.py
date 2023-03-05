@@ -109,3 +109,11 @@ class TestJSONRenderer(unittest.TestCase):
         renderer = Renderer(Formatter(), template)
         _, tts = renderer.render("tts_test")
         self.assertTrue(tts)
+
+    def test_json_rendering(self):
+        template = "tests/routes/complete_messages.json"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("file_test")
+        self.assertIsInstance(message.file, discord.File)
+        self.assertEqual(message.file.filename, "complete_messages.xml")

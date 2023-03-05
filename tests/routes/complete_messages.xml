@@ -17,4 +17,11 @@
         <content>This is a test message</content>
         <tts>true</tts>
     </message>
+    <message key="file_test">
+        <file>
+            <filename>tests/routes/complete_messages.xml</filename>
+            <description>Test 1</description>
+            <spoilers>False</spoilers>
+        </file>
+    </message>
 </discord>
