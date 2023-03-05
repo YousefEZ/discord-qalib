@@ -143,9 +143,10 @@ class XMLDeserializer(Deserializer):
                        content=MISSING if (content := message_tree.find("content")) is None else content.text,
                        tts=MISSING if (tts := message_tree.find("tts")) is None else tts.text.lower() == "true",
                        nonce=MISSING if (nonce := message_tree.find("nonce")) is None else int(nonce.text),
-                       suppress_embeds=MISSING if (supress := message_tree.find(
-                           "suppress_embeds")) is None else self.get_attribute(supress, "value").lower() in ("", "true")
-                       )
+                       delete_after=MISSING if (delete_after := message_tree.find("delete_after")) is None else \
+                           float(delete_after.text),
+                       suppress_embeds=MISSING if (suppress := message_tree.find("suppress_embeds")) is None else \
+                           self.get_attribute(suppress, "value").lower() in ("", "true"))
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Deserializes a menu from an XML file, by generating a list of displays that are connected by buttons in their
@@ -158,6 +159,7 @@ class XMLDeserializer(Deserializer):
 
         Returns (List[Display]): List of displays that are connected by buttons in their views to navigate between them.
         """
+
         menu_tree: ElementTree = ElementTree.fromstring(source)
         return [self.deserialize_message(embed, callables, kw) for embed in menu_tree.findall("message")]
 

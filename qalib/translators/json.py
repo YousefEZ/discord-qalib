@@ -129,6 +129,7 @@ class JSONDeserializer(Deserializer):
             tts=MISSING if (tts_element := message_tree.get("tts")) is None else (
                     (type(tts_element) == bool and tts_element) or str(tts_element).lower() == "true"),
             nonce=MISSING if (nonce_element := message_tree.get("nonce")) is None else int(nonce_element),
+            delete_after=MISSING if (delete_after := message_tree.get("delete_after")) is None else float(delete_after),
             suppress_embeds=MISSING if (suppress := message_tree.get("supress_embeds")) is None else suppress,
             view=view
         )
