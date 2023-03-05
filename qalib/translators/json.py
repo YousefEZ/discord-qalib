@@ -136,6 +136,8 @@ class JSONDeserializer(Deserializer):
             file=MISSING if (file := message_tree.get("file")) is None else self._render_file(file),
             files=MISSING if (files := message_tree.get("files")) is None else list(
                 map(self._render_file, files)),
+
+            mention_author=MISSING if (mention := message_tree.get("mention_author")) is None else mention,
             view=view
         )
 
