@@ -8,6 +8,11 @@ Callback = Callable[[discord.Interaction], Awaitable[None]]
 
 
 @dataclass
+class DiscordIdentifier:
+    id: int
+
+
+@dataclass
 class Message:
     """NamedTuple that represents the display of the message.
 
