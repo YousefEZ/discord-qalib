@@ -4,13 +4,14 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Optional, Any, Union, cast, Type
+from typing import Dict, List, Optional, Any, Union, cast, Type, Sequence
 
 import discord
 import discord.types.embed
 import discord.ui as ui
+from discord.abc import Snowflake
 
-from qalib.translators import Callback, Message, MISSING
+from qalib.translators import Callback, Message, MISSING, DiscordIdentifier
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
 from qalib.translators.message_parsing import *
@@ -136,7 +137,8 @@ class JSONDeserializer(Deserializer):
             file=MISSING if (file := message_tree.get("file")) is None else self._render_file(file),
             files=MISSING if (files := message_tree.get("files")) is None else list(
                 map(self._render_file, files)),
-
+            allowed_mentions=MISSING if (allowed_mentions := message_tree.get(
+                "allowed_mentions")) is None else self._render_allowed_mentions(allowed_mentions),
             mention_author=MISSING if (mention := message_tree.get("mention_author")) is None else mention,
             view=view
         )
@@ -184,6 +186,22 @@ class JSONDeserializer(Deserializer):
 
         return modal
 
+    @staticmethod
+    def _render_allowed_mentions(allowed_mentions: Dict[str, Any]) -> discord.AllowedMentions:
+        def render_child(element: Dict[str, [int] | bool], key: str) -> Sequence[Snowflake] | bool:
+            child = element.get(key, True)
+            if type(child) == bool:
+                return child
+
+            return [DiscordIdentifier(identifier) for identifier in map(int, child)]
+
+        return discord.AllowedMentions(
+            everyone=render_child(allowed_mentions, "everyone"),
+            users=render_child(allowed_mentions, "users"),
+            roles=render_child(allowed_mentions, "roles"),
+            replied_user=render_child(allowed_mentions, "replied_user"),
+        )
+
     def _render_file(self, raw_file: Dict[str, str | bool]) -> discord.File:
         """Method to render a file from a file tree
 
@@ -219,7 +237,7 @@ class JSONDeserializer(Deserializer):
         return view
 
     @staticmethod
-    def get_attribute(element: Dict[str, Any], attribute) -> Any:
+    def get_attribute(element: Dict[str, Any], attribute: str) -> Any:
         """Render an attribute of an element
 
         Args:
