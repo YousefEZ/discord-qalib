@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Optional, List, Dict, Any, cast, Type
+from typing import Optional, List, Dict, Any, cast, Type, Sequence
 from xml.etree import ElementTree as ElementTree
 
 import discord
 import discord.types.embed
 import discord.ui as ui
+from discord.abc import Snowflake
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, Message, MISSING
+from qalib.translators import Callback, Message, MISSING, DiscordIdentifier
 from qalib.translators.deserializer import Deserializer
 from qalib.translators.parser import Parser
 from qalib.translators.message_parsing import *
@@ -153,6 +154,8 @@ class XMLDeserializer(Deserializer):
                        file=MISSING if (file := message_tree.find("file")) is None else self._render_file(file),
                        files=MISSING if (files := message_tree.find("files")) is None else list(
                            map(self._render_file, files)),
+                       allowed_mentions=MISSING if (mentions := message_tree.find(
+                           "allowed_mentions")) is None else self._render_allowed_mentions(mentions),
                        mention_author=MISSING if (mention := message_tree.find(
                            "mention_author")) is None else self.get_attribute(mention, "value") in ("", "true")
                        )
@@ -207,6 +210,34 @@ class XMLDeserializer(Deserializer):
             modal.add_item(component)
 
         return modal
+
+    def _render_allowed_mentions(self, raw_mentions: ElementTree.Element) -> discord.AllowedMentions:
+        """Renders an allowed mentions object from an ElementTree.Element.
+
+        Args:
+            raw_mentions (ElementTree.Element): The element to render the allowed mentions object from.
+
+        Returns (discord.AllowedMentions): The allowed mentions object.
+        """
+
+        def extract_tags(
+                element: Optional[ElementTree.Element],
+                child_tag: Optional[str] = None
+        ) -> bool | Sequence[Snowflake]:
+
+            if element is None:
+                return True
+            if child_tag is not None and len(element) > 0:
+                return [DiscordIdentifier(int(self.get_element_text(child))) for child in element.findall(child_tag)]
+
+            return self.get_attribute(element, "mention").lower() != "false"
+
+        return discord.AllowedMentions(
+            everyone=extract_tags(raw_mentions.find("everyone")),
+            users=extract_tags(raw_mentions.find("users"), "user"),
+            roles=extract_tags(raw_mentions.find("roles"), "role"),
+            replied_user=extract_tags(raw_mentions.find("replied_user"))
+        )
 
     def _render_file(self, raw_file: ElementTree.Element) -> discord.File:
         return discord.File(fp=self.get_element_text(raw_file.find("filename")),
