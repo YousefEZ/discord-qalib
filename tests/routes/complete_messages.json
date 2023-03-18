@@ -23,5 +23,17 @@
       "description": "This is a test file",
       "spoilers": false
     }
+  },
+  "allowed_mentions_test":
+  {
+    "allowed_mentions": {
+      "everyone": false,
+      "users": [
+        "123456789012345678"
+      ],
+      "roles": [
+        "123456789012345678"
+      ]
+    }
   }
 }
