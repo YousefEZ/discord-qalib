@@ -117,3 +117,11 @@ class TestJSONRenderer(unittest.TestCase):
         message = renderer.render("file_test")
         self.assertIsInstance(message.file, discord.File)
         self.assertEqual(message.file.filename, "complete_messages.xml")
+
+    def test_allowed_mentions_rendering(self):
+        template = "tests/routes/complete_messages.json"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("allowed_mentions_test")
+        self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
+        self.assertFalse(message.allowed_mentions.everyone)
