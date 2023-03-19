@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Any, Union, cast, Type, Sequence
 import discord
 import discord.types.embed
 import discord.ui as ui
+from discord import MessageReference
 from discord.abc import Snowflake
 
 from qalib.translators import Callback, Message, MISSING, DiscordIdentifier
@@ -139,6 +140,9 @@ class JSONDeserializer(Deserializer):
                 map(self._render_file, files)),
             allowed_mentions=MISSING if (allowed_mentions := message_tree.get(
                 "allowed_mentions")) is None else self._render_allowed_mentions(allowed_mentions),
+            reference=MISSING if (reference := message_tree.get("reference")) is None else MessageReference(
+                message_id=reference["message_id"], channel_id=reference["channel_id"],
+                guild_id=reference.get("guild_id")),
             mention_author=MISSING if (mention := message_tree.get("mention_author")) is None else mention,
             view=view
         )
