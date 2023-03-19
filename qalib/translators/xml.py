@@ -8,6 +8,7 @@ from xml.etree import ElementTree as ElementTree
 import discord
 import discord.types.embed
 import discord.ui as ui
+from discord import MessageReference
 from discord.abc import Snowflake
 
 from qalib.template_engines.template_engine import TemplateEngine
@@ -156,6 +157,10 @@ class XMLDeserializer(Deserializer):
                            map(self._render_file, files)),
                        allowed_mentions=MISSING if (mentions := message_tree.find(
                            "allowed_mentions")) is None else self._render_allowed_mentions(mentions),
+                       reference=MISSING if (reference := message_tree.find("reference")) is None else
+                       MessageReference(message_id=int(reference.find("message_id").text),
+                                        channel_id=int(reference.find("channel_id").text),
+                                        guild_id=None if (g := reference.find("guild_id")) is None else int(g.text)),
                        mention_author=MISSING if (mention := message_tree.find(
                            "mention_author")) is None else self.get_attribute(mention, "value") in ("", "true")
                        )
