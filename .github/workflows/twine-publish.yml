@@ -1,0 +1,46 @@
+name: Publish to Twine by getting version from Github pull request description and using bumpver to bump version and publish
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+    types: [ closed ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bumpver twine build
+          pip install build --upgrade
+      - name: Get version from pull request description
+        id: get_version
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const pullRequest = context.payload.pull_request;
+            const version = pullRequest.body.match(/(?<=version: ).*/g)[0];
+            core.setOutput("version", version);
+      - name: Bump version
+        run: |
+          git config user.name AlBumperBot
+          git config user.email 41898282+AlBumperBot[bot]@users.noreply.github.com
+          bumpver update --${{ steps.get_version.outputs.version }} --commit --push
+      - name: Build Distribution
+        run: python -m build
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TWINE_USERNAME }}
