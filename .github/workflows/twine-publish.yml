@@ -3,6 +3,7 @@ name: Publish to Twine by getting version from Github pull request description a
 on:
   pull_request:
     types: [ closed ]
+  merge_group:
 
 jobs:
   publish:
