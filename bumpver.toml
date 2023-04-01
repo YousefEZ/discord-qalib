@@ -2,7 +2,6 @@
 current_version = "1.0.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit = true
-push = true
 tag = true
 
 [bumpver.file_patterns]

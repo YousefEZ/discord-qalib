@@ -3,7 +3,6 @@ name: Publish to Twine by getting version from Github pull request description a
 on:
   pull_request:
     types: [ closed ]
-  merge_group:
 
 jobs:
   publish:
@@ -17,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Bump and Publisher Distribution to PyPi
-        uses: YousefEZ/auto-pypi@0.0.10
+        uses: YousefEZ/auto-pypi@0.0.11
         with:
           githubtoken: ${{ secrets.GITHUB_TOKEN }}
           twinetoken: ${{ secrets.TWINE_USERNAME }}
