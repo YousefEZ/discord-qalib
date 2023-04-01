@@ -4,7 +4,7 @@ Qalib (Arabic: قالب), which means template in Arabic, is the official name o
 
 ## What is :black_joker: Discord-Qalib?
 
-Discord-Qalib is an extension that wraps around and extends [discord.py](https://github.com/Rapptz/discord-py) Context
+Discord-Qalib is an extension that wraps around and extends [discord.py](https://github.com/Rapptz/discord.py) Context
 instance, allowing for templated responses so that front-end facing text is separated from the source code and placed in
 a file in a structured manner (i.e. ``.xml``, ``.json``).
 
@@ -15,16 +15,18 @@ A simple example ``.xml`` file would be
 ```xml
 
 <discord>
-    <embed key="balance">
-        <title>Hello {player.name}</title>
-        <colour>cyan</colour>
-        <fields>
-            <field>
-                <title>Balance Remaining</title>
-                <value>£ {player.balance}</value>
-            </field>
-        </fields>
-    </embed>
+    <message key="balance">
+        <embed>
+            <title>Hello {player.name}</title>
+            <colour>cyan</colour>
+            <fields>
+                <field>
+                    <title>Balance Remaining</title>
+                    <value>£ {player.balance}</value>
+                </field>
+            </fields>
+        </embed>
+    </message>
 </discord>
 ```
 
