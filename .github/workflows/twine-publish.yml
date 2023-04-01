@@ -14,7 +14,11 @@ jobs:
       contents: write
       pull-requests: read
     steps:
-      - uses: actions/checkout@v2
+      - name: 'Checkout source code'
+        uses: 'actions/checkout@v2'
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref }}
       - name: Bump and Publisher Distribution to PyPi
         uses: YousefEZ/auto-pypi@0.0.13
         with:
