@@ -1,14 +1,16 @@
 <discord>
-    <embed key="test1">
-        <title>Test 1</title>
-        <description>Test 1</description>
-        <colour>magenta</colour>
-        <fields>
-            <field>
-                <name>Test 1</name>
-                <value>Test 1</value>
-            </field>
-        </fields>
+    <message key="test1">
+        <embed>
+            <title>Test 1</title>
+            <description>Test 1</description>
+            <colour>magenta</colour>
+            <fields>
+                <field>
+                    <name>Test 1</name>
+                    <value>Test 1</value>
+                </field>
+            </fields>
+        </embed>
         <view>
             <button key="button1">
                 <label>Test 1</label>
@@ -18,21 +20,23 @@
                 </emoji>
             </button>
         </view>
-    </embed>
-    <embed key="test2">
-        <title>Test 2</title>
-        <description>Test 2</description>
-        <colour>magenta</colour>
-        <fields>
-            <field>
-                <name>Test 2</name>
-                <value>Test 2</value>
-            </field>
-        </fields>
+    </message>
+    <message key="test2">
+        <embed>
+            <title>Test 2</title>
+            <description>Test 2</description>
+            <colour>magenta</colour>
+            <fields>
+                <field>
+                    <name>Test 2</name>
+                    <value>Test 2</value>
+                </field>
+            </fields>
+        </embed>
         <view>
             <randomElement>
                 <label>Test 1</label>
             </randomElement>
         </view>
-    </embed>
+    </message>
 </discord>

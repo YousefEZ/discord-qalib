@@ -4,17 +4,19 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from functools import partial
-from typing import Dict, List, Optional, Any, Union, cast, Type
+from typing import Dict, List, Optional, Any, Union, cast, Type, Sequence
 
 import discord
 import discord.types.embed
 import discord.ui as ui
+from discord import MessageReference
+from discord.abc import Snowflake
 
-from . import Callback, Display
-from .deserializer import Deserializer
-from .parser import Parser
-from .utils import *
-from ..template_engines.template_engine import TemplateEngine
+from qalib.translators import Callback, Message, MISSING, DiscordIdentifier
+from qalib.translators.deserializer import Deserializer
+from qalib.translators.parser import Parser
+from qalib.translators.message_parsing import *
+from qalib.template_engines.template_engine import TemplateEngine
 
 
 class JSONParser(Parser):
@@ -51,7 +53,7 @@ class JSONParser(Parser):
 
         return obj
 
-    def template_embed(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+    def template_message(self, key: str, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template the embed by first retrieving it using its key, and then templating it using
         the template_engine
 
@@ -93,7 +95,7 @@ class JSONParser(Parser):
 
 class JSONDeserializer(Deserializer):
 
-    def deserialize(self, source: str, callables: Dict[str, Callback], **kw) -> Display:
+    def deserialize_into_message(self, source: str, callables: Dict[str, Callback], **kw) -> Message:
         """Method to deserialize a source into a Display object
 
         Args:
@@ -103,29 +105,49 @@ class JSONDeserializer(Deserializer):
 
         Returns (Display): A Display object
         """
-        return self.deserialize_to_embed(json.loads(source), callables, kw)
+        return self.deserialize_message(json.loads(source), callables, kw)
 
-    def deserialize_to_embed(
+    def deserialize_message(
             self,
-            embed_tree: Dict[str, Any],
+            message_tree: Dict[str, Any],
             callables: Dict[str, Callback],
             kw: Dict[str, Any]
-    ) -> Display:
+    ) -> Message:
         """Method to deserialize an embed into a Display NamedTuple containing the embed and the view
 
         Args:
-            embed_tree (Dict[str, Any]): The embed to deserialize
+            message_tree (Dict[str, Any]): The embed to deserialize
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
             kw (Dict[str, Any]): A dictionary containing the attributes to use for the view
 
         Returns (Display): A Display NamedTuple containing the embed and the view
         """
-        view_tree = embed_tree.get("view")
-        embed = self.render(embed_tree)
-        view = ui.View(**kw) if view_tree is None else self._render_view(view_tree, callables, kw)
-        return Display(embed, view)
+        view_tree = message_tree.get("view")
+        embed = self.render(embed_tree) if (embed_tree := message_tree.get("embed")) is not None else MISSING
+        view = MISSING if view_tree is None else self._render_view(view_tree, callables, kw)
+        return Message(
+            embed=embed,
+            embeds=MISSING if (embeds := message_tree.get("embeds")) is None else list(
+                map(self.render, embeds.values())),
+            content=message_tree.get("content", MISSING),
+            tts=MISSING if (tts_element := message_tree.get("tts")) is None else (
+                    (type(tts_element) == bool and tts_element) or str(tts_element).lower() == "true"),
+            nonce=MISSING if (nonce_element := message_tree.get("nonce")) is None else int(nonce_element),
+            delete_after=MISSING if (delete_after := message_tree.get("delete_after")) is None else float(delete_after),
+            suppress_embeds=MISSING if (suppress := message_tree.get("supress_embeds")) is None else suppress,
+            file=MISSING if (file := message_tree.get("file")) is None else self._render_file(file),
+            files=MISSING if (files := message_tree.get("files")) is None else list(
+                map(self._render_file, files)),
+            allowed_mentions=MISSING if (allowed_mentions := message_tree.get(
+                "allowed_mentions")) is None else self._render_allowed_mentions(allowed_mentions),
+            reference=MISSING if (reference := message_tree.get("reference")) is None else MessageReference(
+                message_id=reference["message_id"], channel_id=reference["channel_id"],
+                guild_id=reference.get("guild_id")),
+            mention_author=MISSING if (mention := message_tree.get("mention_author")) is None else mention,
+            view=view
+        )
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Display]:
+    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Method to deserialize a menu into a list of Display objects
 
         Args:
@@ -135,7 +157,7 @@ class JSONDeserializer(Deserializer):
 
         Returns (List[Display]): A list of Display objects
         """
-        return [self.deserialize_to_embed(embed, callables, kw) for embed in json.loads(source).values()]
+        return [self.deserialize_message(embed, callables, kw) for embed in json.loads(source).values()]
 
     def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
@@ -160,13 +182,43 @@ class JSONDeserializer(Deserializer):
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        title = self._render_attribute(tree, "title")
+        title = self.get_attribute(tree, "title")
         modal = type(f"{title} Modal", (discord.ui.Modal,), dict(**methods))(title=title, **kw)
 
         for component in self.render_components(tree.get("components"), {}):
             modal.add_item(component)
 
         return modal
+
+    @staticmethod
+    def _render_allowed_mentions(allowed_mentions: Dict[str, Any]) -> discord.AllowedMentions:
+        def render_child(element: Dict[str, [int] | bool], key: str) -> Sequence[Snowflake] | bool:
+            child = element.get(key, True)
+            if type(child) == bool:
+                return child
+
+            return [DiscordIdentifier(identifier) for identifier in map(int, child)]
+
+        return discord.AllowedMentions(
+            everyone=render_child(allowed_mentions, "everyone"),
+            users=render_child(allowed_mentions, "users"),
+            roles=render_child(allowed_mentions, "roles"),
+            replied_user=render_child(allowed_mentions, "replied_user"),
+        )
+
+    def _render_file(self, raw_file: Dict[str, str | bool]) -> discord.File:
+        """Method to render a file from a file tree
+
+        Args:
+            raw_file (Dict[str, Any]): The file tree to render
+
+        Returns (discord.File): A discord.File object
+        """
+        return discord.File(
+            fp=self.get_attribute(raw_file, "filename"),
+            description=self.get_attribute(raw_file, "description"),
+            spoiler=spoiler if (spoiler := self.get_attribute(raw_file, "spoiler")) != "" else False
+        )
 
     def _render_view(
             self,
@@ -188,7 +240,8 @@ class JSONDeserializer(Deserializer):
             view.add_item(component)
         return view
 
-    def _render_attribute(self, element: Dict[str, str], attribute) -> str:
+    @staticmethod
+    def get_attribute(element: Dict[str, Any], attribute: str) -> Any:
         """Render an attribute of an element
 
         Args:
@@ -210,8 +263,8 @@ class JSONDeserializer(Deserializer):
         if timestamp is None:
             return None
 
-        date = self._render_attribute(timestamp, "timestamp")
-        date_format = self._render_attribute(timestamp, "format")
+        date = self.get_attribute(timestamp, "timestamp")
+        date_format = self.get_attribute(timestamp, "format")
         if date_format == "":
             date_format = "%Y-%m-%d %H:%M:%S.%f"
         return datetime.strptime(date, date_format) if date != "" else None
@@ -225,9 +278,9 @@ class JSONDeserializer(Deserializer):
         Returns (Optional[dict]): A dictionary containing the author attributes
         """
         return {
-            "name": self._render_attribute(author, "name"),
-            "url": self._render_attribute(author, "url"),
-            "icon_url": self._render_attribute(author, "icon")
+            "name": self.get_attribute(author, "name"),
+            "url": self.get_attribute(author, "url"),
+            "icon_url": self.get_attribute(author, "icon")
         }
 
     def _render_footer(self, footer: Dict[str, str]) -> Optional[dict]:
@@ -239,8 +292,8 @@ class JSONDeserializer(Deserializer):
         Returns (Optional[dict]): A dictionary containing the footer attributes
         """
         return {
-            "text": self._render_attribute(footer, "text"),
-            "icon_url": self._render_attribute(footer, "icon")
+            "text": self.get_attribute(footer, "text"),
+            "icon_url": self.get_attribute(footer, "icon")
         }
 
     def _render_fields(self, fields: List[Dict[str, str]]) -> List[dict]:
@@ -252,9 +305,9 @@ class JSONDeserializer(Deserializer):
         Returns (List[dict]): A list of dictionaries containing the field attributes
         """
         return [{
-            "name": self._render_attribute(field, "name"),
-            "value": self._render_attribute(field, "text"),
-            "inline": (attr := self._render_attribute(field, "inline")) or attr.lower() == "true"}
+            "name": self.get_attribute(field, "name"),
+            "value": self.get_attribute(field, "text"),
+            "inline": (attr := self.get_attribute(field, "inline")) or attr.lower() == "true"}
             for field in fields
         ]
 
@@ -268,11 +321,11 @@ class JSONDeserializer(Deserializer):
         """
         emoji = {}
         if "name" in emoji_element:
-            emoji["name"] = self._render_attribute(emoji_element, "name")
+            emoji["name"] = self.get_attribute(emoji_element, "name")
         if "id" in emoji_element:
-            emoji["id"] = self._render_attribute(emoji_element, "id")
+            emoji["id"] = self.get_attribute(emoji_element, "id")
         if "animated" in emoji_element:
-            animated = self._render_attribute(emoji_element, "animated")
+            animated = self.get_attribute(emoji_element, "animated")
             emoji["animated"] = animated if type(animated) == bool else animated.lower() == "true"
         return (None, emoji)[len(emoji) > 0]
 
@@ -284,7 +337,7 @@ class JSONDeserializer(Deserializer):
 
         Returns (Dict[str, Union[str, Dict[str, str]]]): A dictionary containing the attributes
         """
-        return {attribute: self._render_attribute(element, attribute) for attribute in element.keys()}
+        return {attribute: self.get_attribute(element, attribute) for attribute in element.keys()}
 
     def _render_button(
             self,
@@ -310,7 +363,7 @@ class JSONDeserializer(Deserializer):
         button.callback = callback
         return button
 
-    def _render_options(self, raw_options: List[Dict[str, Union[str, str]]]) -> List[discord.SelectOption]:
+    def _render_options(self, raw_options: List[Dict[str, Dict[str, str]]]) -> List[discord.SelectOption]:
         """Renders the options for a select menu
 
         Args:
@@ -331,7 +384,7 @@ class JSONDeserializer(Deserializer):
 
     def _render_channel_select(
             self,
-            component: Dict[str, Union[str, Dict[str, Any]]],
+            component: Dict[str, Union[str, List[str], Dict[str, Any]]],
             callback: Optional[Callback],
     ) -> ui.ChannelSelect:
         """Renders a select menu from the given component's template
@@ -355,7 +408,7 @@ class JSONDeserializer(Deserializer):
 
     def _render_select(
             self,
-            component: Dict[str, Union[str, Dict[str, Any]]],
+            component: Dict[str, Union[str, List[Dict[str, ...]], Dict[str, Any]]],
             callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select menu from the given component's template
@@ -467,7 +520,7 @@ class JSONDeserializer(Deserializer):
         """
 
         def render(attribute: str) -> str:
-            return self._render_attribute(raw_embed, attribute)
+            return self.get_attribute(raw_embed, attribute)
 
         embed_type: discord.types.embed.EmbedType = "rich"
         if cast(discord.types.embed.EmbedType, given_type := render("type")) != "":
@@ -489,8 +542,8 @@ class JSONDeserializer(Deserializer):
         if (footer := raw_embed.get("footer")) is not None:
             embed.set_footer(**self._render_footer(footer))
 
-        embed.set_thumbnail(url=self._render_attribute(raw_embed, "thumbnail"))
-        embed.set_image(url=self._render_attribute(raw_embed, "image"))
+        embed.set_thumbnail(url=self.get_attribute(raw_embed, "thumbnail"))
+        embed.set_image(url=self.get_attribute(raw_embed, "image"))
 
         if (author := raw_embed.get("author")) is not None:
             embed.set_author(**self._render_author(author))

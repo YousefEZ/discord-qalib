@@ -1,16 +1,18 @@
 <discord>
-    <embed key="Launch">
-        <title>Hello World</title>
-        <colour>magenta</colour>
-        <fields>
-            <field inline="True" name="hello world">
-                <name>hello world</name>
-                <value>This is the body of the text</value>
-            </field>
-        </fields>
-        <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
-        <footer_icon>http://www.google.com/favicon.ico</footer_icon>
-        <image>http://www.google.com/images/logo.gif</image>
+    <message key="Launch">
+        <embed>
+            <title>Hello World</title>
+            <colour>magenta</colour>
+            <fields>
+                <field inline="True" name="hello world">
+                    <name>hello world</name>
+                    <value>This is the body of the text</value>
+                </field>
+            </fields>
+            <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
+            <footer_icon>http://www.google.com/favicon.ico</footer_icon>
+            <image>http://www.google.com/images/logo.gif</image>
+        </embed>
         <view>
             <role_select>
                 <placeholder>Select a Role</placeholder>
@@ -26,5 +28,5 @@
                 <placeholder>Test Placeholder</placeholder>
             </text_input>
         </view>
-    </embed>
+    </message>
 </discord>

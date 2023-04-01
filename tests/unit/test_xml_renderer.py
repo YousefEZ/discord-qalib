@@ -3,6 +3,8 @@ import unittest
 
 import discord.ui
 
+import qalib
+import qalib.translators
 from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
 from qalib.template_engines.jinja2 import Jinja2
@@ -17,13 +19,13 @@ class TestXMLRenderer(unittest.TestCase):
     def test_render(self):
         path = "tests/routes/simple_embeds.xml"
         renderer = Renderer(Formatter(), path)
-        embed, _ = renderer.render("Launch")
+        embed, = renderer.render("Launch")
         self.assertEqual(embed.title, "Hello World")
 
     def test_full_render(self):
         path = "tests/routes/full_embeds.xml"
         renderer = Renderer(Formatter(), path)
-        embed, _ = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
+        embed, = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(embed.title, "Test")
 
     def test_key_not_exist(self):
@@ -137,5 +139,35 @@ class TestXMLRenderer(unittest.TestCase):
         template = "tests/routes/jinja-test.xml"
 
         renderer = Renderer(Jinja2(), template)
-        _, view = renderer.render("test2")
-        self.assertEqual(len(view.children), 0)
+        message = renderer.render("test2")
+        self.assertIs(message.view, qalib.translators.MISSING)
+
+    def test_content_rendering(self):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer = Renderer(Formatter(), template)
+        content, _ = renderer.render("content_test")
+        self.assertEqual(content, "This is a test message")
+
+    def test_tts_rendering(self):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer = Renderer(Formatter(), template)
+        _, tts = renderer.render("tts_test")
+        self.assertTrue(tts)
+
+    def test_file_rendering(self):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("file_test")
+        self.assertIsInstance(message.file, discord.File)
+        self.assertEqual(message.file.filename, "complete_messages.xml")
+
+    def test_allowed_mentions_rendering(self):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("allowed_mentions_test")
+        self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
+        self.assertFalse(message.allowed_mentions.everyone)

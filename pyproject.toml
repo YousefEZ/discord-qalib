@@ -18,6 +18,21 @@ classifiers = [
 ]
 dynamic = ["dependencies"]
 
+[tool.poetry]
+name = "discord-qalib"
+version = "1.0.1"
+authors = ["YousefEZ syberprojects@gmail.com", ]
+description = "Discord library built on discord.py to simplify source code by rendering templates of embeds and menus"
+packages = [{ include = "qalib" }]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+mock = "^5.0.0"
+typing-extensions = "^4.4.0"
+discord-py = "^2.1.0"
+emoji = "^2.2.0"
+jinja2 = "^3.1.2"
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 

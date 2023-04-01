@@ -13,13 +13,13 @@ class TestJSONRenderer(unittest.TestCase):
     def test_render(self):
         path = "tests/routes/simple_embeds.json"
         renderer = Renderer(Formatter(), path)
-        embed, _ = renderer.render("Launch")
+        embed, = renderer.render("Launch")
         self.assertEqual(embed.title, "Hello World")
 
     def test_full_render(self):
         path = "tests/routes/full_embeds.json"
         renderer = Renderer(Formatter(), path)
-        embed, _ = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
+        embed, = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(embed.title, "Test")
 
     def test_key_not_exist(self):
@@ -96,3 +96,32 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/error.json"
         renderer = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render, "test2")
+
+    def test_content_rendering(self):
+        path = "tests/routes/complete_messages.json"
+        renderer = Renderer(Formatter(), path)
+        content, _ = renderer.render("content_test")
+        self.assertEqual(content, "This is a test message")
+
+    def test_tts_rendering(self):
+        template = "tests/routes/complete_messages.json"
+
+        renderer = Renderer(Formatter(), template)
+        _, tts = renderer.render("tts_test")
+        self.assertTrue(tts)
+
+    def test_json_rendering(self):
+        template = "tests/routes/complete_messages.json"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("file_test")
+        self.assertIsInstance(message.file, discord.File)
+        self.assertEqual(message.file.filename, "complete_messages.xml")
+
+    def test_allowed_mentions_rendering(self):
+        template = "tests/routes/complete_messages.json"
+
+        renderer = Renderer(Formatter(), template)
+        message = renderer.render("allowed_mentions_test")
+        self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
+        self.assertFalse(message.allowed_mentions.everyone)

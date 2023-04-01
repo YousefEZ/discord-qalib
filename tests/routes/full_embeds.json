@@ -1,56 +1,60 @@
 {
   "test_key": {
-    "title": "Test",
-    "description": "Test Description",
-    "type": "rich",
-    "colour": "55,55,55",
-    "timestamp": {
-      "date": "{todays_date}"
-    },
-    "url": "https://www.discord.com",
-    "fields": [
-      {
-        "name": "Test Field",
-        "text": "Test Text"
+    "embed": {
+      "title": "Test",
+      "description": "Test Description",
+      "type": "rich",
+      "colour": "55,55,55",
+      "timestamp": {
+        "date": "{todays_date}"
+      },
+      "url": "https://www.discord.com",
+      "fields": [
+        {
+          "name": "Test Field",
+          "text": "Test Text"
+        }
+      ],
+      "footer": {
+        "text": "Test Footer",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+      },
+      "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "image": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "author": {
+        "name": "Test Author",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "url": "https://discordapp.com"
       }
-    ],
-    "footer": {
-      "text": "Test Footer",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
-    },
-    "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "image": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "author": {
-      "name": "Test Author",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
-      "url": "https://discordapp.com"
     }
   },
   "test_key2": {
-    "title": "Test2",
-    "description": "Test Description",
-    "type": "rich",
-    "colour": "magenta",
-    "timestamp": {
-      "date": "{todays_date}"
-    },
-    "url": "https://www.discord.com",
-    "fields": [
-      {
-        "name": "Test Field",
-        "text": "Test Text"
+    "embed": {
+      "title": "Test2",
+      "description": "Test Description",
+      "type": "rich",
+      "colour": "magenta",
+      "timestamp": {
+        "date": "{todays_date}"
+      },
+      "url": "https://www.discord.com",
+      "fields": [
+        {
+          "name": "Test Field",
+          "text": "Test Text"
+        }
+      ],
+      "footer": {
+        "text": "Test Footer",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+      },
+      "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "image": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "author": {
+        "name": "Test Author",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "url": "https://discordapp.com"
       }
-    ],
-    "footer": {
-      "text": "Test Footer",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
-    },
-    "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "image": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "author": {
-      "name": "Test Author",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
-      "url": "https://discordapp.com"
     },
     "view": {
       "button1": {
@@ -91,30 +95,32 @@
     }
   },
   "test_key3": {
-    "title": "Test2",
-    "description": "Test Description",
-    "type": "rich",
-    "colour": "magenta",
-    "timestamp": {
-      "date": "{todays_date}"
-    },
-    "url": "https://www.discord.com",
-    "fields": [
-      {
-        "name": "Test Field",
-        "text": "Test Text"
+    "embed": {
+      "title": "Test2",
+      "description": "Test Description",
+      "type": "rich",
+      "colour": "magenta",
+      "timestamp": {
+        "date": "{todays_date}"
+      },
+      "url": "https://www.discord.com",
+      "fields": [
+        {
+          "name": "Test Field",
+          "text": "Test Text"
+        }
+      ],
+      "footer": {
+        "text": "Test Footer",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+      },
+      "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "image": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "author": {
+        "name": "Test Author",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "url": "https://discordapp.com"
       }
-    ],
-    "footer": {
-      "text": "Test Footer",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
-    },
-    "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "image": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "author": {
-      "name": "Test Author",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
-      "url": "https://discordapp.com"
     },
     "view": {
       "select1": {

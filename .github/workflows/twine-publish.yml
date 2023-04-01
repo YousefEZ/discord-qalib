@@ -1,0 +1,23 @@
+name: Publish to Twine by getting version from Github pull request description and using bumpver to bump version and publish
+
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: |
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bump and Publisher Distribution to PyPi
+        uses: YousefEZ/auto-pypi@0.0.10
+        with:
+          githubtoken: ${{ secrets.GITHUB_TOKEN }}
+          twinetoken: ${{ secrets.TWINE_USERNAME }}
+          repository: https://test.pypi.org/legacy/

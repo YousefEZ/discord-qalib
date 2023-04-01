@@ -4,7 +4,7 @@ import discord.ext.commands
 import discord.message
 
 from qalib.renderer import Renderer
-from qalib.translators import Display, Callback
+from qalib.translators import Message, Callback
 
 
 class QalibContext(discord.ext.commands.Context):
@@ -61,7 +61,7 @@ class QalibContext(discord.ext.commands.Context):
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             timeout: Optional[int] = 180
-    ) -> Display:
+    ) -> Message:
         """This method renders the embed and the view based on the identifier string given.
 
         Args:
@@ -94,8 +94,8 @@ class QalibContext(discord.ext.commands.Context):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        embed, view = self._render(identifier, callables, keywords, timeout)
-        return await self.send(embed=embed, view=view, **kwargs)
+        message = self._render(identifier, callables, keywords, timeout)
+        return await self.send(**{**message, **kwargs})
 
     async def display(
             self,
@@ -117,8 +117,8 @@ class QalibContext(discord.ext.commands.Context):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        embed, view = self._render(key, callables, keywords, timeout)
-        await self._display(embed=embed, view=view, **kwargs)
+        message = self._render(key, callables, keywords, timeout)
+        await self._display(**{**message, **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client and keeping track of the message object.
@@ -147,4 +147,4 @@ class QalibContext(discord.ext.commands.Context):
             **kwargs: kwargs that are passed to the context's send method
         """
         display = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
-        await self._display(embed=display.embed, view=display.view, **kwargs)
+        await self._display(**{**display, **kwargs})

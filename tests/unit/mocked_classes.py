@@ -31,7 +31,7 @@ class MockedView:
 class MessageMocked:
 
     def __init__(self, author=Mock(), channel=Mock(), content: str = "", embed: Optional[discord.Embed] = None,
-                 view: Optional[discord.ui.View] = None):
+                 view: Optional[discord.ui.View] = None, **kwargs):
         self.author = author
         self.channel = channel
         self.content = content

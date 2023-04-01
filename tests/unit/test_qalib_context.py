@@ -9,11 +9,11 @@ from qalib import Renderer, Formatter, qalib_context, Jinja2, RenderingOptions, 
 from tests.unit.mocked_classes import ContextMocked, MessageMocked, MockedInteraction
 
 
-async def send(self, embed: discord.Embed, view: discord.ui.View, **_) -> MessageMocked:
+async def send(self, **kwargs) -> MessageMocked:
     try:
-        self.message = MessageMocked(embed=embed, view=view)
+        self.message = MessageMocked(**kwargs)
     except AttributeError:
-        return MessageMocked(embed=embed, view=view)
+        return MessageMocked(**kwargs)
     else:
         return self.message
 

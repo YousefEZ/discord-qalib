@@ -55,36 +55,38 @@ Sample XML file:
 ```xml
 
 <discord>
-    <embed key="test_key">
-        <title>Test</title>
-        <description>Test Description</description>
-        <colour>magenta</colour>
-        <timestamp format="%Y-%m-%d %H:%M:%S.%f">{todays_date}</timestamp>
-        <url>https://www.discord.com</url>
-        <fields>
-            <field>
-                <name>Test Field</name>
-                <value>Test Text</value>
-            </field>
-        </fields>
-        <footer>
-            <text>Test Footer</text>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-        </footer>
-        <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
-        <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
-        <author>
-            <name>Test Author</name>
-            <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
-            <url>https://discordapp.com</url>
-        </author>
+    <message key="test_key">
+        <embed>
+            <title>Test</title>
+            <description>Test Description</description>
+            <colour>magenta</colour>
+            <timestamp format="%Y-%m-%d %H:%M:%S.%f">{todays_date}</timestamp>
+            <url>https://www.discord.com</url>
+            <fields>
+                <field>
+                    <name>Test Field</name>
+                    <value>Test Text</value>
+                </field>
+            </fields>
+            <footer>
+                <text>Test Footer</text>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+            </footer>
+            <thumbnail>https://cdn.discordapp.com/embed/avatars/0.png</thumbnail>
+            <image>https://cdn.discordapp.com/embed/avatars/0.png</image>
+            <author>
+                <name>Test Author</name>
+                <icon>https://cdn.discordapp.com/embed/avatars/0.png</icon>
+                <url>https://discordapp.com</url>
+            </author>
+        </embed>
         <view>
             <button key="understood_button">
                 <label>Understood</label>
                 <style>success</style>
             </button>
         </view>
-    </embed>
+    </message>
 </discord>
 ```
 

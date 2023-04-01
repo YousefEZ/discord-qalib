@@ -1,0 +1,42 @@
+<discord>
+    <message key="content_test">
+        <content>This is a test message</content>
+        <embed>
+            <title>Test 1</title>
+            <colour>teal</colour>
+            <description>Test 1</description>
+            <fields>
+                <field>
+                    <name>Test 1</name>
+                    <value>Test 1</value>
+                </field>
+            </fields>
+        </embed>
+    </message>
+    <message key="tts_test">
+        <content>This is a test message</content>
+        <tts>true</tts>
+    </message>
+    <message key="file_test">
+        <file>
+            <filename>tests/routes/complete_messages.xml</filename>
+            <description>Test 1</description>
+            <spoilers>False</spoilers>
+        </file>
+    </message>
+    <message key="allowed_mentions_test">
+        <allowed_mentions>
+            <everyone mention="false"/>
+            <users>
+                <user>
+                    123456789012345678
+                </user>
+            </users>
+            <roles>
+                <role>
+                    123456789012345678
+                </role>
+            </roles>
+        </allowed_mentions>
+    </message>
+</discord>
