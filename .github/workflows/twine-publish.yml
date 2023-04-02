@@ -12,7 +12,7 @@ jobs:
       github.event.pull_request.base.ref == 'main'
     permissions:
       contents: write
-      pull-requests: write
+      pull-requests: write read
     steps:
       - name: 'Checkout source code'
         uses: 'actions/checkout@v2'
