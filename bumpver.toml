@@ -1,5 +1,5 @@
 [bumpver]
-current_version = "2.0.0"
+current_version = "1.0.1"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit = true
 tag = true
@@ -15,6 +15,10 @@ tag = true
 
 "qalib/__init__.py" = [
     '__version__ = "{version}"'
+]
+
+"pyproject.toml" = [
+    'version = "{version}"'
 ]
 
 "docs/usage/installation.md" = [

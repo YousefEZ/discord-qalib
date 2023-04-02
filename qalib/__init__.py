@@ -21,7 +21,7 @@ __title__ = "qalib"
 __author__ = "YousefEZ"
 __license__ = "MIT"
 __copyright__ = "Copyright 2022-present YousefEZ"
-__version__ = "2.0.0"
+__version__ = "1.0.1"
 
 
 def qalib_context(template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions):
