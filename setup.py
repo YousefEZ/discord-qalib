@@ -8,7 +8,7 @@ setup(
     author="Yousef Zaher",
     author_email="syberprojects@gmail.com",
     url="https://github.com/YousefEZ/discord-qalib",
-    version="1.0.1",
+    version="2.0.0",
     description='A library for templating responses on .xml, and .json files for discord.py',
     packages=find_packages(exclude=("test*",)),
     license='MIT',
