@@ -17,6 +17,10 @@ tag = true
     '__version__ = "{version}"'
 ]
 
+"pyproject.toml" = [
+    'version = "{version}"'
+]
+
 "docs/usage/installation.md" = [
     '>>> {version}'
 ]
