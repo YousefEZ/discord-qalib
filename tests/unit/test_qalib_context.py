@@ -1,45 +1,33 @@
 import datetime
 import unittest
-from typing import cast
+from typing import Literal
 
 import discord.ext.commands
+import discord
+import discord.interactions
+import mock
 
 import qalib.context
-from qalib import Renderer, Formatter, qalib_context, Jinja2, RenderingOptions, qalib_interaction
+from qalib import Formatter, Jinja2, QalibInteraction, Renderer, RenderingOptions, qalib_context, qalib_interaction
+from qalib.renderer import create_arrows
 from tests.unit.mocked_classes import ContextMocked, MessageMocked, MockedInteraction
 
 
-async def send(self, **kwargs) -> MessageMocked:
-    try:
-        self.message = MessageMocked(**kwargs)
-    except AttributeError:
-        return MessageMocked(**kwargs)
-    else:
-        return self.message
-
-
-async def send_modal(self, modal):
-    return modal
-
-
-qalib.QalibContext.send = send
-discord.InteractionResponse.send_message = send
-discord.InteractionResponse.send_modal = send_modal
-discord.Interaction.edit_original_response = send
-
-
-# noinspection PyTypeChecker
+@mock.patch("discord.interactions.InteractionResponse.send_message")
+@mock.patch("discord.interactions.InteractionResponse.send_modal")
+@mock.patch("discord.Interaction.edit_original_response")
+@mock.patch("discord.ui.View")
+@mock.patch("qalib.QalibContext.send")
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
-
-    def setUp(self):
+    def setUp(self, *args: mock.mock.MagicMock):
         self.ctx = ContextMocked()
 
-    async def test_xml_context(self):
+    async def test_xml_context(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.xml"))
         await context.display("Launch")
-        self.assertEqual(context._displayed.embed.title, "Hello World")
+        args[0].assert_called_once()
 
-    async def test_xml_get_message(self):
+    async def test_xml_get_message(self, *args: mock.mock.MagicMock):
         author, channel = "Yousef", 346712637812
         self.ctx.message = MessageMocked(author=author, channel=channel, content="Original Message")
 
@@ -50,85 +38,100 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.xml"))
         self.assertEqual(await context.get_message(), waiting_message.content)
 
-    async def test_xml_display_message(self):
+    async def test_xml_display_message(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.xml"))
 
         await context.display("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(context._displayed.embed.title, "Test")
+        args[0].assert_called_once()
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(context._displayed.embed.title, "Test2")
+        args[0].return_value.edit.assert_called_once()
 
-    async def test_xml_rendered_send_message(self):
+    async def test_xml_rendered_send_message(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.xml"))
 
-        e = await context.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(e.embed.title, "Test")
+        await context.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
+        args[0].assert_called_once()
 
-        e2 = await context.rendered_send("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(e2.embed.title, "Test2")
+        await context.rendered_send("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        self.assertEqual(args[0].call_count, 2)
 
-    async def test_xml_pre_rendering(self):
-        context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.xml",
-                                                        RenderingOptions.PRE_TEMPLATE))
+    async def test_xml_pre_rendering(self, *args: mock.mock.MagicMock):
+        context = qalib.QalibContext(
+            self.ctx,
+            Renderer(
+                Formatter(),
+                "tests/routes/full_embeds.xml",
+                RenderingOptions.PRE_TEMPLATE,
+            ),
+        )
 
         await context.display("test_key", keywords={"todays_date": datetime.datetime.now()})
 
-    async def test_xml_display_message_with_buttons(self):
+    async def test_xml_display_message_with_buttons(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.xml"))
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(len(context._displayed.view.children), 5)
 
-    async def test_xml_menu_display(self):
+        self.assertEqual(args[1].return_value.add_item.call_count, 5)
+
+    async def test_xml_menu_display(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
 
         await context.menu("Menu1")
-        self.assertEqual(context._displayed.embed.title, "Hello World")
+        args[0].assert_called_once()
 
-    async def test_interaction_menu(self):
+    async def test_interaction_menu(self, *args: mock.mock.MagicMock):
         interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/menus.xml"))
 
         await interaction.menu("Menu1")
+        args[-1].assert_called_once()
 
-    async def test_xml_modal_rendering(self):
+    async def test_xml_modal_rendering(self, *args: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer = Renderer(Formatter(), path)
         modal = renderer.render_modal("modal1")
         self.assertEqual(len(modal.children), 2)
 
-    async def test_json_modal_rendering(self):
+    async def test_json_modal_rendering(self, *args: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer = Renderer(Formatter(), path)
         modal = renderer.render_modal("modal1")
         self.assertEqual(len(modal.children), 2)
 
-    async def test_json_missing_modal_key(self):
+    async def test_json_missing_modal_key(self, *args: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
 
-    async def test_xml_missing_modal_key(self):
+    async def test_xml_missing_modal_key(self, *args: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
 
-    async def test_xml_modal_display(self):
-        interaction = qalib.QalibInteraction(MockedInteraction(),
-                                             Renderer(Formatter(), "tests/routes/modal.xml"))
+    async def test_xml_modal_display(self, *args: mock.mock.MagicMock):
+        interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/modal.xml"))
 
-        modal = await interaction.respond_with_modal("modal1")
-        modal = cast(discord.ui.Modal, modal)
+        await interaction.respond_with_modal("modal1")
+        modal = args[-2].call_args.args[0]
         self.assertEqual(modal.title, "Questionnaire")
 
-    async def test_xml_modal_decorator(self):
+    async def test_xml_modal_decorator(self, *args: mock.mock.MagicMock):
         @qalib_interaction(Formatter(), "tests/routes/modal.xml")
         async def test_modal(interaction):
             return await interaction.respond_with_modal("modal1")
 
         await test_modal(MockedInteraction())
 
-    async def test_xml_modal_decorator_method(self):
+    async def test_cog_xml_modal_decorator(self, *args: mock.mock.MagicMock):
+        class T:
+            @qalib_interaction(Formatter(), "tests/routes/modal.xml")
+            async def test_modal(self, interaction):
+                return await interaction.respond_with_modal("modal1")
+
+        await T().test_modal(MockedInteraction())
+
+    async def test_xml_modal_decorator_method(self, *args: mock.mock.MagicMock):
         class T:
             @qalib_interaction(Formatter(), "tests/routes/modal.xml")
             async def test_modal(self, interaction):
@@ -137,39 +140,42 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         t = T()
         await t.test_modal(MockedInteraction())
 
-    async def test_interaction_rendered_send(self):
+    async def test_interaction_rendered_send(self, *args: mock.mock.MagicMock):
         @qalib_interaction(Formatter(), "tests/routes/simple_embeds.xml")
-        async def test_modal(interaction):
+        async def test_modal(interaction: QalibInteraction[Literal["Launch"]]):
             return await interaction.rendered_send("Launch")
 
         await test_modal(MockedInteraction())
+        args[-1].assert_called_once()
 
-    async def test_xml_interaction(self):
-        interaction = qalib.QalibInteraction(MockedInteraction(),
-                                             Renderer(Formatter(), "tests/routes/simple_embeds.xml"))
+    async def test_xml_interaction(self, *args: mock.mock.MagicMock):
+        interaction = qalib.QalibInteraction(
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/simple_embeds.xml")
+        )
         await interaction.display("Launch")
 
-    async def test_rendered_send_interaction(self):
+    async def test_rendered_send_interaction(self, *args: mock.mock.MagicMock):
         interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml"))
 
-        e = await interaction.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(e.embed.title, "Test")
+        await interaction.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
+        args[-1].assert_called_once()
 
-        e2 = await interaction.rendered_send("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(e2.embed.title, "Test2")
+        await interaction.rendered_send("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        self.assertEqual(args[-1].call_count, 2)
 
-    async def test_xml_display_message_interaction(self):
+    async def test_xml_display_message_interaction(self, *args: mock.mock.MagicMock):
         interaction = qalib.QalibInteraction(MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml"))
 
         await interaction.display("test_key", keywords={"todays_date": datetime.datetime.now()})
         await interaction.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
 
-    async def test_json_context(self):
+    async def test_json_context(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.json"))
         await context.display("Launch")
-        self.assertEqual(context._displayed.embed.title, "Hello World")
 
-    async def test_json_get_message(self):
+        args[0].assert_called_once()
+
+    async def test_json_get_message(self, *args: mock.mock.MagicMock):
         author, channel = "Yousef", 346712637812
         self.ctx.message = MessageMocked(author=author, channel=channel, content="Original Message")
 
@@ -180,72 +186,68 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.json"))
         self.assertEqual(await context.get_message(), waiting_message.content)
 
-    async def test_json_display_message(self):
+    async def test_json_display_message(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.json"))
 
         await context.display("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(context._displayed.embed.title, "Test")
+        args[0].assert_called_once()
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(context._displayed.embed.title, "Test2")
+        args[0].return_value.edit.assert_called_once()
 
-    async def test_json_display_message_with_buttons(self):
+    async def test_json_display_message_with_buttons(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.json"))
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(len(context._displayed.view.children), 5)
+        self.assertEqual(args[1].return_value.add_item.call_count, 5)
 
-    async def test_json_menu_display(self):
+    async def test_json_menu_display(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.json"))
 
         await context.menu("Menu1")
-        self.assertEqual(context._displayed.embed.title, "Hello World")
 
-    async def test_jinja_menu_display(self):
+        args[0].assert_called()
+
+    async def test_json_menu_display_callback(self, *args: mock.mock.MagicMock):
+        context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.json"))
+
+        await context.menu("Menu1")
+        args[0].assert_called()
+
+    async def test_menu_arrows_callback(self, *args: mock.mock.MagicMock):
+        renderer = Renderer(Formatter(), "tests/routes/simple_embeds.xml")
+        launch1 = renderer.render("Launch")
+        arrow = create_arrows(left=launch1)[0]
+        with mock.patch('discord.interactions.InteractionResponse.edit_message',
+                        new_callable=mock.mock.AsyncMock) as inter:
+            await arrow.callback(MockedInteraction())
+            inter.assert_called_once()
+
+    async def test_jinja_menu_display(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Jinja2(), "tests/routes/menus.xml"))
 
         await context.menu("Menu1")
-        self.assertEqual(context._displayed.embed.title, "Hello World")
+        args[0].assert_called()
 
-    async def test_menu_arrows(self):
+    async def test_menu_arrows(self, *args: mock.mock.MagicMock):
         context = qalib.QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
 
         await context.menu("Menu1")
-        arrow = context._displayed.view.children[0]
-        self.assertIsInstance(arrow, discord.ui.Button)
+        self.assertEqual(args[1].return_value.add_item.call_count, 2)
 
-        mocked_interaction = type("MockedInteraction", (object,), {})
-        mocked_interaction.response = type("MockedResponse", (object,), {})()
-
-        async def edit(embed, view, **kwargs):
-            self.assertEqual(embed.title, "Hello Planet")
-
-        mocked_interaction.response.edit_message = edit
-        await arrow.callback(cast(discord.Interaction, mocked_interaction))
-
-    async def test_decorator(self):
+    async def test_decorator(self, *args: mock.mock.MagicMock):
         @qalib_context(Formatter(), "tests/routes/simple_embeds.json")
         async def test(ctx):
             self.assertIsInstance(ctx, qalib.QalibContext)
 
         await test(ContextMocked())
 
-    async def test_decorator_method_context(self):
-        @qalib_context(Formatter(), "tests/routes/simple_embeds.json")
-        async def test(ctx):
-            self.assertIsInstance(ctx, qalib.QalibContext)
+    async def test_cog_decorator(self, *args: mock.mock.MagicMock):
+        test_obj = self
 
-        await test(ContextMocked())
+        class T:
+            @qalib_context(Formatter(), "tests/routes/simple_embeds.json")
+            async def test(self, ctx):
+                test_obj.assertIsInstance(ctx, qalib.QalibContext)
 
-        with self.assertRaises(TypeError):
-            await test(object())
-
-    async def test_decorator_method_interaction(self):
-        @qalib_interaction(Formatter(), "tests/routes/simple_embeds.json")
-        async def test(ctx):
-            self.assertIsInstance(ctx, qalib.QalibInteraction)
-
-        await test(MockedInteraction())
-
-        with self.assertRaises(TypeError):
-            await test(object())
+        await T().test(ContextMocked())

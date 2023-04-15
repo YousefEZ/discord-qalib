@@ -1,37 +1,38 @@
-from typing import Optional
-import discord.ext.commands
+from typing import TYPE_CHECKING, List, Literal, Optional, cast
 
+import discord.ext.commands
 import discord.ui
 from mock import Mock
 
+raw_data = {
+    "id": 0,
+    "custom_id": "",
+    "type": 3,
+    "component_type": 2,
+    "application_id": 10,
+    "token": "token",
+    "version": 1,
+}
+
+if TYPE_CHECKING:
+    from discord.types.interactions import Interaction as InteractionPayload
+
 
 class MockedInteraction(discord.Interaction):
-    data = {
-        "id": 0,
-        "application_id": 0,
-        "token": "token",
-        "version": 1,
-        "type": 1
-    }
-
     def __init__(self):
-        super().__init__(data=MockedInteraction.data, state=Mock())
-
-
-class MockedView:
-
-    def __init__(self, timeout: Optional[int] = 180):
-        self.children = []
-        self.timeout = timeout
-
-    def add_item(self, item: discord.ui.Item):
-        self.children.append(item)
+        super().__init__(data=cast(InteractionPayload, raw_data) if TYPE_CHECKING else raw_data, state=Mock())
 
 
 class MessageMocked:
-
-    def __init__(self, author=Mock(), channel=Mock(), content: str = "", embed: Optional[discord.Embed] = None,
-                 view: Optional[discord.ui.View] = None, **kwargs):
+    def __init__(
+            self,
+            author=Mock(),
+            channel=Mock(),
+            content: str = "",
+            embed: Optional[discord.Embed] = None,
+            view: Optional[discord.ui.View] = None,
+            **kwargs,
+    ):
         self.author = author
         self.channel = channel
         self.content = content
@@ -39,17 +40,8 @@ class MessageMocked:
         self.view = view
         self._state = Mock()
 
-    async def edit(self, author=None, channel=None, content=None, embed: Optional[discord.Embed] = None,
-                   view: Optional[discord.ui.View] = None):
-        self.author = author
-        self.channel = channel
-        self.content = content
-        self.embed = embed
-        self.view = view
-
 
 class BotMocked:
-
     def __init__(self):
         self.message = MessageMocked()
 
@@ -63,7 +55,6 @@ class BotMocked:
 
 
 class ContextMocked(discord.ext.commands.Context):
-
     def __init__(self):
         self.message = MessageMocked()
         self.bot = BotMocked()
