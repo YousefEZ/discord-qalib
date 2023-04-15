@@ -11,7 +11,7 @@
         }
       ],
       "footer": {
-        "icon": "http://www.google.com/favicon.ico",
+        "icon_url": "http://www.google.com/favicon.ico",
         "text": "Test"
       },
       "thumbnail": "http://www.google.com/images/logo.gif",
@@ -30,7 +30,7 @@
         }
       ],
       "footer": {
-        "icon": "http://www.google.com/favicon.ico",
+        "icon_url": "http://www.google.com/favicon.ico",
         "text": "Test"
       },
       "thumbnail": "http://www.google.com/images/logo.gif",
