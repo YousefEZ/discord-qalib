@@ -1,16 +1,17 @@
-from typing import Any, Optional, Dict
+from typing import Any, Dict, Generic, Optional
 
 import discord.ext.commands
 import discord.message
 
 from qalib.renderer import Renderer
-from qalib.translators import Message, Callback
+from qalib.translators import Callback, Message
+from qalib.translators.parser import K
 
 
-class QalibContext(discord.ext.commands.Context):
+class QalibContext(discord.ext.commands.context.Context, Generic[K]):
     """QalibContext object is responsible for handling messages that are to be sent to the client."""
 
-    def __init__(self, ctx: discord.ext.commands.context, renderer: Renderer):
+    def __init__(self, ctx: discord.ext.commands.context.Context, renderer: Renderer[K]):
         """Constructor for the QalibContext object
 
         Args:
@@ -32,7 +33,7 @@ class QalibContext(discord.ext.commands.Context):
             command_failed=ctx.command_failed,
             current_parameter=ctx.current_parameter,
             current_argument=ctx.current_argument,
-            interaction=ctx.interaction
+            interaction=ctx.interaction,
         )
         self._renderer = renderer
         self._displayed: Optional[discord.message.Message] = None
@@ -50,17 +51,15 @@ class QalibContext(discord.ext.commands.Context):
 
     async def get_message(self) -> Optional[str]:
         """This method waits for a message to be sent by the user"""
-        confirm: Optional[discord.message.Message] = await self.bot.wait_for('message',
-                                                                             timeout=59.0,
-                                                                             check=self.verify)
+        confirm: Optional[discord.message.Message] = await self.bot.wait_for("message", timeout=59.0, check=self.verify)
         return confirm.content if confirm is not None else None
 
     def _render(
-            self,
-            identifier: str,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            timeout: Optional[int] = 180
+        self,
+        identifier: K,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        timeout: int = 180,
     ) -> Message:
         """This method renders the embed and the view based on the identifier string given.
 
@@ -75,12 +74,12 @@ class QalibContext(discord.ext.commands.Context):
         return self._renderer.render(identifier, callables, keywords, timeout=timeout)
 
     async def rendered_send(
-            self,
-            identifier: str,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            timeout: Optional[int] = 180,
-            **kwargs
+        self,
+        identifier: K,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        timeout: int = 180,
+        **kwargs,
     ) -> discord.message.Message:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
         message.
@@ -89,21 +88,21 @@ class QalibContext(discord.ext.commands.Context):
             identifier (str): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
-            timeout (Optional[int]): timeout for the view
+            timeout (int): timeout for the view
             **kwargs: kwargs that are passed to the context's send method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
         message = self._render(identifier, callables, keywords, timeout)
-        return await self.send(**{**message, **kwargs})
+        return await self.send(**{**message.dict(), **kwargs})
 
     async def display(
-            self,
-            key: str,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            timeout: Optional[int] = 180,
-            **kwargs
+        self,
+        key: K,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        timeout: int = 180,
+        **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
         message can take place.
@@ -112,13 +111,13 @@ class QalibContext(discord.ext.commands.Context):
             key (str): identifies the embed in the route file
             callables: callable coroutines that are called when the user interacts with the message
             keywords: keywords that are passed to the embed renderer to format the text
-            timeout (Optional[int]): timeout for the view
+            timeout (int): timeout for the view
             **kwargs: kwargs that are passed to the context send method or the message edit method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
         message = self._render(key, callables, keywords, timeout)
-        await self._display(**{**message, **kwargs})
+        await self._display(**{**message.dict(), **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client and keeping track of the message object.
@@ -132,19 +131,19 @@ class QalibContext(discord.ext.commands.Context):
             await self._displayed.edit(**kwargs)
 
     async def menu(
-            self,
-            key: str,
-            callbacks: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            **kwargs
+        self,
+        key: K,
+        callbacks: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.
 
         Args:
-            key (str): identifies the menu in the template file
+            key (K): identifies the menu in the template file
             callbacks (Dict[str, Callback]): callbacks that are called when the user interacts with the menu
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             **kwargs: kwargs that are passed to the context's send method
         """
         display = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
-        await self._display(**{**display, **kwargs})
+        await self._display(**{**display.dict(), **kwargs})
