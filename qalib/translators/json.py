@@ -287,10 +287,10 @@ class JSONDeserializer(Deserializer):
 
     # pylint: disable= too-many-locals
     def deserialize_message(
-            self,
-            message_tree: JSONMessage,
-            callables: Dict[str, Callback],
-            kwargs: Dict[str, Any],
+        self,
+        message_tree: JSONMessage,
+        callables: Dict[str, Callback],
+        kwargs: Dict[str, Any],
     ) -> Message:
         """Method to deserialize an embed into a Display NamedTuple containing the embed and the view
 
@@ -378,7 +378,7 @@ class JSONDeserializer(Deserializer):
 
     @staticmethod
     def _render_allowed_mentions(
-            allowed_mentions: AllowedMentions,
+        allowed_mentions: AllowedMentions,
     ) -> discord.AllowedMentions:
         def parse_mentions(mentions: Union[bool, List[int]]) -> Union[bool, List[Snowflake]]:
             if isinstance(mentions, bool):
@@ -490,9 +490,9 @@ class JSONDeserializer(Deserializer):
         return select
 
     def _render_select(
-            self,
-            component: Select,
-            callback: Optional[Callback],
+        self,
+        component: Select,
+        callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select menu from the given component's template
 
@@ -515,7 +515,7 @@ class JSONDeserializer(Deserializer):
 
     @staticmethod
     def _render_type_select(
-            select_type: Type[CustomSelects], component: CustomSelect, callback: Optional[Callback]
+        select_type: Type[CustomSelects], component: CustomSelect, callback: Optional[Callback]
     ) -> CustomSelects:
         """Renders a type select menu from the given component's template
 
@@ -544,9 +544,9 @@ class JSONDeserializer(Deserializer):
         return text_input
 
     def render_component(
-            self,
-            component: Components,
-            callback: Optional[Callback],
+        self,
+        component: Components,
+        callback: Optional[Callback],
     ) -> ui.Item:
         """Renders a component from the given component's template
 

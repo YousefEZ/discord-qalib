@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Concatenate, Dict, List, Optional, ParamSpec, Sequence, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, Optional, ParamSpec, Sequence, Type, TypeVar, cast
+
+try:
+    from typing import Concatenate
+except ImportError:
+    from typing_extensions import Concatenate
+
 from xml.etree import ElementTree
 
 import discord
@@ -27,7 +33,8 @@ from qalib.translators.message_parsing import (
     make_emoji,
     Field,
     Footer,
-    Author, TextInputComponent,
+    Author,
+    TextInputComponent,
 )
 from qalib.translators.parser import K, Parser
 
@@ -140,10 +147,10 @@ class XMLDeserializer(Deserializer):
         return self.deserialize_message(ElementTree.fromstring(source), callables, kw)
 
     def deserialize_message(
-            self,
-            message_tree: ElementTree.Element,
-            callables: Dict[str, Callback],
-            kwargs: Dict[str, Any],
+        self,
+        message_tree: ElementTree.Element,
+        callables: Dict[str, Callback],
+        kwargs: Dict[str, Any],
     ) -> Message:
         """Deserializes an embed from an ElementTree.Element, and returns it as a Display object.
 
@@ -165,10 +172,10 @@ class XMLDeserializer(Deserializer):
             return None if (element := element_tree.find(child)) is None else element
 
         def apply(
-                element: Optional[M],
-                func: Callable[Concatenate[M, P], N],
-                *args: P.args,
-                **keyword_args: P.kwargs,
+            element: Optional[M],
+            func: Callable[Concatenate[M, P], N],
+            *args: P.args,
+            **keyword_args: P.kwargs,
         ) -> Optional[N]:
             if element is None:
                 return None
@@ -255,7 +262,7 @@ class XMLDeserializer(Deserializer):
 
     @staticmethod
     def _render_reference(
-            reference_tree: ElementTree.Element,
+        reference_tree: ElementTree.Element,
     ) -> discord.MessageReference:
         """Renders a message reference object from an ElementTree.Element.
 
@@ -295,7 +302,7 @@ class XMLDeserializer(Deserializer):
             return self.get_attribute(element, "mention").lower() != "false"
 
         def extract_tags(
-                element: Optional[ElementTree.Element], child_tag: Optional[str] = None
+            element: Optional[ElementTree.Element], child_tag: Optional[str] = None
         ) -> bool | Sequence[Snowflake]:
             if element is None:
                 return True
@@ -319,10 +326,10 @@ class XMLDeserializer(Deserializer):
         )
 
     def _render_view(
-            self,
-            raw_view: ElementTree.Element,
-            callables: Dict[str, Callback],
-            kwargs: Dict[str, Any],
+        self,
+        raw_view: ElementTree.Element,
+        callables: Dict[str, Callback],
+        kwargs: Dict[str, Any],
     ) -> ui.View:
         """Renders a view from an ElementTree.Element.
 
@@ -509,9 +516,9 @@ class XMLDeserializer(Deserializer):
         return options
 
     def _render_select(
-            self,
-            component: ElementTree.Element,
-            callback: Optional[Callback],
+        self,
+        component: ElementTree.Element,
+        callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select based on the template in the element, and formatted values given by the keywords.
 
@@ -552,10 +559,10 @@ class XMLDeserializer(Deserializer):
         return select
 
     def _render_type_select(
-            self,
-            component: ElementTree.Element,
-            callback: Optional[Callback],
-            select_base: Type[ui.UserSelect | ui.RoleSelect | ui.MentionableSelect],
+        self,
+        component: ElementTree.Element,
+        callback: Optional[Callback],
+        select_base: Type[ui.UserSelect | ui.RoleSelect | ui.MentionableSelect],
     ) -> ui.UserSelect | ui.RoleSelect | ui.MentionableSelect:
         """Renders a type select based on the template in the element, and formatted values given by the keywords.
 
@@ -612,7 +619,7 @@ class XMLDeserializer(Deserializer):
         return renderer(component, callback)
 
     def render_components(
-            self, view: ElementTree.Element, callables: Optional[Dict[str, Callback]] = None
+        self, view: ElementTree.Element, callables: Optional[Dict[str, Callback]] = None
     ) -> List[ui.Item]:
         """Renders a list of components based on the identifier given.
 

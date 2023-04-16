@@ -79,11 +79,11 @@ class Renderer(Generic[K]):
         return self._parser
 
     def render(
-            self,
-            key: K,
-            callbacks: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            timeout: int = 180,
+        self,
+        key: K,
+        callbacks: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        timeout: int = 180,
     ) -> Message:
         """This method is used to render an embed and a view, and places it in a NamedTuple
 
@@ -106,12 +106,12 @@ class Renderer(Generic[K]):
         return self._deserializer.deserialize_into_message(embed, callbacks, timeout=timeout)
 
     def render_menu(
-            self,
-            key: K,
-            callbacks: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            timeout: Optional[int] = 180,
-            **kwargs,
+        self,
+        key: K,
+        callbacks: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        timeout: Optional[int] = 180,
+        **kwargs,
     ) -> Message:
         """This method is used to create a menu for the user to select from.
 
@@ -145,10 +145,10 @@ class Renderer(Generic[K]):
         return messages[0]
 
     def render_modal(
-            self,
-            key: K,
-            methods: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
+        self,
+        key: K,
+        methods: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
     ) -> discord.ui.Modal:
         if methods is None:
             methods = {}
