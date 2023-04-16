@@ -6,12 +6,12 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Coroutine, ParamSpec, TypeVar, Union, cast, overload
+from typing import Any, Callable, Coroutine, TypeVar, Union, cast, overload
 
 try:
-    from typing import Concatenate
+    from typing import Concatenate, ParamSpec
 except ImportError:
-    from typing_extensions import Concatenate
+    from typing_extensions import Concatenate, ParamSpec
 
 import discord
 import discord.ext.commands

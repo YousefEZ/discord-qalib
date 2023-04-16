@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, ParamSpec, Sequence, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, TypeVar, cast
 
 try:
-    from typing import Concatenate
+    from typing import Concatenate, ParamSpec
 except ImportError:
-    from typing_extensions import Concatenate
+    from typing_extensions import Concatenate, ParamSpec
 
 from xml.etree import ElementTree
 
