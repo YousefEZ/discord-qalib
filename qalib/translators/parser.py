@@ -5,7 +5,7 @@ from typing import Any, Dict, Generic, TypeVar
 
 from qalib.template_engines.template_engine import TemplateEngine
 
-K = TypeVar("K", bound=str)
+K = TypeVar("K", bound=str, contravariant=True)
 
 
 class Parser(ABC, Generic[K]):
