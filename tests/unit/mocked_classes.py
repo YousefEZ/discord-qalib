@@ -1,8 +1,10 @@
-from typing import TYPE_CHECKING, List, Literal, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast, Callable, Any
 
 import discord.ext.commands
 import discord.ui
 from mock import Mock
+
+from qalib import Coro
 
 raw_data = {
     "id": 0,
@@ -26,8 +28,8 @@ class MockedInteraction(discord.Interaction):
 class MessageMocked:
     def __init__(
             self,
-            author=Mock(),
-            channel=Mock(),
+            author: str = "",
+            channel: int = 0,
             content: str = "",
             embed: Optional[discord.Embed] = None,
             view: Optional[discord.ui.View] = None,
@@ -41,33 +43,26 @@ class MessageMocked:
         self._state = Mock()
 
 
-class BotMocked:
+class BotMocked(discord.ext.commands.Bot):
     def __init__(self):
-        self.message = MessageMocked()
+        super().__init__(command_prefix="!", intents=discord.Intents.all())
+        self.message: discord.Message = cast(discord.Message, MessageMocked())
 
-    def inject_message(self, message):
+    def inject_message(self, message: discord.Message):
         self.message = message
 
-    async def wait_for(self, event, timeout, check):
-        message = MessageMocked(content="Hello World") if self.message is None else self.message
-        if event == "message" and check(message):
+    def wait_for(
+            self,
+            event: str,
+            /,
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+    ) -> Coro[Any]:
+        async def get_message() -> discord.Message:
+            message = cast(discord.Message,
+                           MessageMocked(content="Hello World")) if self.message is None else self.message
+            assert event == "message" and (check is None or check(message))
             return message
 
-
-class ContextMocked(discord.ext.commands.Context):
-    def __init__(self):
-        self.message = MessageMocked()
-        self.bot = BotMocked()
-        self.view = None
-        self.args = None
-        self.kwargs = None
-        self.prefix = None
-        self.command = None
-        self.invoked_with = None
-        self.invoked_parents = None
-        self.invoked_subcommand = None
-        self.subcommand_passed = None
-        self.command_failed = None
-        self.current_parameter = None
-        self.current_argument = None
-        self.interaction = None
+        return get_message()
