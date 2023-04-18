@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Any, Dict, Generic, List, Optional
+from typing import Any, Dict, Generic, List, Optional, cast
 
 import discord.ui
 
@@ -53,15 +53,15 @@ class Renderer(Generic[K]):
 
     __slots__ = ("_template_engine", "_parser", "_filename", "_deserializer")
 
-    def __init__(self, template_engine: TemplateEngine, filename: str, *rendering_options):
+    def __init__(self, template_engine: TemplateEngine, filename: str, *rendering_options: RenderingOptions):
         self._template_engine = template_engine
-        self._parser: Optional[Parser] = None
+        self._parser: Optional[Parser[K]] = None
         if RenderingOptions.PRE_TEMPLATE not in rendering_options:
-            self._parser = ParserFactory.get_parser(filename)
+            self._parser = cast(Parser[K], ParserFactory.get_parser(filename))
         self._filename = filename
         self._deserializer = DeserializerFactory.get_deserializer(filename)
 
-    def _pre_template(self, keywords: Dict[str, Any]) -> Parser:
+    def _pre_template(self, keywords: Dict[str, Any]) -> Parser[K]:
         """Pre-Template templates the document before further processing. It returns a Parser instance that contains
         the data that is used to render the embeds and views.
 
@@ -72,9 +72,12 @@ class Renderer(Generic[K]):
         """
         if self._parser is None:
             with open(self._filename, "r", encoding="utf-8") as file:
-                return ParserFactory.get_parser(
-                    self._filename,
-                    source=self._template_engine.template(file.read(), keywords),
+                return cast(
+                    Parser[K],
+                    ParserFactory.get_parser(
+                        self._filename,
+                        source=self._template_engine.template(file.read(), keywords),
+                    ),
                 )
         return self._parser
 
