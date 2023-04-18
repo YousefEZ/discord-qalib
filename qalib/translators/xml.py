@@ -3,18 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Sequence, Type, TypeVar, cast
-
-try:
-    from typing import Concatenate, ParamSpec
-except ImportError:
-    from typing_extensions import Concatenate, ParamSpec
-
 from xml.etree import ElementTree
 
 import discord
 import discord.types.embed as embed_types
 from discord import ui
 from discord.abc import Snowflake
+from typing_extensions import Concatenate, ParamSpec
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, DiscordIdentifier, Message
@@ -420,8 +415,7 @@ class XMLDeserializer(Deserializer):
 
         Returns (List[dict]): A list of dictionaries containing the raw fields.
         """
-        if fields_element is None:
-            raise ValueError("Expected Fields For Embed")
+        assert fields_element is not None, "Expected Fields For Embed"
 
         return [
             {
