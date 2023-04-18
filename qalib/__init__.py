@@ -6,16 +6,10 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Coroutine, TypeVar, Union, cast, overload
-
-try:
-    from typing import Concatenate, ParamSpec
-except ImportError:
-    from typing_extensions import Concatenate, ParamSpec
+from typing import Any, Callable, TypeVar, Coroutine
 
 import discord
-import discord.ext.commands
-from discord.ext.commands import Context
+from discord.ext import commands
 
 from .context import QalibContext
 from .interaction import QalibInteraction
@@ -30,36 +24,13 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2022-present YousefEZ"
 __version__ = "2.0.0"
 
-from .translators.parser import K
 
-ContextT = TypeVar("ContextT", bound=Context[Any])
-CogT = TypeVar("CogT", bound=discord.ext.commands.Cog)
 T = TypeVar("T")
-P = ParamSpec("P")
 Coro = Coroutine[Any, Any, T]
 
-PreWrappedContextFunction = Callable[Concatenate[QalibContext, P], Coro[T]]
-PreWrappedContextMethod = Callable[Concatenate[CogT, QalibContext, P], Coro[T]]
-
-PostWrappedContextFunction = Callable[Concatenate[ContextT, P], Coro[T]]
-PostWrappedContextMethod = Callable[Concatenate[CogT, ContextT, P], Coro[T]]
-
-PreWrappedInteractionFunction = Callable[Concatenate[QalibInteraction, P], Coro[T]]
-PreWrappedInteractionMethod = Callable[Concatenate[CogT, QalibInteraction, P], Coro[T]]
-
-PostWrappedInteractionFunction = Callable[Concatenate[discord.Interaction, P], Coro[T]]
-PostWrappedInteractionMethod = Callable[Concatenate[CogT, discord.Interaction, P], Coro[T]]
-
-
 def qalib_context(
-    template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
-) -> Union[
-    Callable[[PreWrappedContextFunction[P, T]], PostWrappedContextFunction[ContextT, P, T]],
-    Callable[
-        [PreWrappedContextMethod[CogT, P, T]],
-        PostWrappedContextMethod[CogT, ContextT, P, T],
-    ],
-]:
+        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
     """This decorator is used to create a QalibContext object, and pass it to the function as it's first argument,
     overriding the default context.
 
@@ -72,28 +43,17 @@ def qalib_context(
     """
     renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
 
-    @overload
-    def command(func: PreWrappedContextFunction[P, T]) -> PostWrappedContextFunction[ContextT, P, T]:
-        ...
-
-    @overload
-    def command(func: PreWrappedContextMethod[CogT, P, T]) -> PostWrappedContextMethod[CogT, ContextT, P, T]:
-        ...
-
-    def command(
-        func: Union[PreWrappedContextFunction[P, T], PreWrappedContextMethod[CogT, P, T]]
-    ) -> Union[PostWrappedContextFunction[ContextT, P, T], PostWrappedContextMethod[CogT, ContextT, P, T]]:
+    def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
-
-            async def method(self: CogT, ctx: ContextT, *args: P.args, **kwargs: P.kwargs) -> T:
-                cog_method = cast(PreWrappedContextMethod[CogT, P, T], func)
-                return await cog_method(self, QalibContext(ctx, renderer_instance), *args, **kwargs)
+            async def method(self: commands.Cog, ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
+                qalib_ctx: QalibContext[str] = QalibContext(ctx, renderer_instance)
+                return await func(self, qalib_ctx, *args, **kwargs)
 
             return method
 
-        async def function(ctx: ContextT, *args: P.args, **kwargs: P.kwargs) -> T:
-            bot_command = cast(PreWrappedContextFunction[P, T], func)
-            return await bot_command(QalibContext(ctx, renderer_instance), *args, **kwargs)
+        async def function(ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
+            qalib_ctx: QalibContext[str] = QalibContext(ctx, renderer_instance)
+            return await func(qalib_ctx, *args, **kwargs)
 
         return function
 
@@ -101,11 +61,8 @@ def qalib_context(
 
 
 def qalib_interaction(
-    template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
-) -> Union[
-    Callable[[PreWrappedInteractionFunction[P, T]], PostWrappedInteractionFunction[P, T]],
-    Callable[[PreWrappedInteractionMethod[CogT, P, T]], PostWrappedInteractionMethod[CogT, P, T]],
-]:
+        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
     """This decorator is used to create a QalibInteraction object, and pass it to the function as it's first argument,
     overriding the default interaction.
 
@@ -119,33 +76,20 @@ def qalib_interaction(
     """
     renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
 
-    @overload
-    def command(func: PreWrappedInteractionFunction[P, T]) -> PostWrappedInteractionFunction[P, T]:
-        ...
-
-    @overload
-    def command(func: PreWrappedInteractionMethod[CogT, P, T]) -> PostWrappedInteractionMethod[CogT, P, T]:
-        ...
-
-    def command(
-        func: Union[PreWrappedInteractionFunction[P, T], PreWrappedInteractionMethod[CogT, P, T]]
-    ) -> Union[PostWrappedInteractionFunction[P, T], PostWrappedInteractionMethod[CogT, P, T]]:
+    def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
-
             async def method(
-                self: CogT,
-                inter: discord.Interaction,
-                *args: P.args,
-                **kwargs: P.kwargs,
+                    self: commands.Cog,
+                    inter: discord.Interaction,
+                    *args: Any,
+                    **kwargs: Any,
             ) -> T:
-                cog_method = cast(PreWrappedInteractionMethod[CogT, P, T], func)
-                return await cog_method(self, QalibInteraction(inter, renderer_instance), *args, **kwargs)
+                return await func(self, QalibInteraction(inter, renderer_instance), *args, **kwargs)
 
             return method
 
-        async def function(inter: discord.Interaction, *args: P.args, **kwargs: P.kwargs) -> T:
-            bot_command = cast(PreWrappedInteractionFunction[P, T], func)
-            return await bot_command(QalibInteraction(inter, renderer_instance), *args, **kwargs)
+        async def function(inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
+            return await func(QalibInteraction(inter, renderer_instance), *args, **kwargs)
 
         return function
 
