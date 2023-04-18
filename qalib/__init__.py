@@ -24,12 +24,12 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2022-present YousefEZ"
 __version__ = "2.0.0"
 
-
 T = TypeVar("T")
 Coro = Coroutine[Any, Any, T]
 
+
 def qalib_context(
-        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+    template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
 ) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
     """This decorator is used to create a QalibContext object, and pass it to the function as it's first argument,
     overriding the default context.
@@ -45,6 +45,7 @@ def qalib_context(
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
+
             async def method(self: commands.Cog, ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
                 qalib_ctx: QalibContext[str] = QalibContext(ctx, renderer_instance)
                 return await func(self, qalib_ctx, *args, **kwargs)
@@ -61,7 +62,7 @@ def qalib_context(
 
 
 def qalib_interaction(
-        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+    template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
 ) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
     """This decorator is used to create a QalibInteraction object, and pass it to the function as it's first argument,
     overriding the default interaction.
@@ -78,11 +79,12 @@ def qalib_interaction(
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
+
             async def method(
-                    self: commands.Cog,
-                    inter: discord.Interaction,
-                    *args: Any,
-                    **kwargs: Any,
+                self: commands.Cog,
+                inter: discord.Interaction,
+                *args: Any,
+                **kwargs: Any,
             ) -> T:
                 return await func(self, QalibInteraction(inter, renderer_instance), *args, **kwargs)
 

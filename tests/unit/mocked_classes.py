@@ -11,14 +11,7 @@ button_message_component = {
     "component_type": 2,
 }
 
-raw_data = {
-    "id": 0,
-    "application_id": 10,
-    "token": "token",
-    "version": 1,
-    "type": 3,
-    "data": button_message_component
-}
+raw_data = {"id": 0, "application_id": 10, "token": "token", "version": 1, "type": 3, "data": button_message_component}
 
 
 class MockedInteraction(discord.Interaction):
@@ -34,12 +27,12 @@ class MockedInteraction(discord.Interaction):
 
 class MessageMocked:
     def __init__(
-            self,
-            author: str = "",
-            channel: int = 0,
-            content: str = "",
-            embed: Optional[discord.Embed] = None,
-            view: Optional[discord.ui.View] = None,
+        self,
+        author: str = "",
+        channel: int = 0,
+        content: str = "",
+        embed: Optional[discord.Embed] = None,
+        view: Optional[discord.ui.View] = None,
     ):
         self.author = author
         self.channel = channel
@@ -58,16 +51,17 @@ class BotMocked(discord.ext.commands.Bot):
         self.message = message
 
     def wait_for(
-            self,
-            event: str,
-            /,
-            *,
-            check: Optional[Callable[..., bool]] = None,
-            timeout: Optional[float] = None,
+        self,
+        event: str,
+        /,
+        *,
+        check: Optional[Callable[..., bool]] = None,
+        timeout: Optional[float] = None,
     ) -> Coro[Any]:
         async def get_message() -> discord.Message:
-            message = cast(discord.Message,
-                           MessageMocked(content="Hello World")) if self.message is None else self.message
+            message = (
+                cast(discord.Message, MessageMocked(content="Hello World")) if self.message is None else self.message
+            )
             assert event == "message" and (check is None or check(message))
             return message
 

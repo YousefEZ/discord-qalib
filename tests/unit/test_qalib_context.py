@@ -25,9 +25,9 @@ from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals
 @mock.patch("qalib.QalibContext.send")
 class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     def setUp(self, *args: mock.mock.MagicMock):
-        self.ctx = discord.ext.commands.Context(message=cast(discord.message.Message, MessageMocked()),
-                                                bot=BotMocked(),
-                                                view=StringView(""))
+        self.ctx = discord.ext.commands.Context(
+            message=cast(discord.message.Message, MessageMocked()), bot=BotMocked(), view=StringView("")
+        )
 
     async def test_xml_context(self, *args: mock.mock.MagicMock):
         context: QalibContext[SimpleEmbeds] = QalibContext(
@@ -38,15 +38,17 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
     async def test_xml_get_message(self, *_: mock.mock.MagicMock):
         author, channel = "Yousef", 346712637812
-        self.ctx.message = cast(discord.Message,
-                                MessageMocked(author=author, channel=channel, content="Original Message"))
+        self.ctx.message = cast(
+            discord.Message, MessageMocked(author=author, channel=channel, content="Original Message")
+        )
 
         # simulate a message being received
         waiting_message = cast(discord.Message, MessageMocked(author=author, channel=channel, content="Burning"))
         self.ctx.bot.inject_message(waiting_message)
 
-        context: QalibContext[SimpleEmbeds] = QalibContext(self.ctx,
-                                                           Renderer(Formatter(), "tests/routes/simple_embeds.xml"))
+        context: QalibContext[SimpleEmbeds] = QalibContext(
+            self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.xml")
+        )
         self.assertEqual(await context.get_message(), waiting_message.content)
 
     async def message_display_test(self, path: str, message: mock.mock.MagicMock):
@@ -62,8 +64,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await self.message_display_test("tests/routes/full_embeds.xml", args[0])
 
     async def test_xml_rendered_send_message(self, *args: mock.mock.MagicMock):
-        context: QalibContext[FullEmbeds] = QalibContext(self.ctx,
-                                                         Renderer(Formatter(), "tests/routes/full_embeds.xml"))
+        context: QalibContext[FullEmbeds] = QalibContext(
+            self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        )
 
         await context.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
         args[0].assert_called_once()
@@ -84,8 +87,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await context.display("test_key", keywords={"todays_date": datetime.datetime.now()})
 
     async def test_xml_display_message_with_buttons(self, *args: mock.mock.MagicMock):
-        context: QalibContext[FullEmbeds] = QalibContext(self.ctx,
-                                                         Renderer(Formatter(), "tests/routes/full_embeds.xml"))
+        context: QalibContext[FullEmbeds] = QalibContext(
+            self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        )
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
 
@@ -98,8 +102,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         args[0].assert_called_once()
 
     async def test_interaction_menu(self, *args: mock.mock.MagicMock):
-        interaction: QalibInteraction[Menus] = QalibInteraction(MockedInteraction(),
-                                                                Renderer(Formatter(), "tests/routes/menus.xml"))
+        interaction: QalibInteraction[Menus] = QalibInteraction(
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/menus.xml")
+        )
 
         await interaction.menu("Menu1")
         args[-1].assert_called_once()
@@ -127,8 +132,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
 
     async def test_xml_modal_display(self, *args: mock.mock.MagicMock):
-        interaction: QalibInteraction[Modals] = QalibInteraction(MockedInteraction(),
-                                                                 Renderer(Formatter(), "tests/routes/modal.xml"))
+        interaction: QalibInteraction[Modals] = QalibInteraction(
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/modal.xml")
+        )
 
         await interaction.respond_with_modal("modal1")
         modal = args[-2].call_args.args[0]
@@ -174,7 +180,8 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
     async def test_rendered_send_interaction(self, *args: mock.mock.MagicMock):
         interaction: QalibInteraction[FullEmbeds] = QalibInteraction(
-            MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml"))
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        )
 
         await interaction.rendered_send("test_key", keywords={"todays_date": datetime.datetime.now()})
         args[-1].assert_called_once()
@@ -184,14 +191,16 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
     async def test_xml_display_message_interaction(self, *_: mock.mock.MagicMock):
         interaction: QalibInteraction[FullEmbeds] = QalibInteraction(
-            MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml"))
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        )
 
         await interaction.display("test_key", keywords={"todays_date": datetime.datetime.now()})
         await interaction.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
 
     async def test_json_context(self, *args: mock.mock.MagicMock):
-        context: QalibContext[SimpleEmbeds] = QalibContext(self.ctx,
-                                                           Renderer(Formatter(), "tests/routes/simple_embeds.json"))
+        context: QalibContext[SimpleEmbeds] = QalibContext(
+            self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.json")
+        )
         await context.display("Launch")
 
         args[0].assert_called_once()
@@ -200,8 +209,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await self.message_display_test("tests/routes/full_embeds.json", args[0])
 
     async def test_json_display_message_with_buttons(self, *args: mock.mock.MagicMock):
-        context: QalibContext[FullEmbeds] = QalibContext(self.ctx,
-                                                         Renderer(Formatter(), "tests/routes/full_embeds.json"))
+        context: QalibContext[FullEmbeds] = QalibContext(
+            self.ctx, Renderer(Formatter(), "tests/routes/full_embeds.json")
+        )
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(args[1].return_value.add_item.call_count, 5)
@@ -217,8 +227,9 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), "tests/routes/simple_embeds.xml")
         launch1 = renderer.render("Launch")
         arrow = create_arrows(left=launch1)[0]
-        with mock.patch('discord.interactions.InteractionResponse.edit_message',
-                        new_callable=mock.mock.AsyncMock) as inter:
+        with mock.patch(
+            'discord.interactions.InteractionResponse.edit_message', new_callable=mock.mock.AsyncMock
+        ) as inter:
             await arrow.callback(MockedInteraction())
             inter.assert_called_once()
 
@@ -239,9 +250,11 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         async def test(ctx: QalibContext[SimpleEmbeds]):
             self.assertIsInstance(ctx, QalibContext)
 
-        await test(discord.ext.commands.Context(message=cast(discord.message.Message, MessageMocked()),
-                                                bot=BotMocked(),
-                                                view=StringView("")))
+        await test(
+            discord.ext.commands.Context(
+                message=cast(discord.message.Message, MessageMocked()), bot=BotMocked(), view=StringView("")
+            )
+        )
 
     async def test_cog_decorator(self, *_: mock.mock.MagicMock):
         test_obj = self
@@ -251,6 +264,8 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
             async def test(self, ctx):
                 test_obj.assertIsInstance(ctx, QalibContext)
 
-        await T().test(discord.ext.commands.Context(message=cast(discord.message.Message, MessageMocked()),
-                                                    bot=BotMocked(),
-                                                    view=StringView("")))
+        await T().test(
+            discord.ext.commands.Context(
+                message=cast(discord.message.Message, MessageMocked()), bot=BotMocked(), view=StringView("")
+            )
+        )
