@@ -36,6 +36,7 @@ and can be used in the source code as such
 
 ```py
 from dataclasses import dataclass
+from typing import Literal
 
 import discord
 from discord.ext import commands
@@ -45,6 +46,7 @@ from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["balance"]
 
 @dataclass
 class Player:
@@ -54,7 +56,7 @@ class Player:
 
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/balance.xml")
-def balance(ctx, name: str):
+def balance(ctx: qalib.QalibContext[Messages], name: str):
     await ctx.rendered_send("balance", keywords={"player": Player(name, 1000.0)})
 
 ```
