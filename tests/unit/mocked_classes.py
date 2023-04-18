@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, cast, Callable, Any
+from typing import Optional, cast, Callable, Any, TYPE_CHECKING
 
 import discord.ext.commands
 import discord.ui
@@ -6,23 +6,30 @@ from mock import Mock
 
 from qalib import Coro
 
+button_message_component = {
+    "custom_id": "custom_id",
+    "component_type": 2,
+}
+
 raw_data = {
     "id": 0,
-    "custom_id": "",
-    "type": 3,
-    "component_type": 2,
     "application_id": 10,
     "token": "token",
     "version": 1,
+    "type": 3,
+    "data": button_message_component
 }
-
-if TYPE_CHECKING:
-    from discord.types.interactions import Interaction as InteractionPayload
 
 
 class MockedInteraction(discord.Interaction):
     def __init__(self):
-        super().__init__(data=cast(InteractionPayload, raw_data) if TYPE_CHECKING else raw_data, state=Mock())
+        if TYPE_CHECKING:
+            from discord.types.interactions import Interaction as InteractionPayload
+
+            super().__init__(data=cast(InteractionPayload, raw_data), state=Mock())
+
+        else:
+            super().__init__(data=raw_data, state=Mock())
 
 
 class MessageMocked:
@@ -33,7 +40,6 @@ class MessageMocked:
             content: str = "",
             embed: Optional[discord.Embed] = None,
             view: Optional[discord.ui.View] = None,
-            **kwargs,
     ):
         self.author = author
         self.channel = channel
