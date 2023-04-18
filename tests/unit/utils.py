@@ -6,5 +6,5 @@ from qalib.translators import Message
 
 def render_message(path: str, key: str, **kwargs: Any) -> Message:
     renderer: Renderer[str] = Renderer(Formatter(), path)
-    message = renderer.render("Launch", keywords=kwargs)
+    message = renderer.render(key, keywords=kwargs)
     return message
