@@ -1,6 +1,6 @@
 import datetime
 import unittest
-from typing import Literal, Type
+from typing import Literal
 
 import discord.ui
 import mock
@@ -12,6 +12,7 @@ SimpleEmbeds = Literal["Launch", "Launch2"]
 FullEmbeds = Literal["Launch", "test_key", "test_key2", "test_key3"]
 SelectEmbeds = Literal["Launch"]
 CompleteEmbeds = Literal["content_test", "tts_test", "file_test", "allowed_mentions_test"]
+ErrorEmbeds = Literal["test1", "test2"]
 
 
 class TestJSONRenderer(unittest.TestCase):
@@ -90,13 +91,13 @@ class TestJSONRenderer(unittest.TestCase):
     @mock.patch("discord.ui.View")
     def test_emoji_error(self, _: mock.mock.MagicMock):
         path = "tests/routes/error.json"
-        renderer = Renderer(Formatter(), path)
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
         self.assertRaises(ValueError, renderer.render, "test1")
 
     @mock.patch("discord.ui.View")
     def test_element_error(self, _: mock.mock.MagicMock):
         path = "tests/routes/error.json"
-        renderer = Renderer(Formatter(), path)
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render, "test2")
 
     def test_content_rendering(self):
@@ -117,6 +118,7 @@ class TestJSONRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
         message = renderer.render("file_test")
+        assert message.file is not None
         self.assertIsInstance(message.file, discord.File)
         self.assertEqual(message.file.filename, "complete_messages.xml")
 
@@ -125,5 +127,6 @@ class TestJSONRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
         message = renderer.render("allowed_mentions_test")
+        assert message.allowed_mentions is not None
         self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
         self.assertFalse(message.allowed_mentions.everyone)
