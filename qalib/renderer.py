@@ -27,7 +27,7 @@ def create_arrows(left: Optional[Message] = None, right: Optional[Message] = Non
     """
 
     def view(message: Message) -> Callback:
-        async def callback(_, interaction):
+        async def callback(interaction: discord.Interaction):
             await interaction.response.edit_message(**{**message.dict(), **kwargs})
 
         return callback

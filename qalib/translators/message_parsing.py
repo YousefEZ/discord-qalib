@@ -31,7 +31,7 @@ __all__ = (
 
 from typing_extensions import NotRequired
 
-from qalib.translators import Callback
+from qalib.translators import Callback, CallbackMethod
 
 CustomSelects = Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]
 
@@ -169,6 +169,22 @@ class TextInputComponent(TextInputRaw):
     callback: NotRequired[Callback]
 
 
+def make_a_method_from_callback(callback: Callback) -> CallbackMethod:
+    """This function creates a method from a callback.
+
+    Args:
+        callback (Callback): the callback to be used.
+
+    Returns:
+        Callable: the method.
+    """
+
+    async def method(_, interaction: discord.Interaction):
+        await callback(interaction)
+
+    return method
+
+
 def make_colour(colour: str) -> Union[discord.Colour, int]:
     """maps the name of a colour to its value
     Args:
@@ -209,7 +225,7 @@ def create_button(component: ButtonComponent) -> ui.Button:
     if "callback" in component:
         button = cast(
             Type[ui.Button],
-            type(ui.Button.__name__, (ui.Button,), {"callback": component["callback"]}),
+            type(ui.Button.__name__, (ui.Button,), {"callback": make_a_method_from_callback(component["callback"])}),
         )
 
     return button(
@@ -231,7 +247,7 @@ def create_channel_select(**kwargs) -> ui.ChannelSelect:
             type(
                 ui.ChannelSelect.__name__,
                 (ui.ChannelSelect,),
-                {"callback": kwargs["callback"]},
+                {"callback": make_a_method_from_callback(kwargs["callback"])},
             ),
         )
     return channel_select(
@@ -250,7 +266,7 @@ def create_select(**kwargs) -> ui.Select:
     if kwargs.get("callback") is not None:
         select = cast(
             Type[ui.Select],
-            type(ui.Select.__name__, (ui.Select,), {"callback": kwargs["callback"]}),
+            type(ui.Select.__name__, (ui.Select,), {"callback": make_a_method_from_callback(kwargs["callback"])}),
         )
 
     return select(
@@ -268,7 +284,7 @@ def create_type_select(select: SelectTypes, **kwargs) -> Union[ui.RoleSelect, ui
     if kwargs.get("callback") is not None:
         select = cast(
             SelectTypes,
-            type(select.__name__, (select,), {"callback": kwargs["callback"]}),
+            type(select.__name__, (select,), {"callback": make_a_method_from_callback(kwargs["callback"])}),
         )
 
     return select(
@@ -286,7 +302,11 @@ def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     if "callback" in text_input_component:
         text_input = cast(
             Type[ui.TextInput],
-            type(ui.TextInput.__name__, (ui.TextInput,), {"callback": text_input_component["callback"]}),
+            type(
+                ui.TextInput.__name__,
+                (ui.TextInput,),
+                {"callback": make_a_method_from_callback(text_input_component["callback"])},
+            ),
         )
     return text_input(
         label=text_input_component.get("label", ""),

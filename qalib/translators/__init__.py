@@ -6,7 +6,8 @@ from discord.abc import Snowflake
 
 V_co = TypeVar("V_co", bound=discord.ui.View, covariant=True)
 
-Callback = Callable[[discord.ui.Item[V_co], discord.Interaction], Awaitable[None]]
+Callback = Callable[[discord.Interaction], Awaitable[None]]
+CallbackMethod = Callable[[discord.ui.Item[V_co], discord.Interaction], Awaitable[None]]
 
 
 @dataclass

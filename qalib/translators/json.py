@@ -583,9 +583,7 @@ class JSONDeserializer(Deserializer):
         """
         if callables is None:
             callables = {}
-        return [
-            self.render_component(component, callables.get(key, ui.Item.callback)) for key, component in view.items()
-        ]
+        return [self.render_component(component, callables.get(key)) for key, component in view.items()]
 
     def render(self, raw_embed: Embed) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance

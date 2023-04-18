@@ -629,7 +629,7 @@ class XMLDeserializer(Deserializer):
         return [
             self.render_component(
                 component,
-                callables.get(self.get_attribute(component, "key"), ui.Item.callback),
+                callables.get(self.get_attribute(component, "key")),
             )
             for component in view
         ]
