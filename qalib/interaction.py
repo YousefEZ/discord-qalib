@@ -88,7 +88,7 @@ class QalibInteraction(discord.Interaction, Generic[K]):
         """This method renders the embed and the view based on the identifier string given.
 
         Args:
-            identifier (str): identifies the embed in the route file
+            identifier (K): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]): item callbacks
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             timeout (Optional[int]): timeout for the view
