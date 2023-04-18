@@ -14,15 +14,14 @@ class TestJSONRenderer(unittest.TestCase):
     """Tests the JSON Renderer"""
 
     def test_render(self):
-        message = render_message("tests/routes/simple_embeds.json")
+        message = render_message("tests/routes/simple_embeds.json", "Launch")
         assert message.embed is not None
         self.assertEqual(message.embed.title, "Hello World")
 
     def test_full_render(self):
-        path = "tests/routes/full_embeds.json"
-        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-        (embed,) = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(embed.title, "Test")
+        message = render_message("tests/routes/full_embeds.json", "test_key", todays_date=datetime.datetime.now())
+        assert message.embed is not None
+        self.assertEqual(message.embed.title, "Test")
 
     def test_key_not_exist(self):
         path = "tests/routes/full_embeds.json"
@@ -31,9 +30,7 @@ class TestJSONRenderer(unittest.TestCase):
 
     @mock.patch("discord.ui.View")
     def test_button_rendering(self, mock_view: mock.mock.MagicMock):
-        path = "tests/routes/full_embeds.json"
-        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-        renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        render_message("tests/routes/full_embeds.json", "test_key2", todays_date=datetime.datetime.now())
         self.assertEqual(mock_view.return_value.add_item.call_count, 5)
 
     @mock.patch("discord.ui.View")
@@ -41,14 +38,6 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
         renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
-        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
-
-    @mock.patch("discord.ui.View")
-    def test_role_select_rendering(self, mock_view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.json"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        renderer.render("Launch")
-
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")

@@ -23,7 +23,7 @@ class TestXMLRenderer(unittest.TestCase):
     """Tests the XML Renderer"""
 
     def test_render(self, _: mock.mock.MagicMock):
-        message = render_message("tests/routes/simple_embeds.xml")
+        message = render_message("tests/routes/simple_embeds.xml", "Launch")
         assert message.embed is not None
         self.assertEqual(message.embed.title, "Hello World")
 
