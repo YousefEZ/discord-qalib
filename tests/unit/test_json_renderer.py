@@ -1,28 +1,22 @@
 import datetime
 import unittest
-from typing import Literal
 
 import discord.ui
 import mock
 
 from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
-
-SimpleEmbeds = Literal["Launch", "Launch2"]
-FullEmbeds = Literal["Launch", "test_key", "test_key2", "test_key3"]
-SelectEmbeds = Literal["Launch"]
-CompleteEmbeds = Literal["content_test", "tts_test", "file_test", "allowed_mentions_test"]
-ErrorEmbeds = Literal["test1", "test2"]
+from tests.unit.types import FullEmbeds, SelectEmbeds, ErrorEmbeds, CompleteJSONMessages
+from tests.unit.utils import render_message
 
 
 class TestJSONRenderer(unittest.TestCase):
     """Tests the JSON Renderer"""
 
     def test_render(self):
-        path = "tests/routes/simple_embeds.json"
-        renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), path)
-        (embed,) = renderer.render("Launch")
-        self.assertEqual(embed.title, "Hello World")
+        message = render_message("tests/routes/simple_embeds.json")
+        assert message.embed is not None
+        self.assertEqual(message.embed.title, "Hello World")
 
     def test_full_render(self):
         path = "tests/routes/full_embeds.json"
@@ -39,52 +33,29 @@ class TestJSONRenderer(unittest.TestCase):
     def test_button_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
         self.assertEqual(mock_view.return_value.add_item.call_count, 5)
 
     @mock.patch("discord.ui.View")
     def test_select_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
-        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
-
-    @mock.patch("discord.ui.View")
-    def test_channel_select_rendering(self, mock_view: mock.mock.MagicMock):
-        path = "tests/routes/full_embeds.json"
-        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")
     def test_role_select_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/select_embeds.json"
         renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
+        renderer.render("Launch")
 
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")
-    def test_user_select_rendering(self, mock_view: mock.mock.MagicMock):
+    def test_component_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/select_embeds.json"
         renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
-
-        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
-
-    @mock.patch("discord.ui.View")
-    def test_mentionable_select_rendering(self, mock_view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.json"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
-
-        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
-
-    @mock.patch("discord.ui.View")
-    def test_text_input_rendering(self, mock_view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.json"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
+        renderer.render("Launch")
 
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
@@ -102,21 +73,21 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_content_rendering(self):
         path = "tests/routes/complete_messages.json"
-        renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), path)
-        content, _ = renderer.render("content_test")
-        self.assertEqual(content, "This is a test message")
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), path)
+        message = renderer.render("content_test")
+        self.assertEqual(message.content, "This is a test message")
 
     def test_tts_rendering(self):
         template = "tests/routes/complete_messages.json"
 
-        renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
-        _, tts = renderer.render("tts_test")
-        self.assertTrue(tts)
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
+        message = renderer.render("tts_test")
+        self.assertTrue(message.tts)
 
     def test_json_rendering(self):
         template = "tests/routes/complete_messages.json"
 
-        renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("file_test")
         assert message.file is not None
         self.assertIsInstance(message.file, discord.File)
@@ -125,7 +96,7 @@ class TestJSONRenderer(unittest.TestCase):
     def test_allowed_mentions_rendering(self):
         template = "tests/routes/complete_messages.json"
 
-        renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("allowed_mentions_test")
         assert message.allowed_mentions is not None
         self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
