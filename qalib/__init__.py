@@ -6,6 +6,7 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 """
 from __future__ import annotations
 
+from functools import wraps
 from typing import Any, Callable, TypeVar, Coroutine
 
 import discord
@@ -46,15 +47,15 @@ def qalib_context(
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
 
+            @wraps(func)
             async def method(self: commands.Cog, ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
-                qalib_ctx: QalibContext[str] = QalibContext(ctx, renderer_instance)
-                return await func(self, qalib_ctx, *args, **kwargs)
+                return await func(self, QalibContext(ctx, renderer_instance), *args, **kwargs)
 
             return method
 
+        @wraps(func)
         async def function(ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
-            qalib_ctx: QalibContext[str] = QalibContext(ctx, renderer_instance)
-            return await func(qalib_ctx, *args, **kwargs)
+            return await func(QalibContext(ctx, renderer_instance), *args, **kwargs)
 
         return function
 
@@ -80,6 +81,7 @@ def qalib_interaction(
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
 
+            @wraps(func)
             async def method(
                 self: commands.Cog,
                 inter: discord.Interaction,
@@ -90,6 +92,7 @@ def qalib_interaction(
 
             return method
 
+        @wraps(func)
         async def function(inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
             return await func(QalibInteraction(inter, renderer_instance), *args, **kwargs)
 
