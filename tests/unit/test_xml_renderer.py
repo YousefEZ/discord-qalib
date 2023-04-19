@@ -39,9 +39,14 @@ class TestXMLRenderer(unittest.TestCase):
         self.assertRaises(KeyError, renderer.render, "not_a_key")
 
     def test_button_rendering(self, view: mock.mock.MagicMock):
+        render_message("tests/routes/full_embeds.xml", "test_key2", todays_date=datetime.datetime.now())
+        self.assertEqual(view.return_value.add_item.call_count, 5)
+
+    def test_button_rendering_with_callback(self, view: mock.mock.MagicMock):
         path = "tests/routes/full_embeds.xml"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
         renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
+
         self.assertEqual(view.return_value.add_item.call_count, 5)
 
     def test_select_rendering(self, view: mock.mock.MagicMock):
@@ -61,36 +66,28 @@ class TestXMLRenderer(unittest.TestCase):
         self.assertEqual(child.placeholder, "Select a channel")
 
     def test_role_select_rendering(self, view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.xml"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        renderer.render("Launch")
+        render_message("tests/routes/select_embeds.xml", "Launch")
         self.assertEqual(view.return_value.add_item.call_count, 4)
         child = view.return_value.add_item.call_args_list[0].args[0]
         assert isinstance(child, discord.ui.RoleSelect)
         self.assertEqual(child.placeholder, "Select a Role")
 
     def test_user_select_rendering(self, view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.xml"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        renderer.render("Launch")
+        render_message("tests/routes/select_embeds.xml", "Launch")
         self.assertEqual(view.return_value.add_item.call_count, 4)
         child = view.return_value.add_item.call_args_list[1].args[0]
         self.assertIsInstance(child, discord.ui.UserSelect)
         self.assertEqual(child.placeholder, "Select a User")
 
     def test_mentionable_select_rendering(self, view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.xml"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        renderer.render("Launch")
+        render_message("tests/routes/select_embeds.xml", "Launch")
         self.assertEqual(view.return_value.add_item.call_count, 4)
         child = view.return_value.add_item.call_args_list[2].args[0]
         self.assertIsInstance(child, discord.ui.MentionableSelect)
         self.assertEqual(child.placeholder, "Select a Mention")
 
     def test_text_input_rendering(self, view: mock.mock.MagicMock):
-        path = "tests/routes/select_embeds.xml"
-        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        renderer.render("Launch")
+        render_message("tests/routes/select_embeds.xml", "Launch")
         self.assertEqual(view.return_value.add_item.call_count, 4)
         child = view.return_value.add_item.call_args_list[3].args[0]
         self.assertIsInstance(child, discord.ui.TextInput)
