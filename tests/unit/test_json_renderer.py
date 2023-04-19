@@ -42,9 +42,9 @@ class TestJSONRenderer(unittest.TestCase):
     @mock.patch("discord.ui.View")
     def test_button_rendering_with_callback(self, mock_view: mock.mock.MagicMock):
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), "tests/routes/full_embeds.json")
-        renderer.render("test_key2",
-                        callbacks={"button1": callback_mocked},
-                        keywords={"todays_date": datetime.datetime.now()})
+        renderer.render(
+            "test_key2", callbacks={"button1": callback_mocked}, keywords={"todays_date": datetime.datetime.now()}
+        )
 
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
         asyncio.run(mock_view.return_value.add_item.call_args_list[0].args[0].callback(MockedInteraction()))
@@ -54,8 +54,7 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
 
-        renderer.render("test_key3",
-                        keywords={"todays_date": datetime.datetime.now()})
+        renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")
@@ -63,10 +62,11 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
 
-        renderer.render("test_key3",
-                        callbacks={"select1": callback_mocked,
-                                   "channel1": callback_mocked},
-                        keywords={"todays_date": datetime.datetime.now()})
+        renderer.render(
+            "test_key3",
+            callbacks={"select1": callback_mocked, "channel1": callback_mocked},
+            keywords={"todays_date": datetime.datetime.now()},
+        )
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")
@@ -74,12 +74,16 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/select_embeds.json"
         renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
 
-        renderer.render("Launch",
-                        callbacks={"test1": callback_mocked,
-                                   "test2": callback_mocked,
-                                   "test3": callback_mocked,
-                                   "test4": callback_mocked},
-                        keywords={"todays_date": datetime.datetime.now()})
+        renderer.render(
+            "Launch",
+            callbacks={
+                "test1": callback_mocked,
+                "test2": callback_mocked,
+                "test3": callback_mocked,
+                "test4": callback_mocked,
+            },
+            keywords={"todays_date": datetime.datetime.now()},
+        )
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
         for i in range(mock_view.return_value.add_item.call_count):
             asyncio.run(mock_view.return_value.add_item.call_args_list[i].args[0].callback(MockedInteraction()))
