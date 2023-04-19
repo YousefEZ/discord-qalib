@@ -12,18 +12,18 @@
       "fields": [
         {
           "name": "Test Field",
-          "text": "Test Text"
+          "value": "Test Text"
         }
       ],
       "footer": {
         "text": "Test Footer",
-        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+        "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png"
       },
       "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
       "image": "https://cdn.discordapp.com/embed/avatars/0.png",
       "author": {
         "name": "Test Author",
-        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png",
         "url": "https://discordapp.com"
       }
     }
@@ -41,18 +41,18 @@
       "fields": [
         {
           "name": "Test Field",
-          "text": "Test Text"
+          "value": "Test Text"
         }
       ],
       "footer": {
         "text": "Test Footer",
-        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+        "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png"
       },
       "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
       "image": "https://cdn.discordapp.com/embed/avatars/0.png",
       "author": {
         "name": "Test Author",
-        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png",
         "url": "https://discordapp.com"
       }
     },
@@ -107,18 +107,18 @@
       "fields": [
         {
           "name": "Test Field",
-          "text": "Test Text"
+          "value": "Test Text"
         }
       ],
       "footer": {
         "text": "Test Footer",
-        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+        "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png"
       },
       "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
       "image": "https://cdn.discordapp.com/embed/avatars/0.png",
       "author": {
         "name": "Test Author",
-        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png",
         "url": "https://discordapp.com"
       }
     },

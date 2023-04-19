@@ -4,7 +4,6 @@ from qalib import Formatter
 
 
 class TestFormatter(unittest.TestCase):
-
     def test_format(self):
         formatter = Formatter()
         document = "Hello {w}, This is a {t}"

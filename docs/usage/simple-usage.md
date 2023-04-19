@@ -180,6 +180,7 @@ instance.
 
 ```py
 from dataclasses import dataclass
+from typing import Literal
 
 import discord
 from discord.ext import commands
@@ -189,6 +190,7 @@ from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["army", "bank"]
 
 @dataclass
 class Player:
@@ -205,7 +207,7 @@ def fetch_player(name: str) -> Player:
 
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/player.xml")
-async def test(ctx, name: str):
+async def test(ctx: qalib.QalibContext[Messages], name: str):
     await ctx.rendered_send("army", keywords={
         "player": fetch_player(name)
     })
@@ -220,6 +222,7 @@ file as the previous section we are able to use the ``QalibInteraction`` with a 
 
 ```py
 from dataclasses import dataclass
+from typing import Literal
 
 import discord
 from discord.ext import commands
@@ -229,6 +232,7 @@ from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["army", "bank"]
 
 @dataclass
 class Player:
@@ -246,10 +250,15 @@ def fetch_player(name: str) -> Player:
 @bot.tree.command(name="test")
 @discord.app_commands.describe(player_name="What is the name of the player?")
 @qalib.qalib_interaction(Formatter(), "templates/player.xml")
-async def test(interaction, name):
+async def test(interaction: qalib.QalibInteraction[Messages], player_name: str):
     await interaction.rendered_send("army", keywords={
-        "player": fetch_player(name)
+        "player": fetch_player(player_name)
     })
+
+@bot.event
+async def on_ready():
+    await bot.tree.sync()
+
 ```
 
 ``QalibInteractions`` are also able to render Modals from their documents using
@@ -294,6 +303,8 @@ the [XML View Section](https://github.com/YousefEZ/discord-qalib/wiki/2.-XML-Ren
 and then can be rendered using the EmbedManager
 
 ```py
+from typing import Literal
+
 import discord
 from discord.ext import commands
 
@@ -302,6 +313,7 @@ from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["welcome"]
 
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)
@@ -309,7 +321,7 @@ async def acknowledged(interaction: discord.Interaction):
 
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/button.xml")
-async def greet(ctx):
+async def greet(ctx: qalib.QalibContext[Messages]):
     await ctx.rendered_send("welcome", callables={"greet": acknowledged})
 ```
 
@@ -368,6 +380,8 @@ To render the menu you have to use [.menu()](../qalib/context.md) method with th
 will render the menu.
 
 ```py
+from typing import Literal
+
 import discord
 from discord.ext import commands
 
@@ -376,16 +390,20 @@ from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["menu1"]
+
 
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/player.xml")
-async def test(ctx):
+async def test(ctx: qalib.QalibContext[Messages]):
     await ctx.menu("menu1")
 ```
 
 or you can manually define it as so:
 
 ```py
+from typing import Literal
+
 import discord
 from discord.ext import commands
 
@@ -394,11 +412,13 @@ from qalib.template_engines.formatter import Formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["menu1"]
+
 
 @bot.command()
 async def test(ctx):
-    manager = qalib.QalibContext(ctx, qalib.Renderer(Formatter(), "templates/player.xml"))
-    await manager.menu("menu1")
+    context: qalib.QalibContext[Messages] = qalib.QalibContext(ctx, qalib.Renderer(Formatter(), "templates/player.xml"))
+    await context.menu("menu1")
 ```
 
 ---

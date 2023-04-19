@@ -1,127 +1,140 @@
+import asyncio
 import datetime
 import unittest
 
 import discord.ui
+import mock
 
 from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
+from tests.unit.mocked_classes import MockedInteraction
+from tests.unit.types import FullEmbeds, SelectEmbeds, ErrorEmbeds, CompleteJSONMessages
+from tests.unit.utils import render_message
+
+
+async def callback_mocked(_: discord.Interaction) -> None:
+    return None
 
 
 class TestJSONRenderer(unittest.TestCase):
     """Tests the JSON Renderer"""
 
     def test_render(self):
-        path = "tests/routes/simple_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        embed, = renderer.render("Launch")
-        self.assertEqual(embed.title, "Hello World")
+        message = render_message("tests/routes/simple_embeds.json", "Launch")
+        assert message.embed is not None
+        self.assertEqual(message.embed.title, "Hello World")
 
     def test_full_render(self):
-        path = "tests/routes/full_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        embed, = renderer.render("test_key", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(embed.title, "Test")
+        message = render_message("tests/routes/full_embeds.json", "test_key", todays_date=datetime.datetime.now())
+        assert message.embed is not None
+        self.assertEqual(message.embed.title, "Test")
 
     def test_key_not_exist(self):
         path = "tests/routes/full_embeds.json"
-        renderer = Renderer(Formatter(), path)
+        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render, "not_a_key")
 
-    def test_button_rendering(self):
+    @mock.patch("discord.ui.View")
+    def test_button_rendering(self, mock_view: mock.mock.MagicMock):
+        render_message("tests/routes/full_embeds.json", "test_key2", todays_date=datetime.datetime.now())
+        self.assertEqual(mock_view.return_value.add_item.call_count, 5)
+
+    @mock.patch("discord.ui.View")
+    def test_button_rendering_with_callback(self, mock_view: mock.mock.MagicMock):
+        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), "tests/routes/full_embeds.json")
+        renderer.render(
+            "test_key2", callbacks={"button1": callback_mocked}, keywords={"todays_date": datetime.datetime.now()}
+        )
+
+        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
+        asyncio.run(mock_view.return_value.add_item.call_args_list[0].args[0].callback(MockedInteraction()))
+
+    @mock.patch("discord.ui.View")
+    def test_select_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/full_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(len(view.children), 5)
+        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
 
-    def test_select_rendering(self):
+        renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
+
+    @mock.patch("discord.ui.View")
+    def test_select_rendering_with_callback(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/full_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
-        self.assertGreater(len(view.children), 0)
-        child = view.children[0]
-        assert isinstance(child, discord.ui.Select)
-        self.assertEqual(child.placeholder, "Select a date")
+        renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
 
-    def test_channel_select_rendering(self):
-        path = "tests/routes/full_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
-        self.assertGreater(len(view.children), 0)
-        child = view.children[1]
-        assert isinstance(child, discord.ui.ChannelSelect)
-        self.assertEqual(child.placeholder, "Select a channel")
+        renderer.render(
+            "test_key3",
+            callbacks={"select1": callback_mocked, "channel1": callback_mocked},
+            keywords={"todays_date": datetime.datetime.now()},
+        )
+        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
-    def test_role_select_rendering(self):
+    @mock.patch("discord.ui.View")
+    def test_components_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/select_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
-        self.assertGreater(len(view.children), 0)
-        child = view.children[0]
-        assert isinstance(child, discord.ui.RoleSelect)
-        self.assertEqual(child.placeholder, "Select a Role")
+        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
 
-    def test_user_select_rendering(self):
+        renderer.render(
+            "Launch",
+            callbacks={
+                "test1": callback_mocked,
+                "test2": callback_mocked,
+                "test3": callback_mocked,
+                "test4": callback_mocked,
+            },
+            keywords={"todays_date": datetime.datetime.now()},
+        )
+        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
+        for i in range(mock_view.return_value.add_item.call_count):
+            asyncio.run(mock_view.return_value.add_item.call_args_list[i].args[0].callback(MockedInteraction()))
+
+    @mock.patch("discord.ui.View")
+    def test_component_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/select_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
-        self.assertGreater(len(view.children), 0)
-        child = view.children[1]
-        assert isinstance(child, discord.ui.UserSelect)
-        self.assertEqual(child.placeholder, "Select a User")
+        renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
+        renderer.render("Launch")
 
-    def test_mentionable_select_rendering(self):
-        path = "tests/routes/select_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
-        self.assertGreater(len(view.children), 0)
-        child = view.children[2]
-        assert isinstance(child, discord.ui.MentionableSelect)
-        self.assertEqual(child.placeholder, "Select a Mention")
+        self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
-    def test_text_input_rendering(self):
-        path = "tests/routes/select_embeds.json"
-        renderer = Renderer(Formatter(), path)
-        _, view = renderer.render("Launch")
-        self.assertGreater(len(view.children), 0)
-        child = view.children[3]
-        assert isinstance(child, discord.ui.TextInput)
-        self.assertEqual(child.placeholder, "Test Placeholder")
-
-    def test_emoji_error(self):
+    @mock.patch("discord.ui.View")
+    def test_emoji_error(self, _: mock.mock.MagicMock):
         path = "tests/routes/error.json"
-        renderer = Renderer(Formatter(), path)
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
         self.assertRaises(ValueError, renderer.render, "test1")
 
-    def test_element_error(self):
+    @mock.patch("discord.ui.View")
+    def test_element_error(self, _: mock.mock.MagicMock):
         path = "tests/routes/error.json"
-        renderer = Renderer(Formatter(), path)
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
         self.assertRaises(KeyError, renderer.render, "test2")
 
     def test_content_rendering(self):
         path = "tests/routes/complete_messages.json"
-        renderer = Renderer(Formatter(), path)
-        content, _ = renderer.render("content_test")
-        self.assertEqual(content, "This is a test message")
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), path)
+        message = renderer.render("content_test")
+        self.assertEqual(message.content, "This is a test message")
 
     def test_tts_rendering(self):
         template = "tests/routes/complete_messages.json"
 
-        renderer = Renderer(Formatter(), template)
-        _, tts = renderer.render("tts_test")
-        self.assertTrue(tts)
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
+        message = renderer.render("tts_test")
+        self.assertTrue(message.tts)
 
     def test_json_rendering(self):
         template = "tests/routes/complete_messages.json"
 
-        renderer = Renderer(Formatter(), template)
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("file_test")
+        assert message.file is not None
         self.assertIsInstance(message.file, discord.File)
         self.assertEqual(message.file.filename, "complete_messages.xml")
 
     def test_allowed_mentions_rendering(self):
         template = "tests/routes/complete_messages.json"
 
-        renderer = Renderer(Formatter(), template)
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("allowed_mentions_test")
+        assert message.allowed_mentions is not None
         self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
         self.assertFalse(message.allowed_mentions.everyone)

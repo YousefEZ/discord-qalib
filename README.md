@@ -94,6 +94,7 @@ using the above xml file, for example, you can create an embed with the followin
 
 ```python
 import datetime
+from typing import Literal
 
 import discord
 from discord.ext import commands
@@ -103,6 +104,7 @@ from qalib.template_engines import formatter
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
+Messages = Literal["test_key"]
 
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)
@@ -110,7 +112,7 @@ async def acknowledged(interaction: discord.Interaction):
 
 @bot.command()
 @qalib.qalib_context(formatter.Formatter(), "templates/test.xml")
-async def test(ctx: qalib.QalibContext):
+async def test(ctx: qalib.QalibContext[Messages]):
     callables = {"understood_button": acknowledged}
 
     await ctx.rendered_send("test_key", callables, keywords={

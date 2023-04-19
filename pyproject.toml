@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "discord-qalib"
 version = "2.0.0"
 authors = [
-  { name="YousefEZ", email="syberprojects@gmail.com" },
+    { name = "YousefEZ", email = "syberprojects@gmail.com" },
 ]
 description = "Discord library built on discord.py to simplify source code by rendering templates of embeds and menus"
 readme = "README.md"
@@ -25,6 +25,23 @@ authors = ["YousefEZ syberprojects@gmail.com", ]
 description = "Discord library built on discord.py to simplify source code by rendering templates of embeds and menus"
 packages = [{ include = "qalib" }]
 
+[tool.pylint.messages_control]
+max-line-length = 120
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+]
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+combine_as_imports = true
+combine_star = true
+line_length = 120
+
 [tool.poetry.dependencies]
 python = "^3.8"
 mock = "^5.0.0"
@@ -34,7 +51,7 @@ emoji = "^2.2.0"
 jinja2 = "^3.1.2"
 
 [tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+dependencies = { file = ["requirements.txt"] }
 
 [project.urls]
 "Homepage" = "https://github.com/YousefEZ/discord-qalib"

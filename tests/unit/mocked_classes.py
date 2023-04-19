@@ -1,37 +1,39 @@
-from typing import Optional
-import discord.ext.commands
+from typing import Optional, cast, Callable, Any, TYPE_CHECKING
 
+import discord.ext.commands
 import discord.ui
 from mock import Mock
 
+from qalib import Coro
+
+button_message_component = {
+    "custom_id": "custom_id",
+    "component_type": 2,
+}
+
+raw_data = {"id": 0, "application_id": 10, "token": "token", "version": 1, "type": 3, "data": button_message_component}
+
 
 class MockedInteraction(discord.Interaction):
-    data = {
-        "id": 0,
-        "application_id": 0,
-        "token": "token",
-        "version": 1,
-        "type": 1
-    }
-
     def __init__(self):
-        super().__init__(data=MockedInteraction.data, state=Mock())
+        if TYPE_CHECKING:
+            from discord.types.interactions import Interaction as InteractionPayload
 
+            super().__init__(data=cast(InteractionPayload, raw_data), state=Mock())
 
-class MockedView:
-
-    def __init__(self, timeout: Optional[int] = 180):
-        self.children = []
-        self.timeout = timeout
-
-    def add_item(self, item: discord.ui.Item):
-        self.children.append(item)
+        else:
+            super().__init__(data=raw_data, state=Mock())
 
 
 class MessageMocked:
-
-    def __init__(self, author=Mock(), channel=Mock(), content: str = "", embed: Optional[discord.Embed] = None,
-                 view: Optional[discord.ui.View] = None, **kwargs):
+    def __init__(
+        self,
+        author: str = "",
+        channel: int = 0,
+        content: str = "",
+        embed: Optional[discord.Embed] = None,
+        view: Optional[discord.ui.View] = None,
+    ):
         self.author = author
         self.channel = channel
         self.content = content
@@ -39,44 +41,28 @@ class MessageMocked:
         self.view = view
         self._state = Mock()
 
-    async def edit(self, author=None, channel=None, content=None, embed: Optional[discord.Embed] = None,
-                   view: Optional[discord.ui.View] = None):
-        self.author = author
-        self.channel = channel
-        self.content = content
-        self.embed = embed
-        self.view = view
 
-
-class BotMocked:
-
+class BotMocked(discord.ext.commands.Bot):
     def __init__(self):
-        self.message = MessageMocked()
+        super().__init__(command_prefix="!", intents=discord.Intents.all())
+        self.message: discord.Message = cast(discord.Message, MessageMocked())
 
-    def inject_message(self, message):
+    def inject_message(self, message: discord.Message):
         self.message = message
 
-    async def wait_for(self, event, timeout, check):
-        message = MessageMocked(content="Hello World") if self.message is None else self.message
-        if event == "message" and check(message):
+    def wait_for(
+        self,
+        event: str,
+        /,
+        *,
+        check: Optional[Callable[..., bool]] = None,
+        timeout: Optional[float] = None,
+    ) -> Coro[Any]:
+        async def get_message() -> discord.Message:
+            message = (
+                cast(discord.Message, MessageMocked(content="Hello World")) if self.message is None else self.message
+            )
+            assert event == "message" and (check is None or check(message))
             return message
 
-
-class ContextMocked(discord.ext.commands.Context):
-
-    def __init__(self):
-        self.message = MessageMocked()
-        self.bot = BotMocked()
-        self.view = None
-        self.args = None
-        self.kwargs = None
-        self.prefix = None
-        self.command = None
-        self.invoked_with = None
-        self.invoked_parents = None
-        self.invoked_subcommand = None
-        self.subcommand_passed = None
-        self.command_failed = None
-        self.current_parameter = None
-        self.current_argument = None
-        self.interaction = None
+        return get_message()

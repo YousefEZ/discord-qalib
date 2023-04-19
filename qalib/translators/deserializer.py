@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Protocol, Dict, List, Any
+from typing import Any, Dict, List, Protocol
 
 import discord.ui
 
-from qalib.translators import Message, Callback
+from qalib.translators import Callback, Message
 
 
 class Deserializer(Protocol):
@@ -21,7 +21,7 @@ class Deserializer(Protocol):
 
         Returns (Display): NamedTuple containing the embed and view.
         """
-        ...
+        raise NotImplementedError
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw: Any) -> List[Message]:
         """This method is used to deserialize a document into a list of NamedTuple Displays, that are connected by
@@ -34,7 +34,7 @@ class Deserializer(Protocol):
 
         Returns (List[Display]): list of NamedTuple Displays, that are connected by arrows in their views.
         """
-        ...
+        raise NotImplementedError
 
     def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kw: Any) -> discord.ui.Modal:
         """This method is used to deserialize a document into a modal.
@@ -46,4 +46,4 @@ class Deserializer(Protocol):
 
         Returns (discord.ui.Modal): modal that is deserialized from the document.
         """
-        ...
+        raise NotImplementedError

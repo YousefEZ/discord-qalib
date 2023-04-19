@@ -23,6 +23,8 @@
             <description>Test 1</description>
             <spoilers>False</spoilers>
         </file>
+        <allowed_mentions>
+        </allowed_mentions>
     </message>
     <message key="allowed_mentions_test">
         <allowed_mentions>
@@ -32,11 +34,25 @@
                     123456789012345678
                 </user>
             </users>
-            <roles>
-                <role>
-                    123456789012345678
-                </role>
+            <roles mention="false">
             </roles>
+
         </allowed_mentions>
+    </message>
+    <message key="message_reference_test">
+        <reference>
+            <message_id>123456789012345678</message_id>
+            <channel_id>123456789012345678</channel_id>
+            <guild_id>123456789012345678</guild_id>
+        </reference>
+    </message>
+    <message key="message_reference_test2">
+        <reference>
+        </reference>
+    </message>
+    <message key="message_reference_test3">
+        <reference>
+            <message_id>123456789012345678</message_id>
+        </reference>
     </message>
 </discord>

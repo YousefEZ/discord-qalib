@@ -1,8 +1,8 @@
 import unittest
 
-from qalib.translators.factory import ParserFactory, DeserializerFactory
-from qalib.translators.json import JSONParser, JSONDeserializer
-from qalib.translators.xml import XMLParser, XMLDeserializer
+from qalib.translators.factory import DeserializerFactory, ParserFactory
+from qalib.translators.json import JSONDeserializer, JSONParser
+from qalib.translators.xml import XMLDeserializer, XMLParser
 
 
 class TestFactories(unittest.TestCase):
@@ -21,19 +21,35 @@ class TestFactories(unittest.TestCase):
         self.assertIsInstance(ParserFactory.get_parser("tests/routes/simple_embeds.xml"), XMLParser)
 
     def test_deserializer_json(self):
-        self.assertIs(DeserializerFactory.get_deserializer_type("tests/routes/test.json"), JSONDeserializer)
+        self.assertIs(
+            DeserializerFactory.get_deserializer_type("tests/routes/test.json"),
+            JSONDeserializer,
+        )
 
     def test_deserializer_xml(self):
-        self.assertIs(DeserializerFactory.get_deserializer_type("tests/routes/test.xml"), XMLDeserializer)
+        self.assertIs(
+            DeserializerFactory.get_deserializer_type("tests/routes/test.xml"),
+            XMLDeserializer,
+        )
 
     def test_deserializer_json_instance(self):
-        self.assertIsInstance(DeserializerFactory.get_deserializer("tests/routes/simple_embeds.json"), JSONDeserializer)
+        self.assertIsInstance(
+            DeserializerFactory.get_deserializer("tests/routes/simple_embeds.json"),
+            JSONDeserializer,
+        )
 
     def test_deserializer_xml_instance(self):
-        self.assertIsInstance(DeserializerFactory.get_deserializer("tests/routes/simple_embeds.xml"), XMLDeserializer)
+        self.assertIsInstance(
+            DeserializerFactory.get_deserializer("tests/routes/simple_embeds.xml"),
+            XMLDeserializer,
+        )
 
     def test_parser_random_file(self):
         self.assertRaises(ValueError, ParserFactory.get_parser, "tests/routes/random_file.notafile")
 
     def test_deserializer_random_file(self):
-        self.assertRaises(ValueError, DeserializerFactory.get_deserializer, "tests/routes/random_file.notafile")
+        self.assertRaises(
+            ValueError,
+            DeserializerFactory.get_deserializer,
+            "tests/routes/random_file.notafile",
+        )

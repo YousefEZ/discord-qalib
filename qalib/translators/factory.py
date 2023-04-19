@@ -1,9 +1,9 @@
-from typing import Type, Optional
+from typing import Any, Optional, Type, cast
 
 from .deserializer import Deserializer
-from .json import JSONParser, JSONDeserializer
+from .json import JSONDeserializer, JSONParser
 from .parser import Parser
-from .xml import XMLParser, XMLDeserializer
+from .xml import XMLDeserializer, XMLParser
 
 
 class ParserFactory:
@@ -12,7 +12,7 @@ class ParserFactory:
     parsers = {".xml": XMLParser, ".json": JSONParser}
 
     @staticmethod
-    def get_parser_type(path: str) -> Type[Parser]:
+    def get_parser_type(path: str) -> Type[Parser[str]]:
         """Returns the parser type based on the file extension of the path.
 
         Args:
@@ -22,12 +22,12 @@ class ParserFactory:
         """
         for extension, parser_type in ParserFactory.parsers.items():
             if path.endswith(extension):
-                return parser_type
+                return cast(Type[Parser[Any]], parser_type)
 
         raise ValueError("No parser found for the given file")
 
     @staticmethod
-    def get_parser(path: str, *, source: Optional[str] = None) -> Parser:
+    def get_parser(path: str, *, source: Optional[str] = None) -> Parser[str]:
         """Returns an instantiated Parser based on the file extension of the path using either the source contents or
         the path.
 
@@ -40,8 +40,8 @@ class ParserFactory:
         parser = ParserFactory.get_parser_type(path)
         if source is not None:
             return parser(source=source)
-        with open(path, encoding="utf8", mode="r") as f:
-            return parser(source=f.read())
+        with open(path, encoding="utf8", mode="r") as file:
+            return parser(source=file.read())
 
 
 class DeserializerFactory:
