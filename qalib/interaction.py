@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, cast
 
 import discord
@@ -54,10 +53,10 @@ class QalibInteraction(discord.Interaction, Generic[K]):
         self._displayed = False
 
     async def respond_with_modal(
-        self,
-        key: K,
-        methods: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
+            self,
+            key: K,
+            methods: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Method that is responsible for templating the document, and then deserializing the requested modal based on
         its key and sending it to the user.
@@ -79,11 +78,11 @@ class QalibInteraction(discord.Interaction, Generic[K]):
         return await self.response.send_modal(modal)  # pyright: ignore [reportGeneralTypeIssues]
 
     def _render(
-        self,
-        identifier: K,
-        callables: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: int = 180,
+            self,
+            identifier: K,
+            callables: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            timeout: int = 180,
     ) -> Message:
         """This method renders the embed and the view based on the identifier string given.
 
@@ -98,12 +97,12 @@ class QalibInteraction(discord.Interaction, Generic[K]):
         return self._renderer.render(identifier, callables, keywords, timeout=timeout)
 
     async def rendered_send(
-        self,
-        identifier: K,
-        callables: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: int = 180,
-        **kwargs,
+            self,
+            identifier: K,
+            callables: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            timeout: int = 180,
+            **kwargs,
     ) -> None:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
         message.
@@ -117,20 +116,20 @@ class QalibInteraction(discord.Interaction, Generic[K]):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        display = self._render(identifier, callables, keywords, timeout)
+        message = self._render(identifier, callables, keywords, timeout)
 
         assert isinstance(self.response, InteractionResponse)  # pyright: ignore [reportGeneralTypeIssues]
         # pylint: disable= no-member
-        message_info = {**asdict(display), **kwargs}
+        message_info = {**message.convert_to_interaction_message().dict(), **kwargs}
         return await self.response.send_message(**message_info)  # pyright: ignore [reportGeneralTypeIssues]
 
     async def display(
-        self,
-        key: K,
-        callables: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: int = 180,
-        **kwargs,
+            self,
+            key: K,
+            callables: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            timeout: int = 180,
+            **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
         message can take place.
@@ -144,8 +143,8 @@ class QalibInteraction(discord.Interaction, Generic[K]):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        display = self._render(key, callables, keywords, timeout)
-        await self._display(**{**asdict(display), **kwargs})
+        message = self._render(key, callables, keywords, timeout)
+        await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client, and editing the message if there is one
@@ -163,11 +162,11 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             self._displayed = True
 
     async def menu(
-        self,
-        key: K,
-        callbacks: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        **kwargs,
+            self,
+            key: K,
+            callbacks: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.
 
@@ -178,4 +177,4 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             **kwargs: kwargs that are passed to the context's send method
         """
         message = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
-        await self._display(**{**message.dict(), **kwargs})
+        await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
