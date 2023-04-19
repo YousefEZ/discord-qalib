@@ -8,7 +8,7 @@ import discord.ui
 from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
 from qalib.template_engines.jinja2 import Jinja2
-from tests.unit.types import FullEmbeds, SelectEmbeds, ErrorEmbeds, SimpleEmbeds, JinjaEmbeds, CompleteEmbeds
+from tests.unit.types import FullEmbeds, ErrorEmbeds, SimpleEmbeds, JinjaEmbeds, CompleteEmbeds
 from tests.unit.utils import render_message
 
 
