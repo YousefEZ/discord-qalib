@@ -185,6 +185,7 @@ class JSONMessage(TypedDict):
     allowed_mentions: NotRequired[AllowedMentions]
     message_reference: NotRequired[MessageReference]
     mention_author: NotRequired[bool]
+    silent: NotRequired[bool]
 
 
 JSONMenu = Dict[str, JSONMessage]
@@ -326,10 +327,11 @@ class JSONDeserializer(Deserializer):
                 channel_id=reference["channel_id"],
                 guild_id=reference.get("guild_id"),
             ),
-            mention_author=None if (mention := message_tree.get("mention_author")) is None else mention,
+            mention_author=message_tree.get("mention_author"),
             view=view,
             stickers=None,
             ephemeral=None,
+            silent=message_tree.get("silent")
         )
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
