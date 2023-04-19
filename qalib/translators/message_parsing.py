@@ -5,6 +5,7 @@ from typing import Dict, Iterable, List, Literal, Optional, Type, TypedDict, Uni
 import discord
 import discord.emoji
 import discord.partial_emoji
+import emoji
 from discord import ui, utils
 
 __all__ = (
@@ -199,25 +200,25 @@ def make_colour(colour: str) -> Union[discord.Colour, int]:
     return discord.Colour.from_rgb(*map(int, rgb))
 
 
-def make_channel_types(types: Iterable[ChannelType]) -> List[discord.ChannelType]:
-    return [CHANNEL_TYPES[t] for t in types]
+def make_channel_types(channel_types: Iterable[ChannelType]) -> List[discord.ChannelType]:
+    return [CHANNEL_TYPES[channel_type] for channel_type in channel_types]
 
 
-def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[discord.partial_emoji.PartialEmoji]:
+def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
     if raw_emoji is None:
         return None
 
     if isinstance(raw_emoji, str):
-        return discord.partial_emoji.PartialEmoji.from_str(raw_emoji)
+        return "{}".format(raw_emoji)
 
     if "name" not in raw_emoji:
         raise ValueError("Missing Emoji Name")
 
-    return discord.partial_emoji.PartialEmoji(
-        name=raw_emoji["name"],
-        animated=raw_emoji.get("animated", False),
-        id=raw_emoji.get("id"),
-    )
+    if "id" not in raw_emoji:
+        return emoji.emojize(":" + raw_emoji["name"] + ":")
+
+    string = f"a:{raw_emoji['name']}:" if raw_emoji.get("animated", False) else f":{raw_emoji['name']}:"
+    return string + str(raw_emoji["id"]) if "id" in raw_emoji else string
 
 
 def create_button(component: ButtonComponent) -> ui.Button:
