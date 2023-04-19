@@ -250,9 +250,9 @@ def fetch_player(name: str) -> Player:
 @bot.tree.command(name="test")
 @discord.app_commands.describe(player_name="What is the name of the player?")
 @qalib.qalib_interaction(Formatter(), "templates/player.xml")
-async def test(interaction: qalib.QalibInteraction[Messages], name):
+async def test(interaction: qalib.QalibInteraction[Messages], player_name: str):
     await interaction.rendered_send("army", keywords={
-        "player": fetch_player(name)
+        "player": fetch_player(player_name)
     })
 
 @bot.event
