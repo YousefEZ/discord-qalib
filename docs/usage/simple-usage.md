@@ -254,6 +254,11 @@ async def test(interaction: qalib.QalibInteraction[Messages], name):
     await interaction.rendered_send("army", keywords={
         "player": fetch_player(name)
     })
+
+@bot.event
+async def on_ready():
+    await bot.tree.sync()
+
 ```
 
 ``QalibInteractions`` are also able to render Modals from their documents using
