@@ -1,4 +1,5 @@
-from dataclasses import dataclass, asdict
+import dataclasses
+from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union
 
 import discord
@@ -32,11 +33,12 @@ class BaseMessage:
     delete_after: Optional[float]
 
     def dict(self) -> Dict[str, Any]:
-        return {key: value for key, value in asdict(self).items() if value is not None}
+        return {key.name: attr for key in dataclasses.fields(self) if (attr := getattr(self, key.name)) is not None}
 
     def __iter__(self):
         # Order is preserved in Python 3.7+: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
-        for value in self.__dict__.values():
+        for key in dataclasses.fields(self):
+            value = getattr(self, key.name)
             if value is None:
                 continue
             yield value
