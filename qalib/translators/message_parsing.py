@@ -214,6 +214,9 @@ def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
     if "name" not in raw_emoji:
         raise ValueError("Missing Emoji Name")
 
+    if emoji.is_emoji(raw_emoji["name"]):
+        return raw_emoji["name"]
+
     if "id" not in raw_emoji:
         return emoji.emojize(":" + raw_emoji["name"] + ":")
 
