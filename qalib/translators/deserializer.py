@@ -1,10 +1,27 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Protocol
+from enum import Enum
+from typing import Any, Dict, List, Protocol, Optional
 
 import discord.ui
 
 from qalib.translators import Callback, Message
+
+
+class ElementTypes(Enum):
+    """Enum that represents the types of elements that can be deserialized."""
+
+    MESSAGE = "message"
+    MENU = "menu"
+    MODAL = "modal"
+    EXPANSIVE = "expansive"
+
+    @classmethod
+    def from_str(cls, string: str) -> Optional[ElementTypes]:
+        for element_type in cls:
+            if element_type.value == string:
+                return element_type
+        return None
 
 
 class Deserializer(Protocol):
@@ -45,5 +62,18 @@ class Deserializer(Protocol):
             **kw (Any): additional arguments that are used to deserialize the document
 
         Returns (discord.ui.Modal): modal that is deserialized from the document.
+        """
+        raise NotImplementedError
+
+    def deserialize_into_expansive(self, source: str, callbacks: Dict[str, Callback], **kwargs: Any) -> List[Message]:
+        raise NotImplementedError
+
+    def get_type(self, source: str) -> Optional[ElementTypes]:
+        """This method is used to get the type of the document.
+
+        Args:
+            source (str): document that is deserialized
+
+        Returns (Types): type of the element that is to be deserialized
         """
         raise NotImplementedError

@@ -4,17 +4,17 @@ import json
 from copy import deepcopy
 from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Dict, List, Literal, Optional, Type, TypedDict, TypeVar, Union, cast
+from typing import Any, Callable, Dict, List, Literal, Optional, Type, TypedDict, TypeVar, Union, cast, Tuple
 
 import discord
 import discord.types.embed
 from discord import ui
 from discord.abc import Snowflake
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, Concatenate
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, DiscordIdentifier, Message
-from qalib.translators.deserializer import Deserializer
+from qalib.translators import Callback, DiscordIdentifier, Message, M, P, N, MAX_CHAR
+from qalib.translators.deserializer import Deserializer, ElementTypes
 from qalib.translators.message_parsing import (
     ButtonComponent,
     ButtonStyle,
@@ -125,8 +125,6 @@ class Timestamp(TypedDict):
 
 
 class Embed(TypedDict):
-    """This class is used to represent the blueprint of an embed."""
-
     title: str
     colour: NotRequired[str]
     color: NotRequired[str]
@@ -139,6 +137,10 @@ class Embed(TypedDict):
     image: NotRequired[str]
     thumbnail: NotRequired[str]
     author: NotRequired[Author]
+
+
+class ExpansiveEmbed(Embed):
+    expansive_field: Field
 
 
 class File(TypedDict):
@@ -169,11 +171,7 @@ class MessageReference(TypedDict):
 View = Dict[str, Components]
 
 
-class JSONMessage(TypedDict):
-    """This class is used to represent the blueprint of a message."""
-
-    embed: NotRequired[Embed]
-    embeds: NotRequired[List[Embed]]
+class BaseMessage(TypedDict):
     view: NotRequired[View]
     content: NotRequired[str]
     tts: NotRequired[bool]
@@ -185,7 +183,19 @@ class JSONMessage(TypedDict):
     allowed_mentions: NotRequired[AllowedMentions]
     message_reference: NotRequired[MessageReference]
     mention_author: NotRequired[bool]
+    ephemeral: NotRequired[bool]
     silent: NotRequired[bool]
+
+
+class JSONMessage(BaseMessage):
+    """This class is used to represent the blueprint of a message."""
+    embed: NotRequired[Embed]
+    embeds: NotRequired[List[Embed]]
+
+
+class ExpansiveMessage(BaseMessage):
+    page_number_key: NotRequired[str]
+    embed: NotRequired[ExpansiveEmbed]
 
 
 JSONMenu = Dict[str, JSONMessage]
@@ -196,7 +206,18 @@ class JSONModal(TypedDict):
     components: Dict[str, Components]
 
 
-Template = Dict[str, Union[JSONMessage, JSONMenu, JSONModal]]
+Template = Dict[str, Union[JSONMessage, ExpansiveMessage, JSONMenu, JSONModal]]
+
+
+def apply(
+        element: Optional[M],
+        func: Union[Callable[[M], N], Callable[Concatenate[M, P], N]],
+        *args: P.args,
+        **keyword_args: P.kwargs,
+) -> Optional[N]:
+    if element is None:
+        return None
+    return func(element, *args, **keyword_args)
 
 
 class JSONParser(Parser[K]):
@@ -233,42 +254,16 @@ class JSONParser(Parser[K]):
 
         return obj
 
-    def template_message(self, key: K, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        """This method is used to template the embed by first retrieving it using its key, and then templating it using
-        the template_engine
+    def template(self, key: K, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+        """This method is used to template the element by first retrieving it using its key, and then templating it
+        using the template_engine
 
         Args:
-            key (K): key of the embed
-            template_engine (TemplateEngine): template engine that is used to template the embed
-            keywords (Dict[str, Any]): keywords that are used to template the embed
+            key (K): key of the element
+            template_engine (TemplateEngine): template engine that is used to template the element
+            keywords (Dict[str, Any]): keywords that are used to template the element
 
-        Returns (str): templated embed in the form of string.
-        """
-        return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
-
-    def template_menu(self, key: K, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        """Method that is used to template the menu by first retrieving it using its key, and then templating it using
-        the template_engine
-
-        Args:
-            key (K): key of the menu
-            template_engine (TemplateEngine): template engine that is used to template the menu
-            keywords (Dict[str, Any]): keywords that are used to template the menu
-
-        Returns (str): templated menu in the form of string.
-        """
-        return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
-
-    def template_modal(self, key: K, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
-        """Method that is used to template the modal by first retrieving it using its key, and then templating it using
-        the template_engine
-
-        Args:
-            key (K): key of the modal
-            template_engine (TemplateEngine): template engine that is used to template the modal
-            keywords (Dict[str, Any]): keywords that are used to template the modal
-
-        Returns (str): templated modal in the form of string.
+        Returns (str): templated element in the form of string.
         """
         return json.dumps(self.recursive_template(deepcopy(self._data[key]), template_engine, keywords))
 
@@ -286,12 +281,24 @@ class JSONDeserializer(Deserializer):
         """
         return self.deserialize_message(json.loads(source), callables, kw)
 
+    def get_type(self, source: str) -> Optional[ElementTypes]:
+        """Method to get the type of the element at the root
+
+        Args:
+            source (str): The source to get the type of the root element
+
+        Returns (Optional[Types]): The type of the source
+        """
+        element = json.loads(source)
+        return ElementTypes.from_str(element.get("type"))
+
     # pylint: disable= too-many-locals
     def deserialize_message(
-        self,
-        message_tree: JSONMessage,
-        callables: Dict[str, Callback],
-        kwargs: Dict[str, Any],
+            self,
+            message_tree: Union[JSONMessage, ExpansiveMessage],
+            callables: Dict[str, Callback],
+            kwargs: Dict[str, Any],
+            **overrides: Any
     ) -> Message:
         """Method to deserialize an embed into a Display NamedTuple containing the embed and the view
 
@@ -302,37 +309,74 @@ class JSONDeserializer(Deserializer):
 
         Returns (Display): A Display NamedTuple containing the embed and the view
         """
-        view_tree = message_tree.get("view")
-        embed = self.render(embed_tree) if (embed_tree := message_tree.get("embed")) is not None else None
-        view = None if view_tree is None else self._render_view(view_tree, callables, kwargs)
-        return Message(
-            embed=embed,
-            embeds=None if (embeds := message_tree.get("embeds")) is None else list(map(self.render, embeds)),
-            content=message_tree.get("content", None),
-            tts=None
-            if (tts_element := message_tree.get("tts")) is None
-            else ((isinstance(tts_element, bool) and tts_element) or str(tts_element).lower() == "true"),
-            nonce=None if (nonce_element := message_tree.get("nonce")) is None else int(nonce_element),
-            delete_after=None if (delete_after := message_tree.get("delete_after")) is None else float(delete_after),
-            suppress_embeds=None if (suppress := message_tree.get("suppress_embeds")) is None else suppress,
-            file=None if (file := message_tree.get("file")) is None else self._render_file(file),
-            files=None if (files := message_tree.get("files")) is None else list(map(self._render_file, files)),
-            allowed_mentions=None
-            if (allowed_mentions := message_tree.get("allowed_mentions")) is None
-            else self._render_allowed_mentions(allowed_mentions),
-            reference=None
-            if (reference := message_tree.get("message_reference")) is None
-            else discord.MessageReference(
+        message = {
+            'embed': apply(message_tree.get("embed"), self._render_embed),
+            'embeds': apply(message_tree.get("embeds"), lambda embeds: list(map(self._render_embed, embeds))),
+            'content': message_tree.get("content"), 'tts': message_tree.get("tts"),
+            'nonce': apply(message_tree.get("nonce"), int),
+            'delete_after': apply(message_tree.get("delete_after"), float),
+            'suppress_embeds': message_tree.get("suppress_embeds"),
+            'file': apply(message_tree.get("file"), self._render_file),
+            'files': apply(message_tree.get("files"), lambda files: list(map(self._render_file, files))),
+            'allowed_mentions': apply(message_tree.get("allowed_mentions"), self._render_allowed_mentions),
+            'reference': apply(message_tree.get("message_reference"), lambda reference: discord.MessageReference(
                 message_id=reference["message_id"],
                 channel_id=reference["channel_id"],
                 guild_id=reference.get("guild_id"),
-            ),
-            mention_author=message_tree.get("mention_author"),
-            view=view,
-            stickers=None,
-            ephemeral=None,
-            silent=message_tree.get("silent")
-        )
+            )), 'mention_author': message_tree.get("mention_author"),
+            'view': apply(message_tree.get("view"), self._render_view, callables, kwargs), 'stickers': None,
+            'ephemeral': message_tree.get("ephemeral"), 'silent': message_tree.get("silent"),
+            **overrides
+        }
+        return Message(**message)
+
+    def deserialize_into_expansive(self, source: str, callbacks: Dict[str, Callback], **kwargs: Any) -> List[Message]:
+        """Method to deserialize a source into a list of Display objects
+
+        Args:
+            source (str): The source text to deserialize
+            callbacks (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+
+        Returns (List[Display]): A list of Display objects
+        """
+        message_tree: ExpansiveMessage = json.loads(source)
+
+        return [self.deserialize_message(message_tree, callbacks, kwargs, embed=embed)
+                for embed in self._separate_embed(message_tree["embed"], message_tree.get("page_number_key"))]
+
+    def _separate_embed(self, raw_embed: ExpansiveEmbed, replacement_key: Optional[str]) -> List[discord.Embed]:
+        """Separates the embeds from the raw embed element.
+
+        Args:
+            raw_embed (ElementTree.Element): The raw embed element.
+            replacement_key (str): the key to replace with the page number.
+
+        Returns (List[discord.Embed]): A list of embeds.
+        """
+
+        values: List[str] = []
+
+        expansive_field = raw_embed["expansive_field"]
+        field_name = expansive_field["name"]
+        lines = expansive_field["value"].strip().split("\n")
+        start = 0
+
+        def add_key(value: str, page_number: str) -> str:
+            return value if replacement_key is None else value.replace(replacement_key, page_number)
+
+        for i in range(len(lines)):
+            if sum(map(len, lines[start: i + 1])) > MAX_CHAR:
+                values.append("\n".join(lines[start:i]))
+                start = i
+
+        values.append("\n".join(lines[start:]))
+
+        def make_embed(value: str, page_number: str) -> discord.Embed:
+            embed = self._render_embed(raw_embed, (replacement_key, page_number))
+            embed.add_field(name=add_key(field_name, page_number), value=add_key(value, page_number), inline=False)
+            return embed
+
+        return [make_embed(value, str(i + 1)) for i, value in enumerate(values)]
 
     def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
         """Method to deserialize a menu into a list of Display objects
@@ -380,7 +424,7 @@ class JSONDeserializer(Deserializer):
 
     @staticmethod
     def _render_allowed_mentions(
-        allowed_mentions: AllowedMentions,
+            allowed_mentions: AllowedMentions,
     ) -> discord.AllowedMentions:
         def parse_mentions(mentions: Union[bool, List[int]]) -> Union[bool, List[Snowflake]]:
             if isinstance(mentions, bool):
@@ -492,9 +536,9 @@ class JSONDeserializer(Deserializer):
         return select
 
     def _render_select(
-        self,
-        component: Select,
-        callback: Optional[Callback],
+            self,
+            component: Select,
+            callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select menu from the given component's template
 
@@ -517,7 +561,7 @@ class JSONDeserializer(Deserializer):
 
     @staticmethod
     def _render_type_select(
-        select_type: Type[CustomSelects], component: CustomSelect, callback: Optional[Callback]
+            select_type: Type[CustomSelects], component: CustomSelect, callback: Optional[Callback]
     ) -> CustomSelects:
         """Renders a type select menu from the given component's template
 
@@ -546,9 +590,9 @@ class JSONDeserializer(Deserializer):
         return text_input
 
     def render_component(
-        self,
-        component: Components,
-        callback: Optional[Callback],
+            self,
+            component: Components,
+            callback: Optional[Callback],
     ) -> ui.Item:
         """Renders a component from the given component's template
 
@@ -587,37 +631,45 @@ class JSONDeserializer(Deserializer):
             callables = {}
         return [self.render_component(component, callables.get(key)) for key, component in view.items()]
 
-    def render(self, raw_embed: Embed) -> discord.Embed:
+    def _render_embed(self, raw_embed: Union[ExpansiveEmbed, Embed], *replacements: Tuple[str, str]) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance
 
         Args:
-           raw_embed (Embed): the dictionary containing the required key, values needed to render the
-                                        embed.
+           raw_embed (Embed): the dictionary containing the required key, values needed to render the embed.
+           *replacements (Tuple[str, str]): Replace the first string with the second string in the embed.
 
         Returns:
             discord.Embed: Embed Object, discord compatible.
         """
         assert "colour" in raw_embed or "color" in raw_embed, "Embed must have either a colour or color key"
 
+        def replace(value: str) -> str:
+            for replacement in replacements:
+                value = value.replace(*replacement)
+            return value
+
         embed = discord.Embed(
-            title=raw_embed["title"],
+            title=replace(raw_embed["title"]),
             colour=make_colour(raw_embed["colour"] if "colour" in raw_embed else raw_embed["color"]),
             type="rich" if "type" not in raw_embed else raw_embed["type"],
-            url=raw_embed["url"] if "url" in raw_embed else None,
-            description=raw_embed["description"] if "description" in raw_embed else None,
+            url=replace(raw_embed["url"]) if "url" in raw_embed else None,
+            description=replace(raw_embed["description"]) if "description" in raw_embed else None,
             timestamp=self._render_timestamp(raw_embed.get("timestamp")),
         )
 
-        for field in raw_embed["fields"]:
+        for field in raw_embed.get("fields", []):
             embed.add_field(**field)
 
         if "footer" in raw_embed:
-            embed.set_footer(**raw_embed["footer"])
+            embed.set_footer(text=replace(raw_embed["footer"]["text"]),
+                             icon_url=replace(raw_embed["footer"]["icon_url"]))
 
-        embed.set_thumbnail(url=raw_embed.get("thumbnail"))
-        embed.set_image(url=raw_embed.get("image"))
+        embed.set_thumbnail(url=replace(raw_embed.get("thumbnail")))
+        embed.set_image(url=replace(raw_embed.get("image")))
 
         if "author" in raw_embed:
-            embed.set_author(**raw_embed["author"])
+            embed.set_author(name=replace(raw_embed["author"]["name"]),
+                             url=replace(raw_embed["author"]["url"]),
+                             icon_url=replace(raw_embed["author"]["icon_url"]))
 
         return embed
