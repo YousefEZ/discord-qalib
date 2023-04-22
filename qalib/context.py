@@ -2,6 +2,7 @@ from typing import Any, Dict, Generic, Optional
 
 import discord.ext.commands
 import discord.message
+from deprecation import deprecated
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
@@ -54,25 +55,6 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
         confirm: Optional[discord.message.Message] = await self.bot.wait_for("message", timeout=59.0, check=self.verify)
         return confirm.content if confirm is not None else None
 
-    def _render(
-        self,
-        identifier: K,
-        callables: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: int = 180,
-    ) -> Message:
-        """This method renders the embed and the view based on the identifier string given.
-
-        Args:
-            identifier (K): identifies the embed in the route file
-            callables (Optional[Dict[str, Callback]]): item callbacks
-            keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
-            timeout (Optional[int]): timeout for the view
-
-        Returns (Display): tuple of the embed and the view
-        """
-        return self._renderer.render(identifier, callables, keywords, timeout=timeout)
-
     async def rendered_send(
         self,
         identifier: K,
@@ -93,7 +75,8 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._render(identifier, callables, keywords, timeout)
+        message = self._renderer.render(identifier, callables, keywords, timeout=timeout)
+        assert isinstance(message, Message)
         return await self.send(**{**message.convert_to_context_message().dict(), **kwargs})
 
     async def display(
@@ -116,7 +99,8 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._render(key, callables, keywords, timeout)
+        message = self._renderer.render(key, callables, keywords, timeout=timeout)
+        assert isinstance(message, Message)
         await self._display(**{**message.convert_to_context_message().dict(), **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
@@ -130,6 +114,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
         else:
             await self._displayed.edit(**kwargs)
 
+    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use render method instead")
     async def menu(
         self,
         key: K,
@@ -145,5 +130,6 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             **kwargs: kwargs that are passed to the context's send method
         """
-        display = self._renderer.render_menu(key, callbacks=callbacks, keywords=keywords, **kwargs)
+        display = self._renderer.render(key, callbacks=callbacks, keywords=keywords, **kwargs)
+        assert isinstance(display, Message)
         await self._display(**{**display.convert_to_context_message().dict(), **kwargs})
