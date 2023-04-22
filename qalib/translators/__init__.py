@@ -1,14 +1,21 @@
-import dataclasses
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union
+
+from typing_extensions import ParamSpec
 
 import discord
 from discord.abc import Snowflake
 
 V_co = TypeVar("V_co", bound=discord.ui.View, covariant=True)
 
+M = TypeVar("M")
+N = TypeVar("N")
+P = ParamSpec("P")
+
 Callback = Callable[[discord.Interaction], Awaitable[None]]
 CallbackMethod = Callable[[discord.ui.Item[V_co], discord.Interaction], Awaitable[None]]
+
+MAX_CHAR = 1024
 
 
 @dataclass
@@ -33,11 +40,11 @@ class BaseMessage:
     delete_after: Optional[float]
 
     def dict(self) -> Dict[str, Any]:
-        return {key.name: attr for key in dataclasses.fields(self) if (attr := getattr(self, key.name)) is not None}
+        return {key.name: attr for key in fields(self) if (attr := getattr(self, key.name)) is not None}
 
     def __iter__(self):
         # Order is preserved in Python 3.7+: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
-        for key in dataclasses.fields(self):
+        for key in fields(self):
             value = getattr(self, key.name)
             if value is None:
                 continue
@@ -64,6 +71,7 @@ class Message(BaseMessage):
 
     Look at https://discordpy.readthedocs.io/en/latest/api.html?highlight=send#discord.abc.Messageable.send
     """
+
     stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
     nonce: Optional[Union[str, int]]
     reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
