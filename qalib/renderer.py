@@ -1,13 +1,20 @@
+from __future__ import annotations
+
 from enum import Enum, auto
-from typing import Any, Dict, Generic, List, Optional, cast
+from typing import Any, Dict, Generic, List, Optional, cast, Callable, Union
 
 import discord.ui
+from discord.ui import Modal
+from typing_extensions import ParamSpec, Concatenate
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, Message
+from qalib.translators.deserializer import ElementTypes
 from qalib.translators.factory import DeserializerFactory, ParserFactory
 from qalib.translators.message_parsing import ButtonComponent, create_button
 from qalib.translators.parser import K, Parser
+
+P = ParamSpec("P")
 
 
 class RenderingOptions(Enum):
@@ -46,12 +53,25 @@ def create_arrows(left: Optional[Message] = None, right: Optional[Message] = Non
     return buttons
 
 
+def render_menu_from_messages(messages: List[Message], timeout: int, **kwargs) -> Message:
+    for i, message in enumerate(messages):
+        arrow_up = messages[i - 1] if i > 0 else None
+        arrow_down = messages[i + 1] if i + 1 < len(messages) else None
+
+        view = discord.ui.View(timeout=timeout) if message.view is None else message.view
+        for arrow in create_arrows(arrow_up, arrow_down, **kwargs):
+            view.add_item(arrow)
+        message.view = view
+
+    return messages[0]
+
+
 class Renderer(Generic[K]):
     """This object is responsible for rendering the embeds, views, and menus, by first using the templating engine to
     template the document, and then using the deserializer to deserialize the document into embeds and views.
     """
 
-    __slots__ = ("_template_engine", "_parser", "_filename", "_deserializer")
+    __slots__ = "_methods", "_template_engine", "_parser", "_filename", "_deserializer"
 
     def __init__(self, template_engine: TemplateEngine, filename: str, *rendering_options: RenderingOptions):
         self._template_engine = template_engine
@@ -60,6 +80,15 @@ class Renderer(Generic[K]):
             self._parser = cast(Parser[K], ParserFactory.get_parser(filename))
         self._filename = filename
         self._deserializer = DeserializerFactory.get_deserializer(filename)
+
+        self._methods: Dict[
+            ElementTypes, Callable[Concatenate[str, Dict[str, Callback], int, P], Union[Message, Modal]]
+        ] = {
+            ElementTypes.MESSAGE.value: self._deserializer.deserialize_into_message,
+            ElementTypes.MENU.value: self._render_menu,
+            ElementTypes.MODAL.value: self._deserializer.deserialize_into_modal,
+            ElementTypes.EXPANSIVE.value: self._render_expansive,
+        }
 
     def _pre_template(self, keywords: Dict[str, Any]) -> Parser[K]:
         """Pre-Template templates the document before further processing. It returns a Parser instance that contains
@@ -81,13 +110,21 @@ class Renderer(Generic[K]):
                 )
         return self._parser
 
+    def _render_expansive(self, source: str, callbacks: Dict[str, Callback], timeout: int, **kwargs) -> Message:
+        messages = self._deserializer.deserialize_into_expansive(source, callbacks)
+        return render_menu_from_messages(messages, timeout, **kwargs)
+
+    def _render_menu(self, source: str, callbacks: Dict[str, Callback], timeout: int, **kwargs) -> Message:
+        messages = self._deserializer.deserialize_into_menu(source, callbacks, timeout=timeout)
+        return render_menu_from_messages(messages, timeout, **kwargs)
+
     def render(
         self,
         key: K,
         callbacks: Optional[Dict[str, Callback]] = None,
         keywords: Optional[Dict[str, Any]] = None,
         timeout: int = 180,
-    ) -> Message:
+    ) -> Union[Message, Modal]:
         """This method is used to render an embed and a view, and places it in a NamedTuple
 
         Args:
@@ -96,7 +133,7 @@ class Renderer(Generic[K]):
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text,
             timeout (int): timeout of the view
 
-        Returns (Display): embed and view that can be sent for display.
+        Returns (Message): embed and view that can be sent for display.
         """
         if callbacks is None:
             callbacks = {}
@@ -104,60 +141,6 @@ class Renderer(Generic[K]):
         if keywords is None:
             keywords = {}
 
-        embed = self._pre_template(keywords).template_message(key, self._template_engine, keywords)
-
-        return self._deserializer.deserialize_into_message(embed, callbacks, timeout=timeout)
-
-    def render_menu(
-        self,
-        key: K,
-        callbacks: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: Optional[int] = 180,
-        **kwargs,
-    ) -> Message:
-        """This method is used to create a menu for the user to select from.
-
-        Args:
-            key (K): key of the menu
-            callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view
-            timeout (Optional[int]): timeout of the view
-            keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
-
-        Returns (Display): Returns the NamedTuple Display, which contains the embed and the view that has arrow buttons
-        that edit the embed and view
-        """
-        if callbacks is None:
-            callbacks = {}
-
-        if keywords is None:
-            keywords = {}
-
-        menu = self._pre_template(keywords).template_menu(key, self._template_engine, keywords)
-        messages = self._deserializer.deserialize_into_menu(menu, callbacks, timeout=timeout)
-
-        for i, message in enumerate(messages):
-            arrow_left = messages[i - 1] if i > 0 else None
-            arrow_right = messages[i + 1] if i + 1 < len(messages) else None
-
-            view = discord.ui.View(timeout=timeout) if message.view is None else message.view
-            for arrow in create_arrows(arrow_left, arrow_right, **kwargs):
-                view.add_item(arrow)
-            message.view = view
-
-        return messages[0]
-
-    def render_modal(
-        self,
-        key: K,
-        methods: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-    ) -> discord.ui.Modal:
-        if methods is None:
-            methods = {}
-
-        if keywords is None:
-            keywords = {}
-
-        modal = self._pre_template(keywords).template_modal(key, self._template_engine, keywords)
-        return self._deserializer.deserialize_into_modal(modal, methods)
+        source = self._pre_template(keywords).template(key, self._template_engine, keywords)
+        element_type: ElementTypes = self._deserializer.get_type(source)
+        return self._methods[element_type](source, callbacks, timeout, **keywords)
