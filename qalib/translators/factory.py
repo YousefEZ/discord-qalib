@@ -1,18 +1,18 @@
 from typing import Any, Optional, Type, cast
 
 from .deserializer import Deserializer
-from .json import JSONDeserializer, JSONParser
-from .parser import Parser
-from .xml import XMLDeserializer, XMLParser
+from .json import JSONDeserializer, JSONTemplater
+from .templater import Templater
+from .xml import XMLDeserializer, XMLTemplater
 
 
-class ParserFactory:
+class TemplaterFactory:
     """Factory class for creating Parsers"""
 
-    parsers = {".xml": XMLParser, ".json": JSONParser}
+    parsers = {".xml": XMLTemplater, ".json": JSONTemplater}
 
     @staticmethod
-    def get_parser_type(path: str) -> Type[Parser[str]]:
+    def get_templater_type(path: str) -> Type[Templater]:
         """Returns the parser type based on the file extension of the path.
 
         Args:
@@ -20,14 +20,14 @@ class ParserFactory:
 
         Returns (Type[Parser]): parser type that is used to parse the file
         """
-        for extension, parser_type in ParserFactory.parsers.items():
+        for extension, parser_type in TemplaterFactory.parsers.items():
             if path.endswith(extension):
-                return cast(Type[Parser[Any]], parser_type)
+                return cast(Type[Templater], parser_type)
 
         raise ValueError("No parser found for the given file")
 
     @staticmethod
-    def get_parser(path: str, *, source: Optional[str] = None) -> Parser[str]:
+    def get_templater(path: str, *, source: Optional[str] = None) -> Templater:
         """Returns an instantiated Parser based on the file extension of the path using either the source contents or
         the path.
 
@@ -37,7 +37,7 @@ class ParserFactory:
 
         Returns (Parser): parser that is used to parse the file
         """
-        parser = ParserFactory.get_parser_type(path)
+        parser = TemplaterFactory.get_templater_type(path)
         if source is not None:
             return parser(source=source)
         with open(path, encoding="utf8", mode="r") as file:
@@ -50,7 +50,7 @@ class DeserializerFactory:
     deserializers = {".xml": XMLDeserializer, ".json": JSONDeserializer}
 
     @staticmethod
-    def get_deserializer_type(path: str) -> Type[Deserializer]:
+    def get_deserializer_type(path: str) -> Type[Deserializer[str]]:
         """This function returns the correct translators for the given file.
 
         Args:
@@ -65,7 +65,7 @@ class DeserializerFactory:
         raise ValueError("No deserializer found for the given file")
 
     @staticmethod
-    def get_deserializer(path: str) -> Deserializer:
+    def get_deserializer(path: str) -> Deserializer[str]:
         """This static method returns the deserializer based on the given path's file extension.
 
         Args:
