@@ -15,8 +15,6 @@ P = ParamSpec("P")
 Callback = Callable[[discord.Interaction], Awaitable[None]]
 CallbackMethod = Callable[[discord.ui.Item[V_co], discord.Interaction], Awaitable[None]]
 
-MAX_CHAR = 1024
-
 
 @dataclass
 class DiscordIdentifier(Snowflake):
@@ -25,20 +23,7 @@ class DiscordIdentifier(Snowflake):
 
 
 @dataclass
-class BaseMessage:
-    content: Optional[str]
-    embed: Optional[discord.Embed]
-    embeds: Optional[Sequence[discord.Embed]]
-    file: Optional[discord.File]
-    files: Optional[Sequence[discord.File]]
-    view: Optional[discord.ui.View]
-    tts: Optional[bool]
-    ephemeral: Optional[bool]
-    allowed_mentions: Optional[discord.AllowedMentions]
-    suppress_embeds: Optional[bool]
-    silent: Optional[bool]
-    delete_after: Optional[float]
-
+class Base:
     def dict(self) -> Dict[str, Any]:
         return {key.name: attr for key in fields(self) if (attr := getattr(self, key.name)) is not None}
 
@@ -52,16 +37,76 @@ class BaseMessage:
 
 
 @dataclass
+class BaseEditMessage(Base):
+    content: Optional[str]
+    embed: Optional[discord.Embed]
+    attachments: Sequence[Union[discord.Attachment, discord.File]]
+    delete_after: Optional[float]
+    allowed_mentions: Optional[discord.AllowedMentions]
+    view: Optional[discord.ui.View]
+
+
+@dataclass
+class BaseMessage(Base):
+    content: Optional[str]
+    embed: Optional[discord.Embed]
+    embeds: Optional[Sequence[discord.Embed]]
+    file: Optional[discord.File]
+    files: Optional[Sequence[discord.File]]
+    view: Optional[discord.ui.View]
+    tts: Optional[bool]
+    ephemeral: Optional[bool]
+    allowed_mentions: Optional[discord.AllowedMentions]
+    suppress_embeds: Optional[bool]
+    silent: Optional[bool]
+    delete_after: Optional[float]
+
+    def as_edit(self) -> BaseEditMessage:
+        raise NotImplementedError
+
+
+@dataclass
+class EditContextMessage(BaseEditMessage):
+    suppress: Optional[bool]
+
+
+@dataclass
 class ContextMessage(BaseMessage):
     stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
     nonce: Optional[Union[str, int]]
     reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
     mention_author: Optional[bool]
 
+    def as_edit(self) -> EditContextMessage:
+        return EditContextMessage(
+            content=self.content,
+            embed=self.embed,
+            attachments=self.files,
+            suppress=self.suppress_embeds,
+            delete_after=self.delete_after,
+            allowed_mentions=self.allowed_mentions,
+            view=self.view
+        )
+
+
+@dataclass
+class InteractionEditMessage(BaseEditMessage):
+    pass
+
 
 @dataclass
 class InteractionMessage(BaseMessage):
     silent: Optional[bool]
+
+    def as_edit(self) -> InteractionEditMessage:
+        return InteractionEditMessage(
+            content=self.content,
+            embed=self.embed,
+            attachments=self.files,
+            delete_after=self.delete_after,
+            allowed_mentions=self.allowed_mentions,
+            view=self.view
+        )
 
 
 # pylint: disable=too-many-instance-attributes
