@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple, Union, Iterable
 from xml.etree import ElementTree
 
 import discord
 import discord.types.embed as embed_types
+from compose import compose
 from discord import ui
 from discord.abc import Snowflake
 from typing_extensions import Concatenate
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, DiscordIdentifier, Message, MAX_CHAR, M, P, N
-from qalib.translators.deserializer import Deserializer, ElementTypes
+from qalib.translators import Callback, DiscordIdentifier, Message, M, P, N
+from qalib.translators.deserializer import Deserializer, ElementTypes, ReturnType, K
 from qalib.translators.message_parsing import (
     ButtonComponent,
     ChannelType,
@@ -30,8 +31,9 @@ from qalib.translators.message_parsing import (
     Footer,
     Author,
     TextInputComponent,
+    make_expansive_embeds, attach_views, make_menu,
 )
-from qalib.translators.parser import K, Parser
+from qalib.translators.templater import Templater
 
 
 def get_text(element_tree: ElementTree.Element, child: str) -> Optional[str]:
@@ -56,133 +58,93 @@ def apply(
     return func(element, *args, **keyword_args)
 
 
-class XMLParser(Parser[K]):
+class XMLTemplater(Templater):
     def __init__(self, source: str):
         """Initialisation of the XML Parser
 
         Args:
             source (str): the text of the XML file
         """
+        self.source = source
         self.root = ElementTree.fromstring(source)
 
-    def get_element(self, key: str) -> str:
-        """This method is used to get an element by its key.
-
-        Args:
-            key (str): key of the element
-
-        Returns (str): a raw string containing the element.
-        """
-        for element in self.root:
-            if element.get("key") == key:
-                return ElementTree.tostring(element, encoding="unicode", method="xml")
-        raise KeyError(f"Element with key {key} not found")
-
-    def template(self, key: K, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
+    def template(self, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template an element, by identifying it by its key and using the template engine to
         template it.
 
         Args:
-            key (K): key of the element
             template_engine (TemplateEngine): template engine that is used to template the embed
             keywords (Dict[str, Any]): keywords that are used to template the embed
 
         Returns (str): templated embed
         """
-        return template_engine.template(self.get_element(key), keywords)
+        return template_engine.template(self.source, keywords)
 
 
-class XMLDeserializer(Deserializer):
+class XMLDeserializer(Deserializer[K]):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
-    def get_type(self, source: str) -> Optional[ElementTypes]:
-        """This method is used to get the type of the element.
+    def _get_element(self, document: ElementTree.Element, key: str) -> ElementTree.Element:
+        for element in document:
+            if key == self.get_attribute(element, "key"):
+                return element
+        raise KeyError("Key not found")
+
+    def deserialize(self, source: str, key: K, callables: Dict[str, Callback]) -> ReturnType:
+        """This method is used to deserialize the embed from the XML file.
 
         Args:
             source (str): raw string containing the element
+            key (K): key of the element
+            callables (Dict[str, Callback]): dictionary containing the callables to use for the components
 
-        Returns (Optional[ElementTypes]): type of the element
+        Returns (Message): message containing the embed and its view
         """
-        element = ElementTree.fromstring(source)
-        return ElementTypes.from_str(element.tag)
+        document = ElementTree.fromstring(source)
+        element = self._get_element(document, key)
+        return self.deserialize_element(document, element, callables)
 
-    def deserialize_into_message(self, source: str, callables: Dict[str, Callback], **kwargs) -> Message:
+    def deserialize_element(
+            self,
+            document: ElementTree.Element,
+            element: ElementTree.Element,
+            callables: Dict[str, Callback]
+    ) -> ReturnType:
+        """This method is used to deserialize the embed from the XML file.
+
+        Args:
+            document (ElementTree.Element): document containing all the elements
+            element (ElementTree.Element): element containing the embed
+            callables (Dict[str, Callback]): dictionary containing the callables to use for the components
+
+        Returns (ReturnType): all possible deserialized objects.
+        """
+        element_type = ElementTypes.from_str(element.tag)
+        deserializers: Dict[ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback]], ReturnType]] = {
+            ElementTypes.MESSAGE: self.deserialize_message,
+            ElementTypes.EXPANSIVE: compose(make_menu, self.deserialize_expansive),
+            ElementTypes.MENU: compose(make_menu, partial(self.deserialize_menu, document=document)),
+            ElementTypes.MODAL: self.deserialize_modal,
+        }
+        return deserializers[element_type](element, callables)
+
+    def deserialize_expansive(self, element: ElementTree.Element, callbacks: Dict[str, Callback]) -> List[Message]:
         """Deserializes an embed from an XML file, and returns it as a Display object.
 
         Args:
-            source (str): templated document contents to deserialize.
-            callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
-            **kwargs (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
-
-        Returns (Display): A display object containing the embed and its view.
-        """
-        return self.deserialize_message(ElementTree.fromstring(source), callables, kwargs)
-
-    def deserialize_into_expansive(self, source: str, callbacks: Dict[str, Callback], **kwargs) -> List[Message]:
-        """Deserializes an embed from an XML file, and returns it as a Display object.
-
-        Args:
-            source (str): templated document contents to deserialize.
+            element (ElementTree.Element): templated document contents to deserialize.
             callbacks (Dict[str, Callback]): A dictionary containing the callables to use for the components.
 
         Returns (Display): A display object containing the embed and its view.
         """
-        message_tree = ElementTree.fromstring(source)
 
-        return [self.deserialize_message(message_tree, callbacks, kwargs, embed=embed)
-                for embed in self._separate_embed(message_tree)]
-
-    def _separate_embed(self, raw_embed: ElementTree.Element) -> List[discord.Embed]:
-        """Separates the embeds from the raw embed element.
-
-        Args:
-            raw_embed (ElementTree.Element): The raw embed element.
-
-        Returns (List[discord.Embed]): A list of embeds.
-        """
-
-        replacement_key: Optional[str] = raw_embed.get("page_number_key")
-
-        embeds: List[discord.Embed] = []
-
-        def get(tree: ElementTree.Element, key: str) -> ElementTree.Element:
-            element = tree.find(key)
-            assert element is not None, f"{key} is not present"
-            return element
-
-        def get_element_text(tree: ElementTree.Element, key: str) -> str:
-            element_text = get(tree, key).text
-            assert element_text is not None, f"{key} is does not have text"
-            return element_text
-
-        expansive_text = get(raw_embed, "expansive_text")
-        field_name = get_element_text(expansive_text, "name")
-        lines = get_element_text(expansive_text, "value").strip().split("\n")
-        start = 0
-
-        def add_key(value: str, page_number: str) -> str:
-            return value if replacement_key is None else value.replace(replacement_key, page_number)
-
-        def add_embed(text: str) -> None:
-            page_number = str(len(embeds) + 1)
-            embed = self._render_embed(raw_embed, (replacement_key, page_number))
-            embed.add_field(name=add_key(field_name, page_number), value=add_key(text, page_number))
-            embeds.append(embed)
-
-        for i in range(len(lines)):
-            if sum(map(len, lines[start: i + 1])) > MAX_CHAR:
-                add_embed("\n".join(lines[start:i]))
-                start = i
-
-        add_embed("\n".join(lines[start:]))
-
-        return embeds
+        return [self.deserialize_message(element, callbacks, embed=embed)
+                for embed in self._separate_embed(element)]
 
     def deserialize_message(
             self,
             message_tree: ElementTree.Element,
             callables: Dict[str, Callback],
-            kwargs: Dict[str, Any],
             **overrides: Any
     ) -> Message:
         """Deserializes an embed from an ElementTree.Element, and returns it as a Display object.
@@ -190,7 +152,7 @@ class XMLDeserializer(Deserializer):
         Args:
             message_tree (ElementTree.Element): The element to deserialize the embed from.
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
-            kwargs (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
+            **overrides (Any): any overrides to apply to the Message
 
         Returns (Message): A display object containing the embed and its view.
         """
@@ -200,7 +162,7 @@ class XMLDeserializer(Deserializer):
                 get_element(message_tree, "embeds"),
                 lambda raw_tree: list(map(self._render_embed, raw_tree)),
             ),
-            "view": apply(get_element(message_tree, "view"), self._render_view, callables, kwargs),
+            "view": apply(get_element(message_tree, "view"), self._render_view, callables),
             "content": get_text(message_tree, "content"),
             "tts": apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
             "nonce": apply(get_text(message_tree, "nonce"), int),
@@ -233,51 +195,96 @@ class XMLDeserializer(Deserializer):
         }
         return Message(**message)
 
-    def deserialize_into_menu(self, source: str, callables: Dict[str, Callback], **kw) -> List[Message]:
+    def deserialize_page(
+            self,
+            document: ElementTree.Element,
+            element: Union[str, ElementTree.Element],
+            callables: Dict[str, Callback]
+    ) -> Iterable[Message]:
+        raw_page: ElementTree.Element = self._get_element(document, element) if isinstance(element, str) else element
+        result = self.deserialize_element(document, raw_page, callables)
+        if isinstance(result, Message):
+            return [result]
+        return cast(Iterable[Message], result)
+
+    def deserialize_menu(
+            self,
+            element: ElementTree.Element,
+            callables: Dict[str, Callback],
+            *,
+            document: ElementTree.Element,
+    ) -> List[Message]:
         """Deserializes a menu from an XML file, by generating a list of displays that are connected by buttons in their
         views to navigate between them.
 
         Args:
-            source (str): The XML file to deserialize.
+            element (ElementTree.Element): The XML Menu Element to deserialize.
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
-            **kw (Dict[str, Any]): A dictionary containing the keyword arguments to use for the views.
+            document (ElementTree.Element): The entire document
 
         Returns (List[Display]): List of displays that are connected by buttons in their views to navigate between them.
         """
+        raw_pages = element.find("pages")
+        assert raw_pages is not None, "pages is not present"
 
-        menu_tree: ElementTree.Element = ElementTree.fromstring(source)
-        return [self.deserialize_message(embed, callables, kw) for embed in menu_tree.findall("message")]
+        pages: List[Message] = sum([self.deserialize_page(document, page, callables) for page in raw_pages], [])
 
-    def deserialize_into_modal(self, source: str, methods: Dict[str, Callback], **kwargs: Any) -> discord.ui.Modal:
+        timeout = element.find("timeout")
+        attach_views(pages, float(timeout.text) if timeout is not None and timeout.text is not None else None)
+
+        return pages
+
+    def deserialize_modal(
+            self,
+            element: ElementTree.Element,
+            methods: Dict[str, Callback],
+            **kwargs: Any
+    ) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
 
         Args:
-            source (str): The source text to deserialize into a modal
-            methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
-            **kwargs (Dict[str, Any]): A dictionary containing the keywords to use for the view
-
-        Returns (discord.ui.Modal): A discord.ui.Modal object
-        """
-        modal_tree = ElementTree.fromstring(source)
-        return self._render_modal(modal_tree, methods, **kwargs)
-
-    def _render_modal(self, tree: ElementTree.Element, methods: Dict[str, Callback], **kwargs: Any) -> discord.ui.Modal:
-        """Method to render a modal from a modal tree
-
-        Args:
-            tree (Dict[str, Any]): The modal tree to render
+            element (ElementTree.Element): The element to deserialize into a modal
             methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
             kwargs (Dict[str, Any]): A dictionary containing the keywords to use for the view
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        title = self.get_attribute(tree, "title")
+        title = self.get_attribute(element, "title")
         modal = type(f"{title} Modal", (discord.ui.Modal,), {**methods, **kwargs})(title=title)
 
-        for component in self.render_components(tree):
+        for component in self.render_components(element):
             modal.add_item(component)
 
         return modal
+
+    def _separate_embed(self, raw_embed: ElementTree.Element) -> List[discord.Embed]:
+        """Separates the embeds from the raw embed element.
+
+        Args:
+            raw_embed (ElementTree.Element): The raw embed element.
+
+        Returns (List[discord.Embed]): A list of embeds.
+        """
+
+        replacement_key: Optional[str] = raw_embed.get("page_number_key")
+
+        def get(tree: ElementTree.Element, key: str) -> ElementTree.Element:
+            element = tree.find(key)
+            assert element is not None, f"{key} is not present"
+            return element
+
+        def get_element_text(tree: ElementTree.Element, key: str) -> str:
+            element_text = get(tree, key).text
+            assert element_text is not None, f"{key} is does not have text"
+            return element_text
+
+        expansive_text = get(raw_embed, "expansive_text")
+
+        return make_expansive_embeds(get_element_text(expansive_text, "name"),
+                                     get_element_text(expansive_text, "value"),
+                                     replacement_key,
+                                     raw_embed,
+                                     self._render_embed)
 
     @staticmethod
     def _render_reference(
@@ -348,18 +355,21 @@ class XMLDeserializer(Deserializer):
             self,
             raw_view: ElementTree.Element,
             callables: Dict[str, Callback],
-            kwargs: Dict[str, Any],
     ) -> ui.View:
         """Renders a view from an ElementTree.Element.
 
         Args:
             raw_view (ElementTree.Element): The element to render the view from.
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the components.
-            kwargs (Dict[str, Any]): A dictionary containing the keyword arguments to use for the view.
 
         Returns (ui.View): A view object containing the components.
         """
-        view = ui.View(**kwargs)
+
+        view = ui.View()
+
+        timeout = raw_view.find("timeout")
+        if timeout is not None:
+            view.timeout = None if timeout.text is None else float(timeout.text)
         for component in self.render_components(raw_view, callables):
             view.add_item(component)
         return view
