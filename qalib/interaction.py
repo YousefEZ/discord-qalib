@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, cast
+import warnings
 
 import discord
 from deprecation import deprecated
@@ -7,7 +8,7 @@ from discord.ui import Modal
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.parser import K
+from qalib.translators.deserializer import K
 
 if TYPE_CHECKING:
     from discord.types.interactions import Interaction as InteractionPayload
@@ -55,12 +56,11 @@ class QalibInteraction(discord.Interaction, Generic[K]):
         self._displayed = False
 
     async def rendered_send(
-        self,
-        identifier: K,
-        callables: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: int = 180,
-        **kwargs,
+            self,
+            identifier: K,
+            callables: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            **kwargs,
     ) -> None:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
         message.
@@ -69,12 +69,11 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             identifier (str): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
-            timeout (Optional[int]): timeout for the view
             **kwargs: kwargs that are passed to the context's send method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(identifier, callables, keywords, timeout=timeout)
+        message = self._renderer.render(identifier, callables, keywords)
         if isinstance(message, Message):
             assert isinstance(self.response, InteractionResponse)  # pyright: ignore [reportGeneralTypeIssues]
             # pylint: disable= no-member
@@ -86,12 +85,11 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             return await self.response.send_modal(message)  # pyright: ignore [reportGeneralTypeIssues]
 
     async def display(
-        self,
-        key: K,
-        callables: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        timeout: int = 180,
-        **kwargs,
+            self,
+            key: K,
+            callables: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
         message can take place.
@@ -100,13 +98,15 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             key (K): identifies the message in the template file
             callables: callable coroutines that are called when the user interacts with the message
             keywords: keywords that are passed to the embed renderer to format the text
-            timeout (Optional[int]): timeout for the view
             **kwargs: kwargs that are passed to the context send method or the message edit method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(key, callables, keywords, timeout=timeout)
+        message = self._renderer.render(key, callables, keywords)
         assert isinstance(message, Message)
+        if self._displayed:
+            await self._display(**{**message.convert_to_interaction_message().as_edit().dict(), **kwargs})
+            return
         await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
@@ -124,13 +124,13 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             await self.response.send_message(**kwargs)  # pyright: ignore [reportGeneralTypeIssues]
             self._displayed = True
 
-    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use render method instead")
+    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use rendered_send method instead")
     async def menu(
-        self,
-        key: K,
-        callbacks: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
-        **kwargs,
+            self,
+            key: K,
+            callbacks: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
+            **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.
 
@@ -140,15 +140,16 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
             **kwargs: kwargs that are passed to the context's send method
         """
-        message = self._renderer.render(key, callbacks=callbacks, keywords=keywords, **kwargs)
+        warnings.warn("Use rendered_send method instead", DeprecationWarning)
+        message = self._renderer.render(key, callbacks=callbacks, keywords=keywords)
         await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
 
-    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use render method instead")
+    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use rendered_send method instead")
     async def respond_with_modal(
-        self,
-        key: K,
-        methods: Optional[Dict[str, Callback]] = None,
-        keywords: Optional[Dict[str, Any]] = None,
+            self,
+            key: K,
+            methods: Optional[Dict[str, Callback]] = None,
+            keywords: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Method that is responsible for templating the document, and then deserializing the requested modal based on
         its key and sending it to the user.
@@ -158,6 +159,7 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             key (str): key that identifies the modal in the route file
             keywords (Any): keywords that are passed to the modal renderer to format the text
         """
+        warnings.warn("Use rendered_send method instead", DeprecationWarning)
         if methods is None:
             methods = {}
 
