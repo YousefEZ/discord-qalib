@@ -111,7 +111,7 @@ class TestXMLRenderer(unittest.TestCase):
     def test_missing_menu_key(self, _: mock.mock.MagicMock):
         path = "tests/routes/simple_embeds.xml"
         renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), path)
-        self.assertRaises(KeyError, renderer.render_menu, "missing_menu_key")
+        self.assertRaises(KeyError, renderer.render, "missing_menu_key")
 
     def test_jinja_renderer(self, _: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")

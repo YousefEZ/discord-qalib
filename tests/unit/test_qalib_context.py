@@ -11,7 +11,7 @@ from discord.ext.commands.view import StringView
 from qalib.context import QalibContext
 from qalib.interaction import QalibInteraction
 from qalib import Formatter, Jinja2, Renderer, RenderingOptions, qalib_context, qalib_interaction
-from qalib.renderer import create_arrows
+from qalib.translators.message_parsing import create_arrows
 
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
 from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals
@@ -112,24 +112,24 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        modal = renderer.render_modal("modal1")
+        modal = renderer.render("modal1")
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        modal = renderer.render_modal("modal1")
+        modal = renderer.render("modal1")
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_missing_modal_key(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
+        self.assertRaises(KeyError, renderer.render, "MISSING_KEY")
 
     async def test_xml_missing_modal_key(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
+        self.assertRaises(KeyError, renderer.render, "MISSING_KEY")
 
     async def test_xml_modal_display(self, *args: mock.mock.MagicMock):
         interaction: QalibInteraction[Modals] = QalibInteraction(
