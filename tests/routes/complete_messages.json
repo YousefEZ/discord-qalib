@@ -1,5 +1,6 @@
 {
   "content_test": {
+    "type": "message",
     "content": "This is a test message",
     "embed": {
       "title": "Test1",
@@ -14,18 +15,20 @@
     }
   },
   "tts_test": {
+    "type": "message",
     "content": "This is a test message",
     "tts": true
   },
   "file_test": {
+    "type": "message",
     "file": {
       "filename": "tests/routes/complete_messages.xml",
       "description": "This is a test file",
       "spoilers": false
     }
   },
-  "allowed_mentions_test":
-  {
+  "allowed_mentions_test": {
+    "type": "message",
     "allowed_mentions": {
       "everyone": false,
       "users": [

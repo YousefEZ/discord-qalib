@@ -1,23 +1,28 @@
 {
   "Menu1": {
-    "test_key1": {
-      "embed": {
-        "title": "Hello World",
-        "color": "magenta",
-        "fields": [
-          {
-            "name": "hello world",
-            "inline": "true",
-            "value": "This is the body of the text"
-          }
-        ],
-        "footer": {
-          "icon_url": "http://www.google.com/favicon.ico"
-        },
-        "thumbnail": "http://www.google.com/images/logo.gif",
-        "image": "http://www.google.com/images/logo.gif"
+    "type": "menu",
+    "pages": [
+      {
+        "type": "message",
+        "embed": {
+          "title": "Hello World",
+          "color": "magenta",
+          "fields": [
+            {
+              "name": "hello world",
+              "inline": "true",
+              "value": "This is the body of the text"
+            }
+          ],
+          "footer": {
+            "icon_url": "http://www.google.com/favicon.ico"
+          },
+          "thumbnail": "http://www.google.com/images/logo.gif",
+          "image": "http://www.google.com/images/logo.gif"
+        }
       },
-      "test_key2": {
+      {
+        "type": "message",
         "title": "Hello Planet",
         "color": "teal",
         "fields": [
@@ -31,6 +36,6 @@
         },
         "thumbnail": "http://www.google.com/images/logo.gif"
       }
-    }
+    ]
   }
 }

@@ -1,5 +1,6 @@
 {
   "modal1": {
+    "type": "modal",
     "title": "Modal 1",
     "components": {
       "name": {

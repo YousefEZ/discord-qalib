@@ -1,5 +1,6 @@
 {
   "test1": {
+    "type": "message",
     "embed": {
       "title": "Test 1",
       "description": "Test 1",
@@ -23,6 +24,7 @@
     }
   },
   "test2": {
+    "type": "message",
     "embed": {
       "title": "Test 2",
       "description": "Test 2",

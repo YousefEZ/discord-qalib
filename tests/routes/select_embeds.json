@@ -1,5 +1,6 @@
 {
   "Launch": {
+    "type": "message",
     "embed": {
       "title": "Hello World",
       "colour": "magenta",

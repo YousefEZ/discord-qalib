@@ -1,5 +1,6 @@
 {
   "test_key": {
+    "type": "message",
     "embed": {
       "title": "Test",
       "description": "Test Description",
@@ -29,6 +30,7 @@
     }
   },
   "test_key2": {
+    "type": "message",
     "embed": {
       "title": "Test2",
       "description": "Test Description",
@@ -95,6 +97,7 @@
     }
   },
   "test_key3": {
+    "type": "message",
     "embed": {
       "title": "Test2",
       "description": "Test Description",
