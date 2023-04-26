@@ -13,15 +13,17 @@
             </fields>
         </embed>
         <view>
-            <button key="button1">
-                <style>primary</style>
-                <emoji>
-                    <name>randomemoji</name>
-                    <id>123456789</id>
-                </emoji>
-                <label>Test Button</label>
-                <url>https://www.discord.com</url>
-            </button>
+            <components>
+                <button key="button1">
+                    <style>primary</style>
+                    <emoji>
+                        <name>randomemoji</name>
+                        <id>123456789</id>
+                    </emoji>
+                    <label>Test Button</label>
+                    <url>https://www.discord.com</url>
+                </button>
+            </components>
         </view>
     </message>
     <message key="test2">
@@ -38,4 +40,18 @@
             </fields>
         </embed>
     </message>
+    <expansive page_number_key="%s" key="test3">
+        <embed>
+            <title>Test Title</title>
+            <colour>teal</colour>
+            <expansive_field>
+                <name>%s</name>
+                <value>
+                    {% for i in range(0, 1500) %}
+                    T
+                    {% endfor %}
+                </value>
+            </expansive_field>
+        </embed>
+    </expansive>
 </discord>

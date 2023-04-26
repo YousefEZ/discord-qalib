@@ -13,12 +13,14 @@
       ]
     },
     "view": {
-      "button1": {
-        "label": "Test 1",
-        "type": "button",
-        "url": "https://www.google.com",
-        "emoji": {
-          "animated": false
+      "components": {
+        "button1": {
+          "label": "Test 1",
+          "type": "button",
+          "url": "https://www.google.com",
+          "emoji": {
+            "animated": false
+          }
         }
       }
     }
@@ -37,10 +39,20 @@
       ]
     },
     "view": {
-      "randomElement": {
-        "type": "randomElement",
-        "label": "Test 2"
+      "components": {
+        "randomElement": {
+          "type": "randomElement",
+          "label": "Test 2"
+        }
       }
     }
+  },
+  "menu_type": {
+    "type": "menu",
+    "pages": [
+      {
+        "type": "RANDOM"
+      }
+    ]
   }
 }

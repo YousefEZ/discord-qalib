@@ -19,22 +19,24 @@
       "image": "http://www.google.com/images/logo.gif"
     },
     "view": {
-      "test1": {
-        "type": "role_select",
-        "placeholder": "Select a Role"
-      },
-      "test2": {
-        "type": "user_select",
-        "placeholder": "Select a User"
-      },
-      "test3": {
-        "type": "mentionable_select",
-        "placeholder": "Select a Mention"
-      },
-      "test4": {
-        "type": "text_input",
-        "placeholder": "Test Placeholder",
-        "label": "Test Label"
+      "components": {
+        "test1": {
+          "type": "role_select",
+          "placeholder": "Select a Role"
+        },
+        "test2": {
+          "type": "user_select",
+          "placeholder": "Select a User"
+        },
+        "test3": {
+          "type": "mentionable_select",
+          "placeholder": "Select a Mention"
+        },
+        "test4": {
+          "type": "text_input",
+          "placeholder": "Test Placeholder",
+          "label": "Test Label"
+        }
       }
     }
   }

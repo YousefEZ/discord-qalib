@@ -12,13 +12,15 @@
             </fields>
         </embed>
         <view>
-            <button key="button1">
-                <label>Test 1</label>
-                <url>https://www.google.com</url>
-                <emoji>
-                    <animated>False</animated>
-                </emoji>
-            </button>
+            <components>
+                <button key="button1">
+                    <label>Test 1</label>
+                    <url>https://www.google.com</url>
+                    <emoji>
+                        <animated>False</animated>
+                    </emoji>
+                </button>
+            </components>
         </view>
     </message>
     <message key="test2">
@@ -34,9 +36,11 @@
             </fields>
         </embed>
         <view>
-            <randomElement>
-                <label>Test 1</label>
-            </randomElement>
+            <components>
+                <randomElement>
+                    <label>Test 1</label>
+                </randomElement>
+            </components>
         </view>
     </message>
 </discord>

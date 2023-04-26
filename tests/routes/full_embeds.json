@@ -59,40 +59,42 @@
       }
     },
     "view": {
-      "button1": {
-        "type": "button",
-        "label": "Test Button",
-        "url": "https://www.discord.com",
-        "style": "primary",
-        "emoji": {
-          "name": "randomemoji",
-          "id": "123456789",
-          "animated": false
+      "components": {
+        "button1": {
+          "type": "button",
+          "label": "Test Button",
+          "url": "https://www.discord.com",
+          "style": "primary",
+          "emoji": {
+            "name": "randomemoji",
+            "id": "123456789",
+            "animated": false
+          }
+        },
+        "button2": {
+          "type": "button",
+          "label": "Test Button",
+          "url": "https://www.discord.com",
+          "style": "secondary"
+        },
+        "button3": {
+          "type": "button",
+          "label": "Test Button",
+          "url": "https://www.discord.com",
+          "style": "success"
+        },
+        "button4": {
+          "type": "button",
+          "label": "Test Button",
+          "url": "https://www.discord.com",
+          "style": "danger"
+        },
+        "button5": {
+          "type": "button",
+          "label": "Test Button",
+          "url": "https://www.discord.com",
+          "style": "link"
         }
-      },
-      "button2": {
-        "type": "button",
-        "label": "Test Button",
-        "url": "https://www.discord.com",
-        "style": "secondary"
-      },
-      "button3": {
-        "type": "button",
-        "label": "Test Button",
-        "url": "https://www.discord.com",
-        "style": "success"
-      },
-      "button4": {
-        "type": "button",
-        "label": "Test Button",
-        "url": "https://www.discord.com",
-        "style": "danger"
-      },
-      "button5": {
-        "type": "button",
-        "label": "Test Button",
-        "url": "https://www.discord.com",
-        "style": "link"
       }
     }
   },
@@ -126,37 +128,39 @@
       }
     },
     "view": {
-      "select1": {
-        "type": "select",
-        "label": "Test Select",
-        "options": [
-          {
-            "label": "Test Option",
-            "value": "test_option",
-            "description": "Test Description",
-            "emoji": {
-              "name": "randomemoji",
-              "id": "123456789",
-              "animated": false
+      "components": {
+        "select1": {
+          "type": "select",
+          "label": "Test Select",
+          "options": [
+            {
+              "label": "Test Option",
+              "value": "test_option",
+              "description": "Test Description",
+              "emoji": {
+                "name": "randomemoji",
+                "id": "123456789",
+                "animated": false
+              }
+            },
+            {
+              "label": "Test Option",
+              "value": "test_option",
+              "description": "Test Description"
             }
-          },
-          {
-            "label": "Test Option",
-            "value": "test_option",
-            "description": "Test Description"
-          }
-        ],
-        "placeholder": "Select a date",
-        "min_values": 1,
-        "max_values": 1
-      },
-      "channel1": {
-        "type": "channel_select",
-        "channel_types": [
-          "text",
-          "private"
-        ],
-        "placeholder": "Select a channel"
+          ],
+          "placeholder": "Select a date",
+          "min_values": 1,
+          "max_values": 1
+        },
+        "channel1": {
+          "type": "channel_select",
+          "channel_types": [
+            "text",
+            "private"
+          ],
+          "placeholder": "Select a channel"
+        }
       }
     }
   }

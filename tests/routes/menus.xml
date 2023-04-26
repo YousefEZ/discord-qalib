@@ -30,4 +30,107 @@
             </message>
         </pages>
     </menu>
+    <menu key="Menu2">
+        <timeout/>
+        <pages>
+            <message key="test_key1">
+                <embed>
+                    <title>Hello World</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field inline="True" name="hello world">
+                            This is the body of the text
+                        </field>
+                    </fields>
+                    <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
+                    <footer_icon>http://www.google.com/favicon.ico</footer_icon>
+                    <image>http://www.google.com/images/logo.gif</image>
+                </embed>
+            </message>
+            <message key="test_key2">
+                <embed>
+                    <title>Hello Planet</title>
+                    <colour>teal</colour>
+                    <fields>
+                        <field name="hello planet">
+                            This is the body of the text
+                        </field>
+                    </fields>
+                    <thumbnail>http://www.google.com/images/logo.gif</thumbnail>
+                    <footer_icon>http://www.google.com/favicon.ico</footer_icon>
+                </embed>
+
+            </message>
+        </pages>
+    </menu>
+    <menu key="Menu3">
+        <pages>
+            <expansive key="test_key3">
+                <timeout/>
+                <embed>
+                    <title>Title</title>
+                    <colour>teal</colour>
+                    <expansive_field>
+                        <name>hello planet</name>
+                        <value>
+                            in iaculis nunc sed augue lacus viverra vitae congue eu consequat ac felis donec et
+                            odio pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus
+                            faucibus scelerisque eleifend donec pretium vulputate sapien nec sagittis
+                            aliquam malesuada bibendum arcu vitae elementum curabitur vitae nunc sed velit
+                            dignissim sodales ut eu sem integer vitae justo eget magna fermentum iaculis eu
+                            non diam phasellus vestibulum lorem sed risus ultricies tristique nulla aliquet enim tortor
+                            at auctor urna nunc id cursus metus aliquam eleifend mi in nulla
+                            posuere sollicitudin aliquam ultrices sagittis orci a scelerisque purus semper eget
+                            duis at tellus at urna condimentum
+                            in iaculis nunc sed augue lacus viverra vitae congue eu consequat ac felis donec et
+                            odio pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus
+                            faucibus scelerisque eleifend donec pretium vulputate sapien nec sagittis
+                            aliquam malesuada bibendum arcu vitae elementum curabitur vitae nunc sed velit
+                            dignissim sodales ut eu sem integer vitae justo eget magna fermentum iaculis eu
+                            non diam phasellus vestibulum lorem sed risus ultricies tristique nulla aliquet enim tortor
+                            at auctor urna nunc id cursus metus aliquam eleifend mi in nulla
+                            posuere sollicitudin aliquam ultrices sagittis orci a scelerisque purus semper eget
+                            duis at tellus at urna condimentum
+                        </value>
+                    </expansive_field>
+                </embed>
+            </expansive>
+            <expansive page_number_key="%s" key="test_key3">
+                <timeout/>
+                <embed>
+                    <title>Title %s</title>
+                    <colour>teal</colour>
+                    <expansive_field>
+                        <name>hello planet</name>
+                        <value>
+                            in iaculis nunc sed augue lacus viverra vitae congue eu consequat ac felis donec et
+                            odio pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus
+                            faucibus scelerisque eleifend donec pretium vulputate sapien nec sagittis
+                            aliquam malesuada bibendum arcu vitae elementum curabitur vitae nunc sed velit
+                            dignissim sodales ut eu sem integer vitae justo eget magna fermentum iaculis eu
+                            non diam phasellus vestibulum lorem sed risus ultricies tristique nulla aliquet enim tortor
+                            at auctor urna nunc id cursus metus aliquam eleifend mi in nulla
+                            posuere sollicitudin aliquam ultrices sagittis orci a scelerisque purus semper eget
+                            duis at tellus at urna condimentum
+                            in iaculis nunc sed augue lacus viverra vitae congue eu consequat ac felis donec et
+                            odio pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus
+                            faucibus scelerisque eleifend donec pretium vulputate sapien nec sagittis
+                            aliquam malesuada bibendum arcu vitae elementum curabitur vitae nunc sed velit
+                            dignissim sodales ut eu sem integer vitae justo eget magna fermentum iaculis eu
+                            non diam phasellus vestibulum lorem sed risus ultricies tristique nulla aliquet enim tortor
+                            at auctor urna nunc id cursus metus aliquam eleifend mi in nulla
+                            posuere sollicitudin aliquam ultrices sagittis orci a scelerisque purus semper eget
+                            duis at tellus at urna condimentum
+                        </value>
+                    </expansive_field>
+                </embed>
+                <view>
+                    <components>
+
+                    </components>
+                </view>
+            </expansive>
+
+        </pages>
+    </menu>
 </discord>
