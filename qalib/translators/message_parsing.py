@@ -368,8 +368,8 @@ def split_text(text: str) -> List[str]:
     return values
 
 
-def replace_with_page(value: str, page_number: str, replacement_key: Optional[str]) -> str:
-    return value if replacement_key is None else value.replace(replacement_key, page_number)
+def replace_with_page(value: str, replacement_key: str, page_number: str) -> str:
+    return value.replace(replacement_key, page_number)
 
 
 def make_expansive_embed(
@@ -380,9 +380,10 @@ def make_expansive_embed(
         raw_embed: T,
         embed_renderer: Callable[Concatenate[T, P], discord.Embed]
 ) -> discord.Embed:
-    embed = embed_renderer(raw_embed, (replacement_key, page_number))
-    embed.add_field(name=replace_with_page(name, page_number, replacement_key),
-                    value=replace_with_page(value, page_number, replacement_key),
+    replacement = (replacement_key, page_number)
+    embed = embed_renderer(raw_embed, replacement) if replacement_key is not None else embed_renderer(raw_embed)
+    embed.add_field(name=replace_with_page(name, *replacement) if replacement_key is not None else name,
+                    value=replace_with_page(value, *replacement) if replacement_key is not None else value,
                     inline=False)
     return embed
 
@@ -439,6 +440,9 @@ def make_menu(messages: List[Message]) -> Message:
     for i, message in enumerate(messages):
         arrow_up = messages[i - 1] if i > 0 else None
         arrow_down = messages[i + 1] if i + 1 < len(messages) else None
+
+        if message.view is None:
+            message.view = ui.View()
 
         for arrow in create_arrows(arrow_up, arrow_down):
             message.view.add_item(arrow)

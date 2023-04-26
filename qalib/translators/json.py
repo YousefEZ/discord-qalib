@@ -116,7 +116,8 @@ class TextInput(TextInputRaw):
     type: ComponentTypes
 
 
-Components = Union[Button, Select, CustomSelect, ChannelSelect, TextInput]
+ComponentType = Union[Button, Select, CustomSelect, ChannelSelect, TextInput]
+Components = Dict[str, ComponentType]
 
 
 class Timestamp(TypedDict):
@@ -170,7 +171,9 @@ class MessageReference(TypedDict):
     guild_id: NotRequired[int]
 
 
-View = Dict[str, Components]
+class View(TypedDict):
+    timeout: NotRequired[Optional[float]]
+    components: Components
 
 
 class Element(TypedDict):
@@ -215,7 +218,7 @@ class Menu(Element):
 
 class Modal(Element):
     title: str
-    components: Dict[str, Components]
+    components: Components
 
 
 Elements = Union[RegularMessage, ExpansiveMessage, Menu, Modal]
@@ -346,7 +349,7 @@ class JSONDeserializer(Deserializer[K]):
                 channel_id=reference["channel_id"],
                 guild_id=reference.get("guild_id"),
             )), 'mention_author': message_tree.get("mention_author"),
-            'view': apply(message_tree.get("view"), self._render_view, callables, message_tree.get("timeout")),
+            'view': apply(message_tree.get("view"), self._render_view, callables),
             'stickers': None,
             'ephemeral': message_tree.get("ephemeral"), 'silent': message_tree.get("silent"),
             **overrides
@@ -362,9 +365,17 @@ class JSONDeserializer(Deserializer[K]):
 
         Returns (List[Display]): A list of Display objects
         """
-
-        return [self.deserialize_message(message_tree, callbacks, embed=embed)
-                for embed in self._separate_embed(message_tree["embed"], message_tree.get("page_number_key"))]
+        timeout = 180.0
+        if "timeout" in message_tree:
+            timeout = message_tree["timeout"]
+        messages = [self.deserialize_message(message_tree, callbacks, embed=embed)
+                    for embed in self._separate_embed(message_tree["embed"], message_tree.get("page_number_key"))]
+        for message in messages:
+            if message.view is None:
+                message.view = ui.View(timeout=timeout)
+            else:
+                message.view.timeout = timeout
+        return messages
 
     def deserialize_page(
             self,
@@ -387,7 +398,7 @@ class JSONDeserializer(Deserializer[K]):
             return [self.deserialize_message(page, callables)]
         if element_type == ElementTypes.EXPANSIVE:
             return self.deserialize_expansive(page, callables)
-        raise ValueError(f"Invalid type {element_type} for page")
+        raise TypeError(f"Invalid type {element_type} for page")
 
     def deserialize_menu(self, menu: Menu, callables: Dict[str, Callback], *, document: Document) -> List[Message]:
         """Method to deserialize a menu into a list of Display objects
@@ -474,7 +485,7 @@ class JSONDeserializer(Deserializer[K]):
             spoiler=raw_file["spoiler"] if "spoiler" in raw_file else False,
         )
 
-    def _render_view(self, raw_view: View, callables: Dict[str, Callback], timeout: Optional[float]) -> ui.View:
+    def _render_view(self, raw_view: View, callables: Dict[str, Callback]) -> ui.View:
         """Method to render a view element into a discord.ui.View object
 
         Args:
@@ -484,9 +495,9 @@ class JSONDeserializer(Deserializer[K]):
         Returns (ui.View): A discord.ui.View object
         """
         view = ui.View()
-        if timeout is not None:
-            view.timeout = timeout
-        for component in self.render_components(raw_view, callables):
+        if "timeout" in raw_view:
+            view.timeout = raw_view["timeout"]
+        for component in self.render_components(raw_view["components"], callables):
             view.add_item(component)
         return view
 
@@ -613,7 +624,7 @@ class JSONDeserializer(Deserializer[K]):
 
     def render_component(
             self,
-            component: Components,
+            component: ComponentType,
             callback: Optional[Callback],
     ) -> ui.Item:
         """Renders a component from the given component's template
@@ -640,18 +651,22 @@ class JSONDeserializer(Deserializer[K]):
 
         return item_renderer(component, callback)
 
-    def render_components(self, view: View, callables: Optional[Dict[str, Callback]] = None) -> List[ui.Item]:
+    def render_components(
+            self,
+            components: Components,
+            callables: Optional[Dict[str, Callback]] = None
+    ) -> List[ui.Item]:
         """Renders the components specified by the identifier
 
         Args:
-            view (Dict[str, ...]): the dictionary containing the view component.
+            components (Components): the dictionary containing the view component.
             callables (Dict[str, Callback]): the callbacks to be called when the user interacts with the components
 
-        Returns (Optional[List[ui.Item]]): the rendered components
+        Returns (List[ui.Item]): the rendered components
         """
         if callables is None:
             callables = {}
-        return [self.render_component(component, callables.get(key)) for key, component in view.items()]
+        return [self.render_component(component, callables.get(key)) for key, component in components.items()]
 
     def _render_embed(self, raw_embed: Union[ExpansiveEmbed, Embed], *replacements: Tuple[str, str]) -> discord.Embed:
         """Render the desired templated embed in discord.Embed instance
@@ -665,7 +680,9 @@ class JSONDeserializer(Deserializer[K]):
         """
         assert "colour" in raw_embed or "color" in raw_embed, "Embed must have either a colour or color key"
 
-        def replace(value: str) -> str:
+        def replace(value: Optional[str]) -> Optional[str]:
+            if value is None:
+                return value
             for replacement in replacements:
                 value = value.replace(*replacement)
             return value

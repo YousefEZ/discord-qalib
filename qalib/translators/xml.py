@@ -137,9 +137,20 @@ class XMLDeserializer(Deserializer[K]):
 
         Returns (Display): A display object containing the embed and its view.
         """
-
-        return [self.deserialize_message(element, callbacks, embed=embed)
-                for embed in self._separate_embed(element)]
+        raw_embed = element.find("embed")
+        assert raw_embed is not None, "Embed not found"
+        timeout_element = element.find("timeout")
+        timeout = 180.0
+        if timeout_element is not None:
+            timeout = None if timeout_element.text is None else float(timeout_element.text)
+        messages = [self.deserialize_message(element, callbacks, embed=embed)
+                    for embed in self._separate_embed(raw_embed, element.get("page_number_key"))]
+        for message in messages:
+            if message.view is None:
+                message.view = ui.View(timeout=timeout)
+            else:
+                message.view.timeout = timeout
+        return messages
 
     def deserialize_message(
             self,
@@ -202,10 +213,13 @@ class XMLDeserializer(Deserializer[K]):
             callables: Dict[str, Callback]
     ) -> Iterable[Message]:
         raw_page: ElementTree.Element = self._get_element(document, element) if isinstance(element, str) else element
-        result = self.deserialize_element(document, raw_page, callables)
-        if isinstance(result, Message):
-            return [result]
-        return cast(Iterable[Message], result)
+        element_type = ElementTypes.from_str(raw_page.tag)
+        page_deserializers: Dict[
+            ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback]], Iterable[Message]]] = {
+            ElementTypes.MESSAGE: compose(lambda m: [m], self.deserialize_message),
+            ElementTypes.EXPANSIVE: self.deserialize_expansive,
+        }
+        return page_deserializers[element_type](raw_page, callables)
 
     def deserialize_menu(
             self,
@@ -257,7 +271,7 @@ class XMLDeserializer(Deserializer[K]):
 
         return modal
 
-    def _separate_embed(self, raw_embed: ElementTree.Element) -> List[discord.Embed]:
+    def _separate_embed(self, raw_embed: ElementTree.Element, replacement_key: Optional[str]) -> List[discord.Embed]:
         """Separates the embeds from the raw embed element.
 
         Args:
@@ -265,8 +279,6 @@ class XMLDeserializer(Deserializer[K]):
 
         Returns (List[discord.Embed]): A list of embeds.
         """
-
-        replacement_key: Optional[str] = raw_embed.get("page_number_key")
 
         def get(tree: ElementTree.Element, key: str) -> ElementTree.Element:
             element = tree.find(key)
@@ -278,7 +290,7 @@ class XMLDeserializer(Deserializer[K]):
             assert element_text is not None, f"{key} is does not have text"
             return element_text
 
-        expansive_text = get(raw_embed, "expansive_text")
+        expansive_text = get(raw_embed, "expansive_field")
 
         return make_expansive_embeds(get_element_text(expansive_text, "name"),
                                      get_element_text(expansive_text, "value"),
@@ -658,12 +670,15 @@ class XMLDeserializer(Deserializer[K]):
         if callables is None:
             callables = {}
 
+        components = view.find("components")
+        if components is None:
+            return []
         return [
             self.render_component(
                 component,
                 callables.get(self.get_attribute(component, "key")),
             )
-            for component in view
+            for component in components
         ]
 
     def _render_embed(self, raw_embed: ElementTree.Element, *replacements: Tuple[str, str]) -> discord.Embed:
