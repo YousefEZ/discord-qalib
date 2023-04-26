@@ -7,6 +7,8 @@ import mock
 
 from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
+from qalib.translators import BaseMessage, Message
+from qalib.translators.message_parsing import make_menu
 from tests.unit.mocked_classes import MockedInteraction
 from tests.unit.types import FullEmbeds, SelectEmbeds, ErrorEmbeds, CompleteJSONMessages
 from tests.unit.utils import render_message
@@ -129,6 +131,22 @@ class TestJSONRenderer(unittest.TestCase):
         assert message.file is not None
         self.assertIsInstance(message.file, discord.File)
         self.assertEqual(message.file.filename, "complete_messages.xml")
+
+    def test_basic_message(self):
+        message = BaseMessage(content=None, embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                              ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                              delete_after=None)
+        self.assertRaises(NotImplementedError, message.as_edit)
+
+    @mock.patch("discord.ui.View")
+    def test_menu(self, mock_view: mock.mock.MagicMock):
+        messages = [Message(content=None, embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                            ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                            delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
+                    for _ in range(3)]
+        message = make_menu(messages)
+        self.assertIsInstance(message, Message)
+        self.assertEqual(mock_view.return_value.add_item.call_count, 4)
 
     def test_allowed_mentions_rendering(self):
         template = "tests/routes/complete_messages.json"

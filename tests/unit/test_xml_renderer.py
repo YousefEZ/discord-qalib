@@ -49,6 +49,13 @@ class TestXMLRenderer(unittest.TestCase):
 
         self.assertEqual(view.return_value.add_item.call_count, 5)
 
+    def test_missing_components(self, view: mock.mock.MagicMock):
+        path = "tests/routes/simple_embeds.xml"
+        renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), path)
+        renderer.render("Launch2")
+
+        self.assertEqual(view.add_item.call_count, 0)
+
     def test_select_rendering(self, view: mock.mock.MagicMock):
         render_select_test_key3()
         self.assertEqual(view.return_value.add_item.call_count, 2)
@@ -118,6 +125,11 @@ class TestXMLRenderer(unittest.TestCase):
         message = renderer.render("test1")
         assert message.embed is not None
         self.assertEqual(len(message.embed.fields), 3)
+
+    def test_expansive_message(self, _: mock.mock.MagicMock):
+        renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
+        message = renderer.render("test3")
+        self.assertIsNotNone(message)
 
     def test_jinja_view_rendering(self, view: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
