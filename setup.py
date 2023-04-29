@@ -14,4 +14,5 @@ setup(
     license="MIT",
     python_requires=">=3.8.0",
     install_requires=requirements,
+    package_data={"qalib": ["py.typed"]},
 )
