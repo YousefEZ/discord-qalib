@@ -1,15 +1,17 @@
-from typing import Any, Optional, Type, cast
+from typing import Any, Optional, Type, cast, Literal, Dict, TypeVar
 
 from .deserializer import Deserializer
 from .json import JSONDeserializer, JSONTemplater
 from .templater import Templater
 from .xml import XMLDeserializer, XMLTemplater
 
+Extensions = Literal[".xml", ".json"]
+
 
 class TemplaterFactory:
     """Factory class for creating Parsers"""
 
-    parsers = {".xml": XMLTemplater, ".json": JSONTemplater}
+    parsers: Dict[Extensions, Type[Templater]] = {".xml": XMLTemplater, ".json": JSONTemplater}
 
     @staticmethod
     def get_templater_type(path: str) -> Type[Templater]:
@@ -47,7 +49,7 @@ class TemplaterFactory:
 class DeserializerFactory:
     """Factory class for creating Deserializers"""
 
-    deserializers = {".xml": XMLDeserializer, ".json": JSONDeserializer}
+    deserializers: Dict[Extensions, Type[Deserializer[str]]] = {".xml": XMLDeserializer, ".json": JSONDeserializer}
 
     @staticmethod
     def get_deserializer_type(path: str) -> Type[Deserializer[str]]:
