@@ -53,48 +53,50 @@
             </author>
         </embed>
         <view>
-            <button key="button1">
-                <style>primary</style>
-                <emoji>
-                    <name>🦺</name>
-                </emoji>
-                <label>Test Button</label>
-                <url>https://www.discord.com</url>
-            </button>
-            <button key="button2">
-                <style>secondary</style>
-                <emoji>
-                    <name>random2</name>
-                    <id>123456789</id>
-                    <animated>false</animated>
-                </emoji>
-                <label>Test Button</label>
-                <url>https://www.discord.com</url>
-            </button>
-            <button key="button3">
-                <style>success</style>
-                <emoji>
-                    <name>:white_check_mark:</name>
-                </emoji>
-                <label>Test Button</label>
-                <url>https://www.discord.com</url>
-            </button>
-            <button key="button4">
-                <style>danger</style>
-                <emoji>
-                    <name>fire</name>
-                </emoji>
-                <label>Test Button</label>
-                <url>https://www.discord.com</url>
-            </button>
-            <button key="button5">
-                <style>link</style>
-                <emoji>
-                    <name>🔗</name>
-                </emoji>
-                <label>Test Button</label>
-                <url>https://www.discord.com</url>
-            </button>
+            <components>
+                <button key="button1">
+                    <style>primary</style>
+                    <emoji>
+                        <name>🦺</name>
+                    </emoji>
+                    <label>Test Button</label>
+                    <url>https://www.discord.com</url>
+                </button>
+                <button key="button2">
+                    <style>secondary</style>
+                    <emoji>
+                        <name>random2</name>
+                        <id>123456789</id>
+                        <animated>false</animated>
+                    </emoji>
+                    <label>Test Button</label>
+                    <url>https://www.discord.com</url>
+                </button>
+                <button key="button3">
+                    <style>success</style>
+                    <emoji>
+                        <name>:white_check_mark:</name>
+                    </emoji>
+                    <label>Test Button</label>
+                    <url>https://www.discord.com</url>
+                </button>
+                <button key="button4">
+                    <style>danger</style>
+                    <emoji>
+                        <name>fire</name>
+                    </emoji>
+                    <label>Test Button</label>
+                    <url>https://www.discord.com</url>
+                </button>
+                <button key="button5">
+                    <style>link</style>
+                    <emoji>
+                        <name>🔗</name>
+                    </emoji>
+                    <label>Test Button</label>
+                    <url>https://www.discord.com</url>
+                </button>
+            </components>
         </view>
     </message>
     <message key="test_key3">
@@ -124,33 +126,36 @@
             </author>
         </embed>
         <view>
-            <select key="select1">
-                <placeholder>Select a date</placeholder>
-                <options>
-                    <option>
-                        <label>Test Option</label>
-                        <value>Test Value</value>
-                        <description>Test Description</description>
-                        <emoji>
-                            <name>randomemoji</name>
-                            <id>123456789</id>
-                            <animated>true</animated>
-                        </emoji>
-                    </option>
-                    <option>
-                        <label>Test Option</label>
-                        <value>Test Value</value>
-                        <description>Test Description</description>
-                    </option>
-                </options>
-            </select>
-            <channel_select key="channel1">
-                <placeholder>Select a channel</placeholder>
-                <channel_types>
-                    <channel_type>text</channel_type>
-                    <channel_type>voice</channel_type>
-                </channel_types>
-            </channel_select>
+            <timeout/>
+            <components>
+                <select key="select1">
+                    <placeholder>Select a date</placeholder>
+                    <options>
+                        <option>
+                            <label>Test Option</label>
+                            <value>Test Value</value>
+                            <description>Test Description</description>
+                            <emoji>
+                                <name>randomemoji</name>
+                                <id>123456789</id>
+                                <animated>true</animated>
+                            </emoji>
+                        </option>
+                        <option>
+                            <label>Test Option</label>
+                            <value>Test Value</value>
+                            <description>Test Description</description>
+                        </option>
+                    </options>
+                </select>
+                <channel_select key="channel1">
+                    <placeholder>Select a channel</placeholder>
+                    <channel_types>
+                        <channel_type>text</channel_type>
+                        <channel_type>voice</channel_type>
+                    </channel_types>
+                </channel_select>
+            </components>
         </view>
     </message>
 </discord>

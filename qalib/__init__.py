@@ -30,7 +30,7 @@ Coro = Coroutine[Any, Any, T]
 
 
 def qalib_context(
-    template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
 ) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
     """This decorator is used to create a QalibContext object, and pass it to the function as it's first argument,
     overriding the default context.
@@ -46,7 +46,6 @@ def qalib_context(
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
-
             @wraps(func)
             async def method(self: commands.Cog, ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
                 return await func(self, QalibContext(ctx, renderer_instance), *args, **kwargs)
@@ -63,7 +62,7 @@ def qalib_context(
 
 
 def qalib_interaction(
-    template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
 ) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
     """This decorator is used to create a QalibInteraction object, and pass it to the function as it's first argument,
     overriding the default interaction.
@@ -80,13 +79,12 @@ def qalib_interaction(
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
-
             @wraps(func)
             async def method(
-                self: commands.Cog,
-                inter: discord.Interaction,
-                *args: Any,
-                **kwargs: Any,
+                    self: commands.Cog,
+                    inter: discord.Interaction,
+                    *args: Any,
+                    **kwargs: Any,
             ) -> T:
                 return await func(self, QalibInteraction(inter, renderer_instance), *args, **kwargs)
 

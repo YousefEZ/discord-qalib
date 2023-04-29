@@ -1,11 +1,15 @@
-import dataclasses
-from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union
+from dataclasses import dataclass, fields
+from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union, TypedDict
 
 import discord
 from discord.abc import Snowflake
+from typing_extensions import ParamSpec
 
 V_co = TypeVar("V_co", bound=discord.ui.View, covariant=True)
+
+M = TypeVar("M")
+N = TypeVar("N")
+P = ParamSpec("P")
 
 Callback = Callable[[discord.Interaction], Awaitable[None]]
 CallbackMethod = Callable[[discord.ui.Item[V_co], discord.Interaction], Awaitable[None]]
@@ -18,7 +22,85 @@ class DiscordIdentifier(Snowflake):
 
 
 @dataclass
-class BaseMessage:
+class Base:
+    def dict(self) -> Dict[str, Any]:
+        return {key.name: attr for key in fields(self) if (attr := getattr(self, key.name)) is not None}
+
+
+@dataclass
+class BaseEditMessage(Base):
+    content: Optional[str]
+    embed: Optional[discord.Embed]
+    attachments: Optional[Sequence[Union[discord.Attachment, discord.File]]]
+    delete_after: Optional[float]
+    allowed_mentions: Optional[discord.AllowedMentions]
+    view: Optional[discord.ui.View]
+
+
+# pylint: disable= too-many-instance-attributes
+@dataclass
+class BaseMessage(Base):
+    content: Optional[str]
+    embed: Optional[discord.Embed]
+    embeds: Optional[Sequence[discord.Embed]]
+    file: Optional[discord.File]
+    files: Optional[Sequence[discord.File]]
+    view: Optional[discord.ui.View]
+    tts: Optional[bool]
+    ephemeral: Optional[bool]
+    allowed_mentions: Optional[discord.AllowedMentions]
+    suppress_embeds: Optional[bool]
+    delete_after: Optional[float]
+
+    def as_edit(self) -> BaseEditMessage:
+        raise NotImplementedError
+
+
+@dataclass
+class EditContextMessage(BaseEditMessage):
+    suppress: Optional[bool]
+
+
+@dataclass
+class ContextMessage(BaseMessage):
+    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
+    nonce: Optional[Union[str, int]]
+    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
+    mention_author: Optional[bool]
+
+    def as_edit(self) -> EditContextMessage:
+        return EditContextMessage(
+            content=self.content,
+            embed=self.embed,
+            attachments=self.files,
+            suppress=self.suppress_embeds,
+            delete_after=self.delete_after,
+            allowed_mentions=self.allowed_mentions,
+            view=self.view
+        )
+
+
+@dataclass
+class InteractionEditMessage(BaseEditMessage):
+    pass
+
+
+@dataclass
+class InteractionMessage(BaseMessage):
+    silent: Optional[bool]
+
+    def as_edit(self) -> InteractionEditMessage:
+        return InteractionEditMessage(
+            content=self.content,
+            embed=self.embed,
+            attachments=self.files,
+            delete_after=self.delete_after,
+            allowed_mentions=self.allowed_mentions,
+            view=self.view
+        )
+
+
+class MessageTyped(TypedDict):
     content: Optional[str]
     embed: Optional[discord.Embed]
     embeds: Optional[Sequence[discord.Embed]]
@@ -31,30 +113,10 @@ class BaseMessage:
     suppress_embeds: Optional[bool]
     silent: Optional[bool]
     delete_after: Optional[float]
-
-    def dict(self) -> Dict[str, Any]:
-        return {key.name: attr for key in dataclasses.fields(self) if (attr := getattr(self, key.name)) is not None}
-
-    def __iter__(self):
-        # Order is preserved in Python 3.7+: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
-        for key in dataclasses.fields(self):
-            value = getattr(self, key.name)
-            if value is None:
-                continue
-            yield value
-
-
-@dataclass
-class ContextMessage(BaseMessage):
     stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
     nonce: Optional[Union[str, int]]
     reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
     mention_author: Optional[bool]
-
-
-@dataclass
-class InteractionMessage(BaseMessage):
-    silent: Optional[bool]
 
 
 # pylint: disable=too-many-instance-attributes
@@ -64,6 +126,7 @@ class Message(BaseMessage):
 
     Look at https://discordpy.readthedocs.io/en/latest/api.html?highlight=send#discord.abc.Messageable.send
     """
+
     stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
     nonce: Optional[Union[str, int]]
     reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
@@ -82,7 +145,6 @@ class Message(BaseMessage):
             ephemeral=self.ephemeral,
             allowed_mentions=self.allowed_mentions,
             suppress_embeds=self.suppress_embeds,
-            silent=self.silent,
             delete_after=self.delete_after,
             stickers=self.stickers,
             nonce=self.nonce,
@@ -105,3 +167,6 @@ class Message(BaseMessage):
             silent=self.silent,
             delete_after=self.delete_after,
         )
+
+    def as_edit(self) -> InteractionEditMessage:
+        raise NotImplementedError

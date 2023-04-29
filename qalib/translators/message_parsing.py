@@ -1,23 +1,35 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast
+from typing import Dict, TypeVar, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast, Callable, Any, Tuple
 
 import discord
 import discord.emoji
 import discord.partial_emoji
 import emoji
 from discord import ui, utils
+from typing_extensions import NotRequired, Concatenate, ParamSpec
+
+from qalib.translators import Callback, CallbackMethod, Message, M, N
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 __all__ = (
     "CustomSelects",
     "make_channel_types",
     "make_emoji",
     "make_colour",
+    "apply",
     "create_button",
     "create_select",
     "create_channel_select",
     "create_type_select",
     "create_text_input",
+    "make_expansive_embeds",
+    "create_arrows",
+    "attach_views",
+    "bind_menu",
+    "make_menu",
     "TextStyle",
     "ButtonStyle",
     "ChannelType",
@@ -29,10 +41,6 @@ __all__ = (
     "Author",
     "Footer",
 )
-
-from typing_extensions import NotRequired
-
-from qalib.translators import Callback, CallbackMethod
 
 CustomSelects = Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]
 
@@ -133,6 +141,24 @@ COLOURS: Dict[Colour, int] = {
 }
 
 SelectTypes = Type[Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]]
+MAX_CHAR = 1024
+
+
+class Field(TypedDict):
+    name: str
+    value: str
+    inline: bool
+
+
+class Footer(TypedDict):
+    text: str
+    icon_url: str
+
+
+class Author(TypedDict):
+    name: str
+    url: str
+    icon_url: str
 
 
 class Emoji(TypedDict):
@@ -209,7 +235,7 @@ def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
         return None
 
     if isinstance(raw_emoji, str):
-        return "{}".format(raw_emoji)
+        return raw_emoji
 
     if "name" not in raw_emoji:
         raise ValueError("Missing Emoji Name")
@@ -324,18 +350,128 @@ def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     )
 
 
-class Field(TypedDict):
-    name: str
-    value: str
-    inline: bool
+def split_text(text: str) -> List[str]:
+    start = 0
+    lines = [string.strip() for string in text.strip().split("\n")]
+
+    values: List[str] = []
+
+    def compile_lines(end: Optional[int] = None) -> str:
+        if end is None:
+            return "\n".join([string.replace("\\n", "\n") for string in lines[start:]])
+        return "\n".join([string.replace("\\n", "\n") for string in lines[start: end]])
+
+    for i in range(len(lines)):
+        if sum(map(len, lines[start: i + 1])) > MAX_CHAR:
+            values.append(compile_lines(i))
+            start = i
+
+    values.append(compile_lines())
+    return values
 
 
-class Footer(TypedDict):
-    text: str
-    icon_url: str
+def replace_with_page(value: str, replacement_key: str, page_number: str) -> str:
+    return value.replace(replacement_key, page_number)
 
 
-class Author(TypedDict):
-    name: str
-    url: str
-    icon_url: str
+# pylint: disable= too-many-arguments
+def make_expansive_embed(
+        name: str,
+        value: str,
+        page_number: str,
+        replacement_key: Optional[str],
+        raw_embed: Any,
+        embed_renderer: Callable[..., discord.Embed]
+) -> discord.Embed:
+    if replacement_key is not None:
+        replacement: Tuple[str, str] = (replacement_key, page_number)
+        embed = embed_renderer(raw_embed, replacement)
+        embed.add_field(name=replace_with_page(name, *replacement) if replacement_key is not None else name,
+                        value=replace_with_page(value, *replacement) if replacement_key is not None else value,
+                        inline=False)
+    else:
+        embed = embed_renderer(raw_embed)
+        embed.add_field(name=name, value=value, inline=False)
+    return embed
+
+
+def make_expansive_embeds(
+        name: str,
+        text: str,
+        replacement_key: Optional[str],
+        raw_embed: T,
+        embed_renderer: Callable[Concatenate[T, P], discord.Embed]
+) -> List[discord.Embed]:
+    return [make_expansive_embed(name, value, str(i + 1), replacement_key, raw_embed, embed_renderer)
+            for i, value in enumerate(split_text(text))]
+
+
+def attach_views(messages: List[Message], timeout: Optional[float]) -> None:
+    for message in messages:
+        if message.view is None:
+            message.view = ui.View()
+        message.view.timeout = timeout
+
+
+def create_arrows(left: Optional[Message] = None, right: Optional[Message] = None) -> List[discord.ui.Button]:
+    """This function creates the arrow buttons that are used to navigate between the pages.
+
+    Args:
+        left (Optional[Message]): embed and view of the left page
+        right (Optional[Display]): embed and view of the right page
+
+    Returns (List[discord.ui.Button]): list of the arrow buttons
+    """
+
+    def view(message: Message) -> Callback:
+        async def callback(interaction: discord.Interaction):
+            await interaction.response.edit_message(**message.convert_to_interaction_message().as_edit().dict())
+
+        return callback
+
+    buttons: List[discord.ui.Button] = []
+
+    def construct_button(display: Optional[Message], emoji_string: str):
+        if display is None:
+            return
+        button: ButtonComponent = {"emoji": emoji_string, "style": "primary", "callback": view(display)}
+        buttons.append(create_button(button))
+
+    construct_button(left, "⬅️")
+    construct_button(right, "➡️")
+
+    return buttons
+
+
+def make_menu(messages: List[Message]) -> Message:
+    for i, message in enumerate(messages):
+        arrow_up = messages[i - 1] if i > 0 else None
+        arrow_down = messages[i + 1] if i + 1 < len(messages) else None
+
+        if message.view is None:
+            message.view = ui.View()
+
+        for arrow in create_arrows(arrow_up, arrow_down):
+            message.view.add_item(arrow)
+
+    return messages[0]
+
+
+def bind_menu(
+        method: Callable[[T, Dict[str, Callback]], List[Message]]
+) -> Callable[[T, Dict[str, Callback]], Message]:
+    def wrapper(message: T, callbacks: Dict[str, Callback]) -> Message:
+        return make_menu(method(message, callbacks))
+
+    return wrapper
+
+
+def apply(
+        element: Optional[M],
+        func: Callable[Concatenate[M, P], N],
+        *args: P.args,
+        **keyword_args: P.kwargs,
+) -> Optional[N]:
+    if element is None:
+        return None
+    return func(element, *args, **keyword_args)

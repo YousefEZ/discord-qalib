@@ -14,19 +14,21 @@
             <image>http://www.google.com/images/logo.gif</image>
         </embed>
         <view>
-            <role_select>
-                <placeholder>Select a Role</placeholder>
-            </role_select>
-            <user_select>
-                <placeholder>Select a User</placeholder>
-            </user_select>
-            <mentionable_select>
-                <placeholder>Select a Mention</placeholder>
-            </mentionable_select>
-            <text_input>
-                <label>Test Label</label>
-                <placeholder>Test Placeholder</placeholder>
-            </text_input>
+            <components>
+                <role_select>
+                    <placeholder>Select a Role</placeholder>
+                </role_select>
+                <user_select>
+                    <placeholder>Select a User</placeholder>
+                </user_select>
+                <mentionable_select>
+                    <placeholder>Select a Mention</placeholder>
+                </mentionable_select>
+                <text_input>
+                    <label>Test Label</label>
+                    <placeholder>Test Placeholder</placeholder>
+                </text_input>
+            </components>
         </view>
     </message>
 </discord>

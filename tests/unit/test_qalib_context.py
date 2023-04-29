@@ -2,19 +2,19 @@ import datetime
 import unittest
 from typing import cast
 
-import discord.ext.commands
 import discord
+import discord.ext.commands
 import discord.interactions
 import mock
 from discord.ext.commands.view import StringView
 
+from qalib import Formatter, Jinja2, Renderer, RenderingOptions, qalib_context, qalib_interaction
 from qalib.context import QalibContext
 from qalib.interaction import QalibInteraction
-from qalib import Formatter, Jinja2, Renderer, RenderingOptions, qalib_context, qalib_interaction
-from qalib.renderer import create_arrows
-
+from qalib.translators import Message
+from qalib.translators.message_parsing import create_arrows
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
-from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals
+from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals, ErrorEmbeds
 
 
 @mock.patch("discord.interactions.InteractionResponse.send_message")
@@ -101,6 +101,12 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await context.menu("Menu1")
         args[0].assert_called_once()
 
+    async def test_xml_menu_no_timeout_display(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
+
+        await context.menu("Menu2")
+        args[0].assert_called_once()
+
     async def test_interaction_menu(self, *args: mock.mock.MagicMock):
         interaction: QalibInteraction[Menus] = QalibInteraction(
             MockedInteraction(), Renderer(Formatter(), "tests/routes/menus.xml")
@@ -112,26 +118,37 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        modal = renderer.render_modal("modal1")
+        modal = renderer.render("modal1")
+        assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        modal = renderer.render_modal("modal1")
+        modal = renderer.render("modal1")
+        assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_missing_modal_key(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
+        self.assertRaises(KeyError, renderer.render, "MISSING_KEY")
 
     async def test_xml_missing_modal_key(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        self.assertRaises(KeyError, renderer.render_modal, "MISSING_KEY")
+        self.assertRaises(KeyError, renderer.render, "MISSING_KEY")
 
     async def test_xml_modal_display(self, *args: mock.mock.MagicMock):
+        interaction: QalibInteraction[Modals] = QalibInteraction(
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/modal.xml")
+        )
+
+        await interaction.rendered_send("modal1")
+        modal = args[-2].call_args.args[0]
+        self.assertEqual(modal.title, "Questionnaire")
+
+    async def test_xml_modal_deprecated_display(self, *args: mock.mock.MagicMock):
         interaction: QalibInteraction[Modals] = QalibInteraction(
             MockedInteraction(), Renderer(Formatter(), "tests/routes/modal.xml")
         )
@@ -143,15 +160,15 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_modal_decorator(self, *_: mock.mock.MagicMock):
         @qalib_interaction(Formatter(), "tests/routes/modal.xml")
         async def test_modal(interaction: QalibInteraction[Modals]) -> None:
-            return await interaction.respond_with_modal("modal1")
+            return await interaction.rendered_send("modal1")
 
         await test_modal(MockedInteraction())
 
     async def test_cog_xml_modal_decorator(self, *_: mock.mock.MagicMock):
         class T:
             @qalib_interaction(Formatter(), "tests/routes/modal.xml")
-            async def test_modal(self, interaction):
-                return await interaction.respond_with_modal("modal1")
+            async def test_modal(self, interaction: QalibInteraction[Modals]):
+                return await interaction.rendered_send("modal1")
 
         await T().test_modal(MockedInteraction())
 
@@ -159,7 +176,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         class T:
             @qalib_interaction(Formatter(), "tests/routes/modal.xml")
             async def test_modal(self, interaction: QalibInteraction[Modals]) -> None:
-                return await interaction.respond_with_modal("modal1")
+                return await interaction.rendered_send("modal1")
 
         t = T()
         await t.test_modal(MockedInteraction())
@@ -223,12 +240,47 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         args[0].assert_called()
 
+    async def test_json_menu_timeout_display(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.json"))
+
+        await context.menu("Menu2")
+
+        args[0].assert_called()
+
+    async def test_xml_menu_expansive(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
+
+        await context.menu("Menu3")
+
+        args[0].assert_called()
+
+    async def test_xml_menu_page(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
+
+        await context.menu("Menu4")
+
+        args[0].assert_called()
+
+    async def test_json_menu_expansive(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.json"))
+
+        await context.menu("Menu3")
+
+        args[0].assert_called()
+
+    async def test_json_error_page(self, *args: mock.mock.MagicMock):
+        context: QalibContext[ErrorEmbeds] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/error.json"))
+
+        with self.assertRaises(TypeError):
+            await context.menu("menu_type")
+
     async def test_menu_arrows_callback(self, *_: mock.mock.MagicMock):
         renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), "tests/routes/simple_embeds.xml")
         launch1 = renderer.render("Launch")
+        assert isinstance(launch1, Message)
         arrow = create_arrows(left=launch1)[0]
         with mock.patch(
-            'discord.interactions.InteractionResponse.edit_message', new_callable=mock.mock.AsyncMock
+                'discord.interactions.InteractionResponse.edit_message', new_callable=mock.mock.AsyncMock
         ) as inter:
             await arrow.callback(MockedInteraction())
             inter.assert_called_once()

@@ -1,10 +1,9 @@
 from typing import Any
 
 from qalib import Renderer, Formatter
-from qalib.translators import Message
+from qalib.translators.deserializer import ReturnType
 
 
-def render_message(path: str, key: str, **kwargs: Any) -> Message:
+def render_message(path: str, key: str, **kwargs: Any) -> ReturnType:
     renderer: Renderer[str] = Renderer(Formatter(), path)
-    message = renderer.render(key, keywords=kwargs)
-    return message
+    return renderer.render(key, keywords=kwargs)

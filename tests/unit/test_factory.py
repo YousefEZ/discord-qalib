@@ -1,24 +1,24 @@
 import unittest
 
-from qalib.translators.factory import DeserializerFactory, ParserFactory
-from qalib.translators.json import JSONDeserializer, JSONParser
-from qalib.translators.xml import XMLDeserializer, XMLParser
+from qalib.translators.factory import DeserializerFactory, TemplaterFactory
+from qalib.translators.json import JSONDeserializer, JSONTemplater
+from qalib.translators.xml import XMLDeserializer, XMLTemplater
 
 
 class TestFactories(unittest.TestCase):
     """Tests the Parser and Deserializer Factories"""
 
     def test_parser_json(self):
-        self.assertIs(ParserFactory.get_parser_type("tests/routes/test.json"), JSONParser)
+        self.assertIs(TemplaterFactory.get_templater_type("tests/routes/test.json"), JSONTemplater)
 
     def test_parser_xml(self):
-        self.assertIs(ParserFactory.get_parser_type("tests/routes/test.xml"), XMLParser)
+        self.assertIs(TemplaterFactory.get_templater_type("tests/routes/test.xml"), XMLTemplater)
 
     def test_parser_json_instance(self):
-        self.assertIsInstance(ParserFactory.get_parser("tests/routes/simple_embeds.json"), JSONParser)
+        self.assertIsInstance(TemplaterFactory.get_templater("tests/routes/simple_embeds.json"), JSONTemplater)
 
     def test_parser_xml_instance(self):
-        self.assertIsInstance(ParserFactory.get_parser("tests/routes/simple_embeds.xml"), XMLParser)
+        self.assertIsInstance(TemplaterFactory.get_templater("tests/routes/simple_embeds.xml"), XMLTemplater)
 
     def test_deserializer_json(self):
         self.assertIs(
@@ -45,7 +45,7 @@ class TestFactories(unittest.TestCase):
         )
 
     def test_parser_random_file(self):
-        self.assertRaises(ValueError, ParserFactory.get_parser, "tests/routes/random_file.notafile")
+        self.assertRaises(ValueError, TemplaterFactory.get_templater, "tests/routes/random_file.notafile")
 
     def test_deserializer_random_file(self):
         self.assertRaises(
