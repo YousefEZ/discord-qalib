@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Protocol, Optional, Literal, TypeVar
+from typing import Dict, Protocol, Optional, Literal, TypeVar, Union
 
 from discord.ui import Modal
 
@@ -9,7 +9,7 @@ from qalib.translators import Callback, Message
 
 Types = Literal["message", "menu", "modal", "expansive"]
 
-ReturnType = [Message, Modal]
+ReturnType = Union[Message, Modal]
 
 K = TypeVar("K", bound=str, contravariant=True)
 
