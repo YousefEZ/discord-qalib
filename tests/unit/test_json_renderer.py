@@ -142,8 +142,14 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_basic_message(self):
         message = BaseMessage(content=None, embed=None, embeds=None, file=None, files=None, view=None, tts=None,
-                              ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
-                              delete_after=None)
+                              ephemeral=None, allowed_mentions=None, suppress_embeds=None, delete_after=None)
+        self.assertRaises(NotImplementedError, message.as_edit)
+
+    def test_message_error(self):
+        message = Message(content=None, embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                          ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                          delete_after=None, stickers=None, nonce=None, reference=None, mention_author=None,
+                          )
         self.assertRaises(NotImplementedError, message.as_edit)
 
     @mock.patch("discord.ui.View")
