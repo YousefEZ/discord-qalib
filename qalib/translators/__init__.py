@@ -37,6 +37,7 @@ class BaseEditMessage(Base):
     view: Optional[discord.ui.View]
 
 
+# pylint: disable= too-many-instance-attributes
 @dataclass
 class BaseMessage(Base):
     content: Optional[str]
@@ -49,7 +50,6 @@ class BaseMessage(Base):
     ephemeral: Optional[bool]
     allowed_mentions: Optional[discord.AllowedMentions]
     suppress_embeds: Optional[bool]
-    silent: Optional[bool]
     delete_after: Optional[float]
 
     def as_edit(self) -> BaseEditMessage:
@@ -145,7 +145,6 @@ class Message(BaseMessage):
             ephemeral=self.ephemeral,
             allowed_mentions=self.allowed_mentions,
             suppress_embeds=self.suppress_embeds,
-            silent=self.silent,
             delete_after=self.delete_after,
             stickers=self.stickers,
             nonce=self.nonce,
@@ -168,3 +167,6 @@ class Message(BaseMessage):
             silent=self.silent,
             delete_after=self.delete_after,
         )
+
+    def as_edit(self) -> InteractionEditMessage:
+        raise NotImplementedError
