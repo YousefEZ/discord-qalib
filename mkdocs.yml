@@ -13,10 +13,10 @@ nav:
       - Template Engines:
           - Formatter: qalib/template_engines/formatter.md
           - Jinja2: qalib/template_engines/jinja2.md
-      - Parsers:
-          - Parser: qalib/parsers/parser.md
-          - JSON: qalib/parsers/json.md
-          - XML: qalib/parsers/xml.md
+      - Templaters:
+          - Templater: qalib/templaters/templater.md
+          - JSON: qalib/templaters/json.md
+          - XML: qalib/templaters/xml.md
       - Deserializers:
           - Deserializer: qalib/deserializers/deserializer.md
           - JSON: qalib/deserializers/json.md

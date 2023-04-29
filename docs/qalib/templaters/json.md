@@ -1,4 +1,4 @@
-::: qalib.translators.json.JSONParser
+::: qalib.translators.json.JSONTemplater
     :docstring:
     :members:
     option:
