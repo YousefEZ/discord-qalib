@@ -1,4 +1,4 @@
-from typing import Any, Optional, Type, cast, Literal, Dict, TypeVar
+from typing import Optional, Type, cast, Literal, Dict
 
 from .deserializer import Deserializer
 from .json import JSONDeserializer, JSONTemplater
