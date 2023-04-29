@@ -130,7 +130,14 @@
                     </components>
                 </view>
             </expansive>
-
+        </pages>
+    </menu>
+    <message key="test">
+        <content>This is a test</content>
+    </message>
+    <menu key="Menu4">
+        <pages>
+            <page key="test"/>
         </pages>
     </menu>
 </discord>
