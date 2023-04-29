@@ -1,5 +1,5 @@
 from dataclasses import dataclass, fields
-from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union
+from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union, TypedDict
 
 from typing_extensions import ParamSpec
 
@@ -40,7 +40,7 @@ class Base:
 class BaseEditMessage(Base):
     content: Optional[str]
     embed: Optional[discord.Embed]
-    attachments: Sequence[Union[discord.Attachment, discord.File]]
+    attachments: Optional[Sequence[Union[discord.Attachment, discord.File]]]
     delete_after: Optional[float]
     allowed_mentions: Optional[discord.AllowedMentions]
     view: Optional[discord.ui.View]
@@ -107,6 +107,25 @@ class InteractionMessage(BaseMessage):
             allowed_mentions=self.allowed_mentions,
             view=self.view
         )
+
+
+class MessageTyped(TypedDict):
+    content: Optional[str]
+    embed: Optional[discord.Embed]
+    embeds: Optional[Sequence[discord.Embed]]
+    file: Optional[discord.File]
+    files: Optional[Sequence[discord.File]]
+    view: Optional[discord.ui.View]
+    tts: Optional[bool]
+    ephemeral: Optional[bool]
+    allowed_mentions: Optional[discord.AllowedMentions]
+    suppress_embeds: Optional[bool]
+    silent: Optional[bool]
+    delete_after: Optional[float]
+    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
+    nonce: Optional[Union[str, int]]
+    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
+    mention_author: Optional[bool]
 
 
 # pylint: disable=too-many-instance-attributes
