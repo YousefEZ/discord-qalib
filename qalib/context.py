@@ -7,13 +7,13 @@ from deprecated import deprecated
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.deserializer import K
+from qalib.translators.deserializer import K_contra
 
 
-class QalibContext(discord.ext.commands.context.Context, Generic[K]):
+class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
     """QalibContext object is responsible for handling messages that are to be sent to the client."""
 
-    def __init__(self, ctx: discord.ext.commands.context.Context, renderer: Renderer[K]):
+    def __init__(self, ctx: discord.ext.commands.context.Context, renderer: Renderer[K_contra]):
         """Constructor for the QalibContext object
 
         Args:
@@ -58,7 +58,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
 
     async def rendered_send(
             self,
-            identifier: K,
+            identifier: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs,
@@ -80,7 +80,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
 
     async def display(
             self,
-            key: K,
+            key: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs,
@@ -117,7 +117,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
     @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def menu(
             self,
-            key: K,
+            key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs,

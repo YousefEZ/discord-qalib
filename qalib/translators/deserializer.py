@@ -11,7 +11,7 @@ Types = Literal["message", "menu", "modal", "expansive"]
 
 ReturnType = Union[Message, Modal]
 
-K = TypeVar("K", bound=str, contravariant=True)
+K_contra = TypeVar("K_contra", bound=str, contravariant=True)
 
 
 class ElementTypes(Enum):
@@ -30,11 +30,11 @@ class ElementTypes(Enum):
         return None
 
 
-class Deserializer(Protocol[K]):
+class Deserializer(Protocol[K_contra]):
     """Protocol that represents the deserializer. It is meant to be placed into a Renderer, and is responsible for
     deserializing the document into embeds and views."""
 
-    def deserialize(self, source: str, key: K, callables: Dict[str, Callback]) -> ReturnType:
+    def deserialize(self, source: str, key: K_contra, callables: Dict[str, Callback]) -> ReturnType:
         """This method is used to deserialize a document into an embed and a view.
 
         Parameters:

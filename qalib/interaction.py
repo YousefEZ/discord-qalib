@@ -8,7 +8,7 @@ from discord.ui import Modal
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.deserializer import K
+from qalib.translators.deserializer import K_contra
 
 if TYPE_CHECKING:
     from discord.types.interactions import Interaction as InteractionPayload
@@ -32,12 +32,12 @@ def create_interaction_payload(interaction: discord.Interaction) -> Dict[str, An
     }
 
 
-class QalibInteraction(discord.Interaction, Generic[K]):
+class QalibInteraction(discord.Interaction, Generic[K_contra]):
     """The QalibInteraction class is a subclass of discord.Interaction, and is used to add additional functionality to
     the interaction. It is meant to be used in the on_interaction event, and is responsible for deserializing the
     requested modal and sending it to the user."""
 
-    def __init__(self, interaction: discord.Interaction, renderer: Renderer[K]):
+    def __init__(self, interaction: discord.Interaction, renderer: Renderer[K_contra]):
         """Constructor method for the QalibInteraction class."""
         data = create_interaction_payload(interaction)
         if TYPE_CHECKING:
@@ -57,7 +57,7 @@ class QalibInteraction(discord.Interaction, Generic[K]):
 
     async def rendered_send(
             self,
-            identifier: K,
+            identifier: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs,
@@ -79,14 +79,14 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             # pylint: disable= no-member
             message_info = {**message.convert_to_interaction_message().dict(), **kwargs}
             return await self.response.send_message(**message_info)  # pyright: ignore [reportGeneralTypeIssues]
-        elif isinstance(message, Modal):
+        if isinstance(message, Modal):
             assert isinstance(self.response, InteractionResponse)  # pyright: ignore [reportGeneralTypeIssues]
             # pylint: disable= no-member
             return await self.response.send_modal(message)  # pyright: ignore [reportGeneralTypeIssues]
 
     async def display(
             self,
-            key: K,
+            key: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs,
@@ -127,7 +127,7 @@ class QalibInteraction(discord.Interaction, Generic[K]):
     @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def menu(
             self,
-            key: K,
+            key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
             **kwargs,
@@ -146,7 +146,7 @@ class QalibInteraction(discord.Interaction, Generic[K]):
     @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def respond_with_modal(
             self,
-            key: K,
+            key: K_contra,
             methods: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
     ) -> None:

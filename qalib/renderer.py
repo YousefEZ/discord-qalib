@@ -5,7 +5,7 @@ from typing import Any, Dict, Generic, Optional, cast
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback
-from qalib.translators.deserializer import ReturnType, K, Deserializer
+from qalib.translators.deserializer import ReturnType, K_contra, Deserializer
 from qalib.translators.factory import DeserializerFactory, TemplaterFactory
 from qalib.translators.templater import Templater
 
@@ -16,7 +16,7 @@ class RenderingOptions(Enum):
     PRE_TEMPLATE = auto()
 
 
-class Renderer(Generic[K]):
+class Renderer(Generic[K_contra]):
     """This object is responsible for rendering the embeds, views, and menus, by first using the templating engine to
     template the document, and then using the deserializer to deserialize the document into embeds and views.
     """
@@ -29,7 +29,7 @@ class Renderer(Generic[K]):
         if RenderingOptions.PRE_TEMPLATE not in rendering_options:
             self._parser = TemplaterFactory.get_templater(filename)
         self._filename = filename
-        self._deserializer = cast(Deserializer[K], DeserializerFactory.get_deserializer(filename))
+        self._deserializer = cast(Deserializer[K_contra], DeserializerFactory.get_deserializer(filename))
 
     def _pre_template(self, keywords: Dict[str, Any]) -> Templater:
         """Pre-Template templates the document before further processing. It returns a Parser instance that contains
@@ -50,7 +50,7 @@ class Renderer(Generic[K]):
 
     def render(
             self,
-            key: K,
+            key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
     ) -> ReturnType:
