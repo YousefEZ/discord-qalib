@@ -36,5 +36,32 @@
       ],
       "roles": true
     }
+  },
+  "multi_embeds": {
+    "type": "message",
+    "embeds": [
+      {
+        "title": "Test1",
+        "description": "Test1",
+        "color": "teal",
+        "fields": [
+          {
+            "name": "Test1",
+            "value": "Test1"
+          }
+        ]
+      },
+      {
+        "title": "Test2",
+        "description": "Test2",
+        "color": "teal",
+        "fields": [
+          {
+            "name": "Test2",
+            "value": "Test2"
+          }
+        ]
+      }
+    ]
   }
 }
