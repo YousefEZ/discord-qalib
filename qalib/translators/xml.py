@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple
 from xml.etree import ElementTree
 
 import discord
@@ -199,11 +199,12 @@ class XMLDeserializer(Deserializer[K]):
     def deserialize_page(
             self,
             document: ElementTree.Element,
-            element: Union[str, ElementTree.Element],
+            element: ElementTree.Element,
             callables: Dict[str, Callback]
     ) -> List[Message]:
-        raw_page: ElementTree.Element = self._get_element(document, element) if isinstance(element, str) else element
-        element_type = ElementTypes.from_str(raw_page.tag)
+        if element.tag == "page":
+            element: ElementTree.Element = self._get_element(document, self.get_attribute(element, "key"))
+        element_type = ElementTypes.from_str(element.tag)
 
         def wrap_in_list(
                 method: Callable[[ElementTree.Element, Dict[str, Callback]], Message]
@@ -218,8 +219,8 @@ class XMLDeserializer(Deserializer[K]):
             ElementTypes.MESSAGE: wrap_in_list(self.deserialize_message),
             ElementTypes.EXPANSIVE: self.deserialize_expansive,
         }
-        assert element_type is not None, f"Element type {raw_page.tag} not found"
-        return page_deserializers[element_type](raw_page, callables)
+        assert element_type is not None, f"Element type {element.tag} not found"
+        return page_deserializers[element_type](element, callables)
 
     def deserialize_menu(
             self,
