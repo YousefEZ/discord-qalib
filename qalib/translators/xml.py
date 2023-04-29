@@ -2,18 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple, Union, Iterable
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple, Union
 from xml.etree import ElementTree
 
 import discord
 import discord.types.embed as embed_types
-from compose import compose
 from discord import ui
 from discord.abc import Snowflake
-from typing_extensions import Concatenate
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, DiscordIdentifier, Message, M, P, N
+from qalib.translators import Callback, DiscordIdentifier, Message
 from qalib.translators.deserializer import Deserializer, ElementTypes, ReturnType, K
 from qalib.translators.message_parsing import (
     ButtonComponent,
@@ -31,7 +29,7 @@ from qalib.translators.message_parsing import (
     Footer,
     Author,
     TextInputComponent,
-    make_expansive_embeds, attach_views, make_menu,
+    make_expansive_embeds, attach_views, apply, bind_menu,
 )
 from qalib.translators.templater import Templater
 
@@ -45,17 +43,6 @@ def get_text(element_tree: ElementTree.Element, child: str) -> Optional[str]:
 
 def get_element(element_tree: ElementTree.Element, child: str) -> Optional[ElementTree.Element]:
     return None if (element := element_tree.find(child)) is None else element
-
-
-def apply(
-        element: Optional[M],
-        func: Callable[Concatenate[M, P], N],
-        *args: P.args,
-        **keyword_args: P.kwargs,
-) -> Optional[N]:
-    if element is None:
-        return None
-    return func(element, *args, **keyword_args)
 
 
 class XMLTemplater(Templater):
@@ -120,12 +107,14 @@ class XMLDeserializer(Deserializer[K]):
         Returns (ReturnType): all possible deserialized objects.
         """
         element_type = ElementTypes.from_str(element.tag)
+
         deserializers: Dict[ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback]], ReturnType]] = {
             ElementTypes.MESSAGE: self.deserialize_message,
-            ElementTypes.EXPANSIVE: compose(make_menu, self.deserialize_expansive),
-            ElementTypes.MENU: compose(make_menu, partial(self.deserialize_menu, document=document)),
+            ElementTypes.EXPANSIVE: bind_menu(self.deserialize_expansive),
+            ElementTypes.MENU: bind_menu(partial(self.deserialize_menu, document=document)),
             ElementTypes.MODAL: self.deserialize_modal,
         }
+        assert element_type is not None, f"Element type {element.tag} not found"
         return deserializers[element_type](element, callables)
 
     def deserialize_expansive(self, element: ElementTree.Element, callbacks: Dict[str, Callback]) -> List[Message]:
@@ -140,7 +129,7 @@ class XMLDeserializer(Deserializer[K]):
         raw_embed = element.find("embed")
         assert raw_embed is not None, "Embed not found"
         timeout_element = element.find("timeout")
-        timeout = 180.0
+        timeout: Optional[float] = 180.0
         if timeout_element is not None:
             timeout = None if timeout_element.text is None else float(timeout_element.text)
         messages = [self.deserialize_message(element, callbacks, embed=embed)
@@ -167,58 +156,69 @@ class XMLDeserializer(Deserializer[K]):
 
         Returns (Message): A display object containing the embed and its view.
         """
-        message = {
-            "embed": apply(get_element(message_tree, "embed"), self._render_embed),
-            "embeds": apply(
+        message = Message(
+            embed=apply(get_element(message_tree, "embed"), self._render_embed),
+            embeds=apply(
                 get_element(message_tree, "embeds"),
                 lambda raw_tree: list(map(self._render_embed, raw_tree)),
             ),
-            "view": apply(get_element(message_tree, "view"), self._render_view, callables),
-            "content": get_text(message_tree, "content"),
-            "tts": apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
-            "nonce": apply(get_text(message_tree, "nonce"), int),
-            "delete_after": apply(get_text(message_tree, "delete_after"), float),
-            "suppress_embeds": apply(
+            view=apply(get_element(message_tree, "view"), self._render_view, callables),
+            content=get_text(message_tree, "content"),
+            tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
+            nonce=apply(get_text(message_tree, "nonce"), int),
+            delete_after=apply(get_text(message_tree, "delete_after"), float),
+            suppress_embeds=apply(
                 get_element(message_tree, "suppress_embeds"),
                 lambda tree: self.get_attribute(tree, "value") in ("", "true"),
             ),
-            "file": apply(get_element(message_tree, "file"), self._render_file),
-            "files": apply(
+            file=apply(get_element(message_tree, "file"), self._render_file),
+            files=apply(
                 get_element(message_tree, "files"),
                 lambda raw_tree: list(map(self._render_file, raw_tree)),
             ),
-            "allowed_mentions": apply(
+            allowed_mentions=apply(
                 get_element(message_tree, "allowed_mentions"),
                 self._render_allowed_mentions,
             ),
-            "reference": apply(get_element(message_tree, "reference"), self._render_reference),
-            "mention_author": apply(
+            reference=apply(get_element(message_tree, "reference"), self._render_reference),
+            mention_author=apply(
                 get_element(message_tree, "mention_author"),
                 lambda tree: self.get_attribute(tree, "value") in ("", "true"),
             ),
-            "stickers": None,
-            "ephemeral": None,
-            "silent": apply(
+            stickers=None,
+            ephemeral=None,
+            silent=apply(
                 get_element(message_tree, "silent"),
                 lambda tree: self.get_attribute(tree, "value") in ("", "true"),
             ),
-            **overrides
-        }
-        return Message(**message)
+        )
+        for key, value in overrides.items():
+            setattr(message, key, value)
+        return message
 
     def deserialize_page(
             self,
             document: ElementTree.Element,
             element: Union[str, ElementTree.Element],
             callables: Dict[str, Callback]
-    ) -> Iterable[Message]:
+    ) -> List[Message]:
         raw_page: ElementTree.Element = self._get_element(document, element) if isinstance(element, str) else element
         element_type = ElementTypes.from_str(raw_page.tag)
+
+        def wrap_in_list(
+                method: Callable[[ElementTree.Element, Dict[str, Callback]], Message]
+        ) -> Callable[[ElementTree.Element, Dict[str, Callback]], List[Message]]:
+            def wrapper(page: ElementTree.Element, callback: Dict[str, Callback]) -> List[Message]:
+                return [method(page, callback)]
+
+            return wrapper
+
         page_deserializers: Dict[
-            ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback]], Iterable[Message]]] = {
-            ElementTypes.MESSAGE: compose(lambda m: [m], self.deserialize_message),
+            ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback]], List[Message]]] = {
+            ElementTypes.MESSAGE: wrap_in_list(self.deserialize_message),
             ElementTypes.EXPANSIVE: self.deserialize_expansive,
         }
+        assert element_type is not None, f"Element type {raw_page.tag} not found"
         return page_deserializers[element_type](raw_page, callables)
 
     def deserialize_menu(

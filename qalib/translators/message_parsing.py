@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, TypeVar, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast, Callable
+from typing import Dict, TypeVar, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast, Callable, Any, Tuple
 
 import discord
 import discord.emoji
@@ -9,7 +9,7 @@ import emoji
 from discord import ui, utils
 from typing_extensions import NotRequired, Concatenate, ParamSpec
 
-from qalib.translators import Callback, CallbackMethod, Message
+from qalib.translators import Callback, CallbackMethod, Message, M, N
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -19,6 +19,7 @@ __all__ = (
     "make_channel_types",
     "make_emoji",
     "make_colour",
+    "apply",
     "create_button",
     "create_select",
     "create_channel_select",
@@ -27,6 +28,7 @@ __all__ = (
     "make_expansive_embeds",
     "create_arrows",
     "attach_views",
+    "bind_menu",
     "make_menu",
     "TextStyle",
     "ButtonStyle",
@@ -377,14 +379,18 @@ def make_expansive_embed(
         value: str,
         page_number: str,
         replacement_key: Optional[str],
-        raw_embed: T,
-        embed_renderer: Callable[Concatenate[T, P], discord.Embed]
+        raw_embed: Any,
+        embed_renderer: Callable[..., discord.Embed]
 ) -> discord.Embed:
-    replacement = (replacement_key, page_number)
-    embed = embed_renderer(raw_embed, replacement) if replacement_key is not None else embed_renderer(raw_embed)
-    embed.add_field(name=replace_with_page(name, *replacement) if replacement_key is not None else name,
-                    value=replace_with_page(value, *replacement) if replacement_key is not None else value,
-                    inline=False)
+    if replacement_key is not None:
+        replacement: Tuple[str, str] = (replacement_key, page_number)
+        embed = embed_renderer(raw_embed, replacement)
+        embed.add_field(name=replace_with_page(name, *replacement) if replacement_key is not None else name,
+                        value=replace_with_page(value, *replacement) if replacement_key is not None else value,
+                        inline=False)
+    else:
+        embed = embed_renderer(raw_embed)
+        embed.add_field(name=name, value=value, inline=False)
     return embed
 
 
@@ -448,3 +454,23 @@ def make_menu(messages: List[Message]) -> Message:
             message.view.add_item(arrow)
 
     return messages[0]
+
+
+def bind_menu(
+        method: Callable[[T, Dict[str, Callback]], List[Message]]
+) -> Callable[[T, Dict[str, Callback]], Message]:
+    def wrapper(message: T, callbacks: Dict[str, Callback]) -> Message:
+        return make_menu(method(message, callbacks))
+
+    return wrapper
+
+
+def apply(
+        element: Optional[M],
+        func: Callable[Concatenate[M, P], N],
+        *args: P.args,
+        **keyword_args: P.kwargs,
+) -> Optional[N]:
+    if element is None:
+        return None
+    return func(element, *args, **keyword_args)
