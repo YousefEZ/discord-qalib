@@ -254,6 +254,13 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         args[0].assert_called()
 
+    async def test_xml_menu_page(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
+
+        await context.menu("Menu4")
+
+        args[0].assert_called()
+
     async def test_json_menu_expansive(self, *args: mock.mock.MagicMock):
         context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.json"))
 
