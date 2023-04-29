@@ -25,13 +25,13 @@ class Renderer(Generic[K]):
 
     def __init__(self, template_engine: TemplateEngine, filename: str, *rendering_options: RenderingOptions):
         self._template_engine = template_engine
-        self._parser: Optional[Templater[K]] = None
+        self._parser: Optional[Templater] = None
         if RenderingOptions.PRE_TEMPLATE not in rendering_options:
             self._parser = TemplaterFactory.get_templater(filename)
         self._filename = filename
         self._deserializer = cast(Deserializer[K], DeserializerFactory.get_deserializer(filename))
 
-    def _pre_template(self, keywords: Dict[str, Any]) -> Templater[K]:
+    def _pre_template(self, keywords: Dict[str, Any]) -> Templater:
         """Pre-Template templates the document before further processing. It returns a Parser instance that contains
         the data that is used to render the embeds and views.
 

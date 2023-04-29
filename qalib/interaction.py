@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, cast
 import warnings
+from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, cast
 
 import discord
-from deprecation import deprecated
+from deprecated import deprecated
 from discord.interactions import InteractionResponse
 from discord.ui import Modal
 
@@ -124,7 +124,7 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             await self.response.send_message(**kwargs)  # pyright: ignore [reportGeneralTypeIssues]
             self._displayed = True
 
-    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use rendered_send method instead")
+    @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def menu(
             self,
             key: K,
@@ -141,10 +141,9 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             **kwargs: kwargs that are passed to the context's send method
         """
         warnings.warn("Use rendered_send method instead", DeprecationWarning)
-        message = self._renderer.render(key, callbacks=callbacks, keywords=keywords)
-        await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
+        await self.rendered_send(key, callbacks, keywords, **kwargs)
 
-    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use rendered_send method instead")
+    @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def respond_with_modal(
             self,
             key: K,
@@ -160,14 +159,4 @@ class QalibInteraction(discord.Interaction, Generic[K]):
             keywords (Any): keywords that are passed to the modal renderer to format the text
         """
         warnings.warn("Use rendered_send method instead", DeprecationWarning)
-        if methods is None:
-            methods = {}
-
-        if keywords is None:
-            keywords = {}
-
-        assert isinstance(self.response, InteractionResponse)  # pyright: ignore [reportGeneralTypeIssues]
-        # pylint: disable= no-member
-        modal = self._renderer.render(key, methods, keywords)
-        assert isinstance(modal, Modal)
-        return await self.response.send_modal(modal)  # pyright: ignore [reportGeneralTypeIssues]
+        await self.rendered_send(key, methods, keywords)

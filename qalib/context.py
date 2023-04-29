@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, Optional
 
 import discord.ext.commands
 import discord.message
-from deprecation import deprecated
+from deprecated import deprecated
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
@@ -114,7 +114,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K]):
         else:
             await self._displayed.edit(**kwargs)
 
-    @deprecated(deprecated_in="2.1.2", removed_in="3.0.0", details="Use rendered_send method instead")
+    @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def menu(
             self,
             key: K,
