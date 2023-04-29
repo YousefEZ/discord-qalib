@@ -1,10 +1,9 @@
 from dataclasses import dataclass, fields
 from typing import Any, Awaitable, Callable, Dict, Optional, Sequence, TypeVar, Union, TypedDict
 
-from typing_extensions import ParamSpec
-
 import discord
 from discord.abc import Snowflake
+from typing_extensions import ParamSpec
 
 V_co = TypeVar("V_co", bound=discord.ui.View, covariant=True)
 
@@ -26,14 +25,6 @@ class DiscordIdentifier(Snowflake):
 class Base:
     def dict(self) -> Dict[str, Any]:
         return {key.name: attr for key in fields(self) if (attr := getattr(self, key.name)) is not None}
-
-    def __iter__(self):
-        # Order is preserved in Python 3.7+: https://mail.python.org/pipermail/python-dev/2017-December/151283.html
-        for key in fields(self):
-            value = getattr(self, key.name)
-            if value is None:
-                continue
-            yield value
 
 
 @dataclass
