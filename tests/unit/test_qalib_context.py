@@ -2,17 +2,17 @@ import datetime
 import unittest
 from typing import cast
 
-import discord.ext.commands
 import discord
+import discord.ext.commands
 import discord.interactions
 import mock
 from discord.ext.commands.view import StringView
 
+from qalib import Formatter, Jinja2, Renderer, RenderingOptions, qalib_context, qalib_interaction
 from qalib.context import QalibContext
 from qalib.interaction import QalibInteraction
-from qalib import Formatter, Jinja2, Renderer, RenderingOptions, qalib_context, qalib_interaction
+from qalib.translators import Message
 from qalib.translators.message_parsing import create_arrows
-
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
 from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals, ErrorEmbeds
 
@@ -119,12 +119,14 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         path = "tests/routes/modal.xml"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
         modal = renderer.render("modal1")
+        assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
         modal = renderer.render("modal1")
+        assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_missing_modal_key(self, *_: mock.mock.MagicMock):
@@ -268,6 +270,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_menu_arrows_callback(self, *_: mock.mock.MagicMock):
         renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), "tests/routes/simple_embeds.xml")
         launch1 = renderer.render("Launch")
+        assert isinstance(launch1, Message)
         arrow = create_arrows(left=launch1)[0]
         with mock.patch(
                 'discord.interactions.InteractionResponse.edit_message', new_callable=mock.mock.AsyncMock

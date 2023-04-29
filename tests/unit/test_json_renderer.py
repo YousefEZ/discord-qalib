@@ -23,11 +23,13 @@ class TestJSONRenderer(unittest.TestCase):
 
     def test_render(self):
         message = render_message("tests/routes/simple_embeds.json", "Launch")
+        assert isinstance(message, Message)
         assert message.embed is not None
         self.assertEqual(message.embed.title, "Hello World")
 
     def test_full_render(self):
         message = render_message("tests/routes/full_embeds.json", "test_key", todays_date=datetime.datetime.now())
+        assert isinstance(message, Message)
         assert message.embed is not None
         self.assertEqual(message.embed.title, "Test")
 
@@ -114,6 +116,8 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/complete_messages.json"
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), path)
         message = renderer.render("content_test")
+
+        assert isinstance(message, Message)
         self.assertEqual(message.content, "This is a test message")
 
     def test_tts_rendering(self):
@@ -121,6 +125,8 @@ class TestJSONRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("tts_test")
+
+        assert isinstance(message, Message)
         self.assertTrue(message.tts)
 
     def test_json_rendering(self):
@@ -128,6 +134,8 @@ class TestJSONRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("file_test")
+
+        assert isinstance(message, Message)
         assert message.file is not None
         self.assertIsInstance(message.file, discord.File)
         self.assertEqual(message.file.filename, "complete_messages.xml")
@@ -145,7 +153,7 @@ class TestJSONRenderer(unittest.TestCase):
                             delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
                     for _ in range(3)]
         message = make_menu(messages)
-        self.assertIsInstance(message, Message)
+        assert isinstance(message, Message)
         self.assertEqual(mock_view.return_value.add_item.call_count, 4)
 
     def test_allowed_mentions_rendering(self):
@@ -153,6 +161,8 @@ class TestJSONRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
         message = renderer.render("allowed_mentions_test")
+
+        assert isinstance(message, Message)
         assert message.allowed_mentions is not None
         self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
         self.assertFalse(message.allowed_mentions.everyone)
