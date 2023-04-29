@@ -200,7 +200,7 @@ class XMLDeserializer(Deserializer[K_contra]):
             callables: Dict[str, Callback]
     ) -> List[Message]:
         if element.tag == "page":
-            element: ElementTree.Element = self._get_element(document, self.get_attribute(element, "key"))
+            element = self._get_element(document, self.get_attribute(element, "key"))
         element_type = ElementTypes.from_str(element.tag)
 
         def wrap_in_list(
