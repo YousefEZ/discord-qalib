@@ -14,7 +14,7 @@ from typing_extensions import NotRequired
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, DiscordIdentifier, Message
-from qalib.translators.deserializer import Deserializer, ElementTypes, Types, ReturnType, K
+from qalib.translators.deserializer import Deserializer, ElementTypes, Types, ReturnType, K_contra
 from qalib.translators.message_parsing import (
     ButtonComponent,
     ButtonStyle,
@@ -34,7 +34,8 @@ from qalib.translators.message_parsing import (
     Author,
     TextInputRaw,
     TextInputComponent,
-    make_expansive_embeds, apply, bind_menu, )
+    make_expansive_embeds, apply, bind_menu, attach_views
+)
 from qalib.translators.templater import Templater
 
 OBJ = TypeVar("OBJ")
@@ -270,9 +271,9 @@ class JSONTemplater(Templater):
         return json.dumps(self.recursive_template(deepcopy(self._data), template_engine, keywords))
 
 
-class JSONDeserializer(Deserializer[K]):
+class JSONDeserializer(Deserializer[K_contra]):
 
-    def deserialize(self, source: str, key: K, callables: Dict[str, Callback]) -> ReturnType:
+    def deserialize(self, source: str, key: K_contra, callables: Dict[str, Callback]) -> ReturnType:
         """Method to deserialize a source into a Display object
 
         Args:
@@ -369,11 +370,8 @@ class JSONDeserializer(Deserializer[K]):
             timeout = message_tree["timeout"]
         messages = [self.deserialize_message(message_tree, callbacks, embed=embed)
                     for embed in self._separate_embed(message_tree["embed"], message_tree.get("page_number_key"))]
-        for message in messages:
-            if message.view is None:
-                message.view = ui.View(timeout=timeout)
-            else:
-                message.view.timeout = timeout
+
+        attach_views(messages, timeout)
         return messages
 
     def deserialize_page(
@@ -429,7 +427,7 @@ class JSONDeserializer(Deserializer[K]):
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        modal = type(f"{tree['title']} Modal", (discord.ui.Modal,), methods)(title=(tree["title"]))
+        modal = type(f"{tree['title']} Modal", (discord.ui.Modal,), methods)(title=tree["title"])
 
         components = self.render_components(tree["components"]) if "components" in tree else []
 

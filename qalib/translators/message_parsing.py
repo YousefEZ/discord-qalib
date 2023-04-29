@@ -235,7 +235,7 @@ def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
         return None
 
     if isinstance(raw_emoji, str):
-        return "{}".format(raw_emoji)
+        return raw_emoji
 
     if "name" not in raw_emoji:
         raise ValueError("Missing Emoji Name")
@@ -374,6 +374,7 @@ def replace_with_page(value: str, replacement_key: str, page_number: str) -> str
     return value.replace(replacement_key, page_number)
 
 
+# pylint: disable= too-many-arguments
 def make_expansive_embed(
         name: str,
         value: str,

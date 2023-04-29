@@ -12,7 +12,7 @@ from discord.abc import Snowflake
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, DiscordIdentifier, Message
-from qalib.translators.deserializer import Deserializer, ElementTypes, ReturnType, K
+from qalib.translators.deserializer import Deserializer, ElementTypes, ReturnType, K_contra
 from qalib.translators.message_parsing import (
     ButtonComponent,
     ChannelType,
@@ -68,7 +68,7 @@ class XMLTemplater(Templater):
         return template_engine.template(self.source, keywords)
 
 
-class XMLDeserializer(Deserializer[K]):
+class XMLDeserializer(Deserializer[K_contra]):
     """Read and process the data given by the XML file, and use given user objects to render the text"""
 
     def _get_element(self, document: ElementTree.Element, key: str) -> ElementTree.Element:
@@ -77,7 +77,7 @@ class XMLDeserializer(Deserializer[K]):
                 return element
         raise KeyError("Key not found")
 
-    def deserialize(self, source: str, key: K, callables: Dict[str, Callback]) -> ReturnType:
+    def deserialize(self, source: str, key: K_contra, callables: Dict[str, Callback]) -> ReturnType:
         """This method is used to deserialize the embed from the XML file.
 
         Args:
@@ -134,11 +134,8 @@ class XMLDeserializer(Deserializer[K]):
             timeout = None if timeout_element.text is None else float(timeout_element.text)
         messages = [self.deserialize_message(element, callbacks, embed=embed)
                     for embed in self._separate_embed(raw_embed, element.get("page_number_key"))]
-        for message in messages:
-            if message.view is None:
-                message.view = ui.View(timeout=timeout)
-            else:
-                message.view.timeout = timeout
+        attach_views(messages, timeout)
+
         return messages
 
     def deserialize_message(
