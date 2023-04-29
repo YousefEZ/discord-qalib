@@ -166,3 +166,12 @@ class TestJSONRenderer(unittest.TestCase):
         assert message.allowed_mentions is not None
         self.assertIsInstance(message.allowed_mentions, discord.AllowedMentions)
         self.assertFalse(message.allowed_mentions.everyone)
+
+    def test_multi_embed_rendering(self):
+        template = "tests/routes/complete_messages.json"
+
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
+        message = renderer.render("multi_embeds")
+
+        assert isinstance(message, Message)
+        self.assertEqual(len(message.embeds), 2)
