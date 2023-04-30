@@ -65,20 +65,26 @@ The main components are rendered and instantiate the mapped component/item in [d
 
 For each example we will write how the component should look like. Components/Items should be written in the view section, where the comment is.
 ```xml
+
 <discord>
-    <embed key="test">
-        <title>This is a Test!</title>
-        <colour>cyan</colour>
-        <fields>
-            <field>
-                <name>Test Field</name>
-                <value>Test Value</value>
-            </field>
-        </fields>
-        <view>
-            <!--Each component/item should go here-->
-        </view>
-    </embed>
+    <message key="test">
+
+        <embed>
+            <title>This is a Test!</title>
+            <colour>cyan</colour>
+            <fields>
+                <field>
+                    <name>Test Field</name>
+                    <value>Test Value</value>
+                </field>
+            </fields>
+            <view>
+                <components>
+                    <!--Each component/item should go here-->
+                </components>
+            </view>
+        </embed>
+    </message>
 </discord>
 ```
 

@@ -192,6 +192,7 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["army", "bank"]
 
+
 @dataclass
 class Player:
     name: str
@@ -234,6 +235,7 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["army", "bank"]
 
+
 @dataclass
 class Player:
     name: str
@@ -254,6 +256,7 @@ async def test(interaction: qalib.QalibInteraction[Messages], player_name: str):
     await interaction.rendered_send("army", keywords={
         "player": fetch_player(player_name)
     })
+
 
 @bot.event
 async def on_ready():
@@ -285,10 +288,12 @@ We also support the rendering of views, and the different UI Components for each
                 </field>
             </fields>
             <view>
-                <button key="greet">
-                    <label>Click Me!</label>
-                    <style>success</style>
-                </button>
+                <components>
+                    <button key="greet">
+                        <label>Click Me!</label>
+                        <style>success</style>
+                    </button>
+                </components>
             </view>
         </embed>
     </message>
@@ -314,6 +319,7 @@ from qalib.template_engines.formatter import Formatter
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["welcome"]
+
 
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)
@@ -378,7 +384,7 @@ unique ``key`` attribute, and you can use that to make a sequential menu (order 
 </discord>
 ```
 
-To render the menu you have to use [.rendered_send()](../qalib/context.md) method with the key as the first argument, 
+To render the menu you have to use [.rendered_send()](../qalib/context.md) method with the key as the first argument,
 and that will render the menu.
 
 ```py
@@ -449,6 +455,7 @@ options [here](https://discordpy.readthedocs.io/en/stable/api.html?highlight=sen
 - embeds
 
 ```xml
+
 <embeds>
     <embed>
         <title>Page 1</title>
@@ -578,14 +585,16 @@ options [here](https://discordpy.readthedocs.io/en/stable/api.html?highlight=sen
 ```xml
 
 <view>
-    <button key="button1">
-        <style>primary</style>
-        <emoji>
-            <name>🦺</name>
-        </emoji>
-        <label>Test Button</label>
-        <url>https://www.discord.com</url>
-    </button>
+    <components>
+        <button key="button1">
+            <style>primary</style>
+            <emoji>
+                <name>🦺</name>
+            </emoji>
+            <label>Test Button</label>
+            <url>https://www.discord.com</url>
+        </button>
+    </components>
 </view> 
 ```
 

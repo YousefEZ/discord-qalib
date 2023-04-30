@@ -20,41 +20,47 @@ It is safe to skip any non-mandatory fields that an embed would not require, the
 ```json
 {
   "test_key": {
-    "title": "Test",
-    "description": "Test Description",
-    "type": "rich",
-    "colour": "55,55,55",
-    "timestamp": {
-      "date": "{todays_date}"
-    },
-    "url": "https://www.discord.com",
-    "fields": [
-      {
-        "name": "Test Field",
-        "text": "Test Text"
+    "type": "message",
+    "embed": {
+      "title": "Test",
+      "description": "Test Description",
+      "type": "rich",
+      "colour": "55,55,55",
+      "timestamp": {
+        "date": "{todays_date}"
+      },
+      "url": "https://www.discord.com",
+      "fields": [
+        {
+          "name": "Test Field",
+          "text": "Test Text"
+        }
+      ],
+      "footer": {
+        "text": "Test Footer",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
+      },
+      "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "image": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "author": {
+        "name": "{author_name}",
+        "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
+        "url": "https://discordapp.com"
       }
-    ],
-    "footer": {
-      "text": "Test Footer",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png"
-    },
-    "thumbnail": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "image": "https://cdn.discordapp.com/embed/avatars/0.png",
-    "author": {
-      "name": "{author_name}",
-      "icon": "https://cdn.discordapp.com/embed/avatars/0.png",
-      "url": "https://discordapp.com"
     }
   },
   "test_key2": {
-    "title": "Test",
-    "colour": "magenta",
-    "fields": [
-      {
-        "name": "Test Field",
-        "text": "Test Text"
-      }
-    ]
+    "type": "message",
+    "embed": {
+      "title": "Test",
+      "colour": "magenta",
+      "fields": [
+        {
+          "name": "Test Field",
+          "text": "Test Text"
+        }
+      ]
+    }
   }
 }
 ```
@@ -69,17 +75,20 @@ For each example we will write how the component should look like. Components/It
 ```json
 {
   "test_key2": {
-    "title": "Test2",
-    "description": "Test Description",
-    "colour": "magenta",
-    "fields": [
-      {
-        "name": "Test Field",
-        "text": "Test Text"
+    "type": "message",
+    "embed": {
+      "title": "Test2",
+      "description": "Test Description",
+      "colour": "magenta",
+      "fields": [
+        {
+          "name": "Test Field",
+          "text": "Test Text"
+        }
+      ],
+      "view": {
+        "components": []
       }
-    ],
-    "view": {
-      "components go here": ""
     }
   }
 }
@@ -209,6 +218,7 @@ Modals can be rendered, simply by using the key to Modal as the key to ``JSON`` 
 ```json
 {
   "modal1": {
+    "type": "modal",
     "title": "Modal 1",
     "components": {
       "name": {
