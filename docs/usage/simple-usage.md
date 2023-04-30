@@ -336,48 +336,50 @@ unique ``key`` attribute, and you can use that to make a sequential menu (order 
 
 <discord>
     <menu key="menu1">
-        <message key="1">
-            <embed>
-                <title>Page 1</title>
-                <colour>magenta</colour>
-                <fields>
-                    <field>
-                        <name>This is the first page</name>
-                        <value>Lorem ipsum dolor sit amet, consectetur.</value>
-                    </field>
-                </fields>
-            </embed>
-        </message>
-        <message key="2">
-            <embed>
-                <title>Page 2</title>
-                <colour>magenta</colour>
-                <fields>
-                    <field>
-                        <name>This is the second page</name>
-                        <value>tempor incididunt ut labore et dolore magna.</value>
-                    </field>
-                </fields>
-            </embed>
-        </message>
-        <message key="3">
-            <embed>
-                <title>Page 3</title>
-                <colour>magenta</colour>
-                <fields>
-                    <field>
-                        <name>This is the third page</name>
-                        <value>Eu non diam phasellus vestibulum lorem sed.</value>
-                    </field>
-                </fields>
-            </embed>
-        </message>
+        <pages>
+            <message key="1">
+                <embed>
+                    <title>Page 1</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field>
+                            <name>This is the first page</name>
+                            <value>Lorem ipsum dolor sit amet, consectetur.</value>
+                        </field>
+                    </fields>
+                </embed>
+            </message>
+            <message key="2">
+                <embed>
+                    <title>Page 2</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field>
+                            <name>This is the second page</name>
+                            <value>tempor incididunt ut labore et dolore magna.</value>
+                        </field>
+                    </fields>
+                </embed>
+            </message>
+            <message key="3">
+                <embed>
+                    <title>Page 3</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field>
+                            <name>This is the third page</name>
+                            <value>Eu non diam phasellus vestibulum lorem sed.</value>
+                        </field>
+                    </fields>
+                </embed>
+            </message>
+        </pages>
     </menu>
 </discord>
 ```
 
-To render the menu you have to use [.menu()](../qalib/context.md) method with the key as the first argument, and that
-will render the menu.
+To render the menu you have to use [.rendered_send()](../qalib/context.md) method with the key as the first argument, 
+and that will render the menu.
 
 ```py
 from typing import Literal
@@ -396,7 +398,7 @@ Messages = Literal["menu1"]
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/player.xml")
 async def test(ctx: qalib.QalibContext[Messages]):
-    await ctx.menu("menu1")
+    await ctx.rendered_send("menu1")
 ```
 
 or you can manually define it as so:
@@ -418,7 +420,7 @@ Messages = Literal["menu1"]
 @bot.command()
 async def test(ctx):
     context: qalib.QalibContext[Messages] = qalib.QalibContext(ctx, qalib.Renderer(Formatter(), "templates/player.xml"))
-    await context.menu("menu1")
+    await context.rendered_send("menu1")
 ```
 
 ---
