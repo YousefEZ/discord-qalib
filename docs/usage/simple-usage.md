@@ -192,6 +192,7 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["army", "bank"]
 
+
 @dataclass
 class Player:
     name: str
@@ -234,6 +235,7 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["army", "bank"]
 
+
 @dataclass
 class Player:
     name: str
@@ -254,6 +256,7 @@ async def test(interaction: qalib.QalibInteraction[Messages], player_name: str):
     await interaction.rendered_send("army", keywords={
         "player": fetch_player(player_name)
     })
+
 
 @bot.event
 async def on_ready():
@@ -285,10 +288,12 @@ We also support the rendering of views, and the different UI Components for each
                 </field>
             </fields>
             <view>
-                <button key="greet">
-                    <label>Click Me!</label>
-                    <style>success</style>
-                </button>
+                <components>
+                    <button key="greet">
+                        <label>Click Me!</label>
+                        <style>success</style>
+                    </button>
+                </components>
             </view>
         </embed>
     </message>
@@ -315,6 +320,7 @@ bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["welcome"]
 
+
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)
 
@@ -336,48 +342,50 @@ unique ``key`` attribute, and you can use that to make a sequential menu (order 
 
 <discord>
     <menu key="menu1">
-        <message key="1">
-            <embed>
-                <title>Page 1</title>
-                <colour>magenta</colour>
-                <fields>
-                    <field>
-                        <name>This is the first page</name>
-                        <value>Lorem ipsum dolor sit amet, consectetur.</value>
-                    </field>
-                </fields>
-            </embed>
-        </message>
-        <message key="2">
-            <embed>
-                <title>Page 2</title>
-                <colour>magenta</colour>
-                <fields>
-                    <field>
-                        <name>This is the second page</name>
-                        <value>tempor incididunt ut labore et dolore magna.</value>
-                    </field>
-                </fields>
-            </embed>
-        </message>
-        <message key="3">
-            <embed>
-                <title>Page 3</title>
-                <colour>magenta</colour>
-                <fields>
-                    <field>
-                        <name>This is the third page</name>
-                        <value>Eu non diam phasellus vestibulum lorem sed.</value>
-                    </field>
-                </fields>
-            </embed>
-        </message>
+        <pages>
+            <message key="1">
+                <embed>
+                    <title>Page 1</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field>
+                            <name>This is the first page</name>
+                            <value>Lorem ipsum dolor sit amet, consectetur.</value>
+                        </field>
+                    </fields>
+                </embed>
+            </message>
+            <message key="2">
+                <embed>
+                    <title>Page 2</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field>
+                            <name>This is the second page</name>
+                            <value>tempor incididunt ut labore et dolore magna.</value>
+                        </field>
+                    </fields>
+                </embed>
+            </message>
+            <message key="3">
+                <embed>
+                    <title>Page 3</title>
+                    <colour>magenta</colour>
+                    <fields>
+                        <field>
+                            <name>This is the third page</name>
+                            <value>Eu non diam phasellus vestibulum lorem sed.</value>
+                        </field>
+                    </fields>
+                </embed>
+            </message>
+        </pages>
     </menu>
 </discord>
 ```
 
-To render the menu you have to use [.menu()](../qalib/context.md) method with the key as the first argument, and that
-will render the menu.
+To render the menu you have to use [.rendered_send()](../qalib/context.md) method with the key as the first argument,
+and that will render the menu.
 
 ```py
 from typing import Literal
@@ -396,7 +404,7 @@ Messages = Literal["menu1"]
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/player.xml")
 async def test(ctx: qalib.QalibContext[Messages]):
-    await ctx.menu("menu1")
+    await ctx.rendered_send("menu1")
 ```
 
 or you can manually define it as so:
@@ -418,7 +426,7 @@ Messages = Literal["menu1"]
 @bot.command()
 async def test(ctx):
     context: qalib.QalibContext[Messages] = qalib.QalibContext(ctx, qalib.Renderer(Formatter(), "templates/player.xml"))
-    await context.menu("menu1")
+    await context.rendered_send("menu1")
 ```
 
 ---
@@ -447,6 +455,7 @@ options [here](https://discordpy.readthedocs.io/en/stable/api.html?highlight=sen
 - embeds
 
 ```xml
+
 <embeds>
     <embed>
         <title>Page 1</title>
@@ -576,14 +585,16 @@ options [here](https://discordpy.readthedocs.io/en/stable/api.html?highlight=sen
 ```xml
 
 <view>
-    <button key="button1">
-        <style>primary</style>
-        <emoji>
-            <name>🦺</name>
-        </emoji>
-        <label>Test Button</label>
-        <url>https://www.discord.com</url>
-    </button>
+    <components>
+        <button key="button1">
+            <style>primary</style>
+            <emoji>
+                <name>🦺</name>
+            </emoji>
+            <label>Test Button</label>
+            <url>https://www.discord.com</url>
+        </button>
+    </components>
 </view> 
 ```
 
