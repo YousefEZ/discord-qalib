@@ -86,7 +86,7 @@ Sample XML file:
                     <label>Understood</label>
                     <style>success</style>
                 </button>
-            </components
+            </components>
         </view>
     </message>
 </discord>
