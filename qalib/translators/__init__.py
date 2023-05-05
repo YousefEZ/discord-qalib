@@ -29,28 +29,28 @@ class Base:
 
 @dataclass
 class BaseEditMessage(Base):
-    content: Optional[str]
-    embed: Optional[discord.Embed]
-    attachments: Optional[Sequence[Union[discord.Attachment, discord.File]]]
-    delete_after: Optional[float]
-    allowed_mentions: Optional[discord.AllowedMentions]
-    view: Optional[discord.ui.View]
+    content: Optional[str] = None
+    embed: Optional[discord.Embed] = None
+    attachments: Optional[Sequence[Union[discord.Attachment, discord.File]]] = None
+    delete_after: Optional[float] = None
+    allowed_mentions: Optional[discord.AllowedMentions] = None
+    view: Optional[discord.ui.View] = None
 
 
 # pylint: disable= too-many-instance-attributes
 @dataclass
 class BaseMessage(Base):
-    content: Optional[str]
-    embed: Optional[discord.Embed]
-    embeds: Optional[Sequence[discord.Embed]]
-    file: Optional[discord.File]
-    files: Optional[Sequence[discord.File]]
-    view: Optional[discord.ui.View]
-    tts: Optional[bool]
-    ephemeral: Optional[bool]
-    allowed_mentions: Optional[discord.AllowedMentions]
-    suppress_embeds: Optional[bool]
-    delete_after: Optional[float]
+    content: Optional[str] = None
+    embed: Optional[discord.Embed] = None
+    embeds: Optional[Sequence[discord.Embed]] = None
+    file: Optional[discord.File] = None
+    files: Optional[Sequence[discord.File]] = None
+    view: Optional[discord.ui.View] = None
+    tts: Optional[bool] = None
+    ephemeral: Optional[bool] = None
+    allowed_mentions: Optional[discord.AllowedMentions] = None
+    suppress_embeds: Optional[bool] = None
+    delete_after: Optional[float] = None
 
     def as_edit(self) -> BaseEditMessage:
         raise NotImplementedError
@@ -58,15 +58,15 @@ class BaseMessage(Base):
 
 @dataclass
 class EditContextMessage(BaseEditMessage):
-    suppress: Optional[bool]
+    suppress: Optional[bool] = None
 
 
 @dataclass
 class ContextMessage(BaseMessage):
-    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
-    nonce: Optional[Union[str, int]]
-    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
-    mention_author: Optional[bool]
+    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]] = None
+    nonce: Optional[Union[str, int]] = None
+    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]] = None
+    mention_author: Optional[bool] = None
 
     def as_edit(self) -> EditContextMessage:
         return EditContextMessage(
@@ -87,7 +87,7 @@ class InteractionEditMessage(BaseEditMessage):
 
 @dataclass
 class InteractionMessage(BaseMessage):
-    silent: Optional[bool]
+    silent: Optional[bool] = None
 
     def as_edit(self) -> InteractionEditMessage:
         return InteractionEditMessage(
@@ -127,11 +127,11 @@ class Message(BaseMessage):
     Look at https://discordpy.readthedocs.io/en/latest/api.html?highlight=send#discord.abc.Messageable.send
     """
 
-    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]]
-    nonce: Optional[Union[str, int]]
-    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]]
-    mention_author: Optional[bool]
-    silent: Optional[bool]
+    stickers: Optional[Sequence[Union[discord.GuildSticker, discord.StickerItem]]] = None
+    nonce: Optional[Union[str, int]] = None
+    reference: Optional[Union[discord.Message, discord.MessageReference, discord.PartialMessage]] = None
+    mention_author: Optional[bool] = None
+    silent: Optional[bool] = None
 
     def convert_to_context_message(self) -> ContextMessage:
         return ContextMessage(
