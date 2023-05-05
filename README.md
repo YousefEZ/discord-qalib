@@ -81,10 +81,12 @@ Sample XML file:
             </author>
         </embed>
         <view>
-            <button key="understood_button">
-                <label>Understood</label>
-                <style>success</style>
-            </button>
+            <components>        
+                <button key="understood_button">
+                    <label>Understood</label>
+                    <style>success</style>
+                </button>
+            </components>
         </view>
     </message>
 </discord>
