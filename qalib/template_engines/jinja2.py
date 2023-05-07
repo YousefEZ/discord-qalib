@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from jinja2 import BaseLoader, Environment
 
@@ -6,6 +6,18 @@ from qalib.template_engines.template_engine import TemplateEngine
 
 
 class Jinja2(TemplateEngine):
+
+    def __init__(self, environment: Optional[Environment] = None):
+        self._environment = environment or Environment(loader=BaseLoader())
+
+    @property
+    def environment(self) -> Environment:
+        """This property is used to get the environment of the template engine.
+
+        Returns (Environment): environment of the template engine
+        """
+        return self._environment
+
     def template(self, document: str, keywords: Dict[str, Any]) -> str:
         """This method is used to format a string using the format method.
 
@@ -15,4 +27,4 @@ class Jinja2(TemplateEngine):
 
         Returns (str): formatted string
         """
-        return Environment(loader=BaseLoader()).from_string(document).render(**keywords)
+        return self._environment.from_string(document).render(**keywords)
