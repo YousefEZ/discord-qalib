@@ -19,8 +19,8 @@ Discord templating engine built on discord.py, to help separate text of embeds f
 -----
 Key Features:
 
-  - use of xml files to hold the various template responses
-  - allows for pagination, in an abstract form simplifying the interface in the source code
+- use of xml files to hold the various template responses
+- allows for pagination, in an abstract form simplifying the interface in the source code
 
 -----
 
