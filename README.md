@@ -19,8 +19,8 @@ Discord templating engine built on discord.py, to help separate text of embeds f
 -----
 Key Features:
 
-- use of xml files to hold the various template responses
-- allows for pagination, in an abstract form simplifying the interface in the source code
+  - use of xml files to hold the various template responses
+  - allows for pagination, in an abstract form simplifying the interface in the source code
 
 -----
 
@@ -81,7 +81,7 @@ Sample XML file:
             </author>
         </embed>
         <view>
-            <components>        
+            <components>
                 <button key="understood_button">
                     <label>Understood</label>
                     <style>success</style>
@@ -107,6 +107,7 @@ from qalib.template_engines import formatter
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["test_key"]
+
 
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)
