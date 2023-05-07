@@ -130,6 +130,15 @@ class TestXMLRenderer(unittest.TestCase):
         assert message.embed is not None
         self.assertEqual(len(message.embed.fields), 3)
 
+    def test_jinja_environment(self, _: mock.mock.MagicMock):
+        jinja = Jinja2()
+        self.assertTrue(jinja.environment)
+        renderer: Renderer[JinjaEmbeds] = Renderer(jinja, "tests/routes/jinja-test.xml")
+        message = renderer.render("test1")
+        assert isinstance(message, Message)
+        assert message.embed is not None
+        self.assertEqual(len(message.embed.fields), 3)
+
     def test_expansive_message(self, _: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
         message = renderer.render("test3")
@@ -174,7 +183,6 @@ class TestXMLRenderer(unittest.TestCase):
         message = renderer.render("tts_test")
         assert isinstance(message, Message)
         self.assertTrue(message.tts)
-
 
     def test_file_rendering(self, _: mock.mock.MagicMock):
         template = "tests/routes/complete_messages.xml"
