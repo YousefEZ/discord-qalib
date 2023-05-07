@@ -1,6 +1,7 @@
 from typing import Any
 
-from qalib import Renderer, Formatter
+from qalib import Renderer
+from qalib.template_engines.formatter import Formatter
 from qalib.translators.deserializer import ReturnType
 
 

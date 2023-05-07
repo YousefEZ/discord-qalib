@@ -1,6 +1,6 @@
 import unittest
 
-from qalib import Formatter
+from qalib.template_engines.formatter import Formatter
 
 
 class TestFormatter(unittest.TestCase):

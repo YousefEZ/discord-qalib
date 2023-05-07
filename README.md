@@ -81,7 +81,7 @@ Sample XML file:
             </author>
         </embed>
         <view>
-            <components>        
+            <components>
                 <button key="understood_button">
                     <label>Understood</label>
                     <style>success</style>
@@ -107,6 +107,7 @@ from qalib.template_engines import formatter
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
 Messages = Literal["test_key"]
+
 
 async def acknowledged(interaction: discord.Interaction):
     await interaction.response.send_message("Acknowledged", ephemeral=True)

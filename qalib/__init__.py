@@ -15,8 +15,6 @@ from discord.ext import commands
 from .context import QalibContext
 from .interaction import QalibInteraction
 from .renderer import Renderer, RenderingOptions
-from .template_engines.formatter import Formatter
-from .template_engines.jinja2 import Jinja2
 from .template_engines.template_engine import TemplateEngine
 
 __title__ = "qalib"
