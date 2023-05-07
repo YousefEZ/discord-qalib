@@ -8,9 +8,11 @@ import discord.interactions
 import mock
 from discord.ext.commands.view import StringView
 
-from qalib import Formatter, Jinja2, Renderer, RenderingOptions, qalib_context, qalib_interaction
+from qalib import Renderer, RenderingOptions, qalib_context, qalib_interaction
 from qalib.context import QalibContext
 from qalib.interaction import QalibInteraction
+from qalib.template_engines.formatter import Formatter
+from qalib.template_engines.jinja2 import Jinja2
 from qalib.translators import Message
 from qalib.translators.message_parsing import create_arrows
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
