@@ -144,6 +144,11 @@ class TestXMLRenderer(unittest.TestCase):
         message = renderer.render("test3")
         self.assertIsNotNone(message)
 
+    def test_expansive_message_with_timeout(self, _: mock.mock.MagicMock):
+        renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
+        message = renderer.render("test4")
+        self.assertIsNotNone(message)
+
     def test_jinja_view_rendering(self, view: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
         renderer.render("test1")

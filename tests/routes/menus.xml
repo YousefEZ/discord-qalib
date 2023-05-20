@@ -139,5 +139,21 @@
         <pages>
             <page key="test"/>
         </pages>
+        <arrows>
+            <previous>
+                <style>secondary</style>
+                <emoji>
+                    <name>fire</name>
+                </emoji>
+                <label>Previous</label>
+            </previous>
+            <next>
+                <style>secondary</style>
+                <emoji>
+                    <name>fire</name>
+                </emoji>
+                <label>Previous</label>
+            </next>
+        </arrows>
     </menu>
 </discord>

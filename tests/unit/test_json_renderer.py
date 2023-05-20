@@ -4,11 +4,12 @@ import unittest
 
 import discord.ui
 import mock
+from mock.mock import AsyncMock
 
 from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
 from qalib.translators import BaseMessage, Message
-from qalib.translators.message_parsing import make_menu
+from qalib.translators.menu import Menu, MenuEvents
 from tests.unit.mocked_classes import MockedInteraction
 from tests.unit.types import FullEmbeds, SelectEmbeds, ErrorEmbeds, CompleteJSONMessages
 from tests.unit.utils import render_message
@@ -46,9 +47,8 @@ class TestJSONRenderer(unittest.TestCase):
     @mock.patch("discord.ui.View")
     def test_button_rendering_with_callback(self, mock_view: mock.mock.MagicMock):
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), "tests/routes/full_embeds.json")
-        renderer.render(
-            "test_key2", callbacks={"button1": callback_mocked}, keywords={"todays_date": datetime.datetime.now()}
-        )
+        renderer.render("test_key2", callbacks={"button1": callback_mocked},
+                        keywords={"todays_date": datetime.datetime.now()}, events={})
 
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
         asyncio.run(mock_view.return_value.add_item.call_args_list[0].args[0].callback(MockedInteraction()))
@@ -58,7 +58,7 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
 
-        renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
+        renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()}, events={})
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")
@@ -66,11 +66,8 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/full_embeds.json"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
 
-        renderer.render(
-            "test_key3",
-            callbacks={"select1": callback_mocked, "channel1": callback_mocked},
-            keywords={"todays_date": datetime.datetime.now()},
-        )
+        renderer.render("test_key3", callbacks={"select1": callback_mocked, "channel1": callback_mocked},
+                        keywords={"todays_date": datetime.datetime.now()}, events={})
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
     @mock.patch("discord.ui.View")
@@ -78,16 +75,12 @@ class TestJSONRenderer(unittest.TestCase):
         path = "tests/routes/select_embeds.json"
         renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
 
-        renderer.render(
-            "Launch",
-            callbacks={
-                "test1": callback_mocked,
-                "test2": callback_mocked,
-                "test3": callback_mocked,
-                "test4": callback_mocked,
-            },
-            keywords={"todays_date": datetime.datetime.now()},
-        )
+        renderer.render("Launch", callbacks={
+            "test1": callback_mocked,
+            "test2": callback_mocked,
+            "test3": callback_mocked,
+            "test4": callback_mocked,
+        }, keywords={"todays_date": datetime.datetime.now()}, events={})
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
         for i in range(mock_view.return_value.add_item.call_count):
             asyncio.run(mock_view.return_value.add_item.call_args_list[i].args[0].callback(MockedInteraction()))
@@ -96,7 +89,7 @@ class TestJSONRenderer(unittest.TestCase):
     def test_component_rendering(self, mock_view: mock.mock.MagicMock):
         path = "tests/routes/select_embeds.json"
         renderer: Renderer[SelectEmbeds] = Renderer(Formatter(), path)
-        renderer.render("Launch")
+        renderer.render("Launch", events={})
 
         self.assertGreater(mock_view.return_value.add_item.call_count, 0)
 
@@ -115,16 +108,32 @@ class TestJSONRenderer(unittest.TestCase):
     def test_content_rendering(self):
         path = "tests/routes/complete_messages.json"
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), path)
-        message = renderer.render("content_test")
+        message = renderer.render("content_test", events={})
 
         assert isinstance(message, Message)
         self.assertEqual(message.content, "This is a test message")
+
+    @mock.patch("discord.ui.View")
+    def test_expansive_message(self, mock_view: mock.mock.MagicMock):
+        path = "tests/routes/menus.json"
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), path)
+        message = renderer.render("menu4", events={})
+
+        assert isinstance(message, Menu)
+
+    @mock.patch("discord.ui.View")
+    def test_expansive_message_with_arrows(self, mock_view: mock.mock.MagicMock):
+        path = "tests/routes/menus.json"
+        renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), path)
+        message = renderer.render("menu5", events={})
+
+        assert isinstance(message, Menu)
 
     def test_tts_rendering(self):
         template = "tests/routes/complete_messages.json"
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
-        message = renderer.render("tts_test")
+        message = renderer.render("tts_test", events={})
 
         assert isinstance(message, Message)
         self.assertTrue(message.tts)
@@ -133,7 +142,7 @@ class TestJSONRenderer(unittest.TestCase):
         template = "tests/routes/complete_messages.json"
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
-        message = renderer.render("file_test")
+        message = renderer.render("file_test", events={})
 
         assert isinstance(message, Message)
         assert message.file is not None
@@ -152,21 +161,102 @@ class TestJSONRenderer(unittest.TestCase):
                           )
         self.assertRaises(NotImplementedError, message.as_edit)
 
+    def test_message_type_error(self):
+        template = "tests/routes/error.json"
+
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), template)
+        self.assertRaises(KeyError, renderer.render, "unknown_type")
+
     @mock.patch("discord.ui.View")
     def test_menu(self, mock_view: mock.mock.MagicMock):
         messages = [Message(content=None, embed=None, embeds=None, file=None, files=None, view=None, tts=None,
                             ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
                             delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
                     for _ in range(3)]
-        message = make_menu(messages)
-        assert isinstance(message, Message)
+        message = Menu(messages)
+        assert isinstance(message.front, Message)
         self.assertEqual(mock_view.return_value.add_item.call_count, 4)
+
+    @mock.patch("discord.ui.View")
+    @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)
+    def test_menu_with_events(self, mock_response: mock.mock.MagicMock, mock_view: mock.mock.MagicMock):
+        messages = [Message(content=None, embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                            ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                            delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
+                    for _ in range(3)]
+
+        called = False
+
+        def callback(menu: Menu) -> None:
+            nonlocal called
+            called = True
+
+            self.assertEqual(menu.index, 1)
+
+        menu = Menu(messages, events={MenuEvents.ON_CHANGE: callback})
+        self.assertEqual(menu.index, 0)
+        self.assertEqual(len(menu), 3)
+        assert isinstance(menu.front, Message)
+        self.assertEqual(mock_view.return_value.add_item.call_count, 4)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        task = loop.create_task(mock_view.return_value.add_item.call_args_list[0][0][0].callback(MockedInteraction()))
+        loop.run_until_complete(task)
+        self.assertTrue(called)
+
+    @mock.patch("discord.ui.View")
+    @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)
+    def test_setting_front_menu(self, mock_response: mock.mock.MagicMock, mock_view: mock.mock.MagicMock):
+        messages = [Message(content=str(_), embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                            ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                            delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
+                    for _ in range(4)]
+
+        menu = Menu(messages)
+        with self.assertRaises(IndexError):
+            menu.front = 4
+
+    @mock.patch("discord.ui.View")
+    @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)
+    def test_menu_with_added_events(self, mock_response: mock.mock.MagicMock, mock_view: mock.mock.MagicMock):
+        messages = [Message(content=str(_), embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                            ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                            delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
+                    for _ in range(4)]
+
+        called = False
+        other_called = False
+
+        def callback(m: Menu) -> None:
+            nonlocal called
+            called = True
+
+            self.assertEqual(m.index, 1)
+
+        def other_callback(m: Menu) -> None:
+            nonlocal other_called
+            other_called = True
+
+            self.assertEqual(m.current_page().content, "1")
+
+        menu = Menu(messages)
+        menu.add_event(MenuEvents.ON_CHANGE, callback)
+        menu.add_event(MenuEvents.ON_CHANGE, other_callback)
+        self.assertEqual(menu.index, 0)
+        self.assertEqual(len(menu), 4)
+        assert isinstance(menu.front, Message)
+        self.assertEqual(mock_view.return_value.add_item.call_count, 6)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        task = loop.create_task(mock_view.return_value.add_item.call_args_list[0][0][0].callback(MockedInteraction()))
+        loop.run_until_complete(task)
+        self.assertTrue(called and other_called)
 
     def test_allowed_mentions_rendering(self):
         template = "tests/routes/complete_messages.json"
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
-        message = renderer.render("allowed_mentions_test")
+        message = renderer.render("allowed_mentions_test", events={})
 
         assert isinstance(message, Message)
         assert message.allowed_mentions is not None
@@ -177,7 +267,7 @@ class TestJSONRenderer(unittest.TestCase):
         template = "tests/routes/complete_messages.json"
 
         renderer: Renderer[CompleteJSONMessages] = Renderer(Formatter(), template)
-        message = renderer.render("multi_embeds")
+        message = renderer.render("multi_embeds", events={})
 
         assert isinstance(message, Message)
         self.assertEqual(len(message.embeds), 2)

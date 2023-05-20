@@ -15,26 +15,12 @@ from qalib.translators.message_parsing import ButtonComponent, create_button
 class MenuEvents(Enum):
     ON_CHANGE = "on_change"
 
-    @classmethod
-    def from_str(cls, string: str) -> Optional[MenuEvents]:
-        for button_event in cls:
-            if button_event.value == string:
-                return button_event
-        return None
-
 
 class MenuActions(Enum):
     """Enum that represents the types of actions that can be performed by the buttons."""
 
     NEXT = "next"
     PREVIOUS = "previous"
-
-    @classmethod
-    def from_str(cls, string: str) -> Optional[MenuActions]:
-        for button_action in cls:
-            if button_action.value == string:
-                return button_action
-        return None
 
 
 PreviousButton: ButtonComponent = {"emoji": "⬅️", "style": "primary"}
@@ -60,7 +46,7 @@ class Menu:
         self._pages = pages
         self._timeout = timeout
         self._arrows = arrows
-        self._events = {event_type: [callback] for event_type, callback in events.items()}
+        self._events = {} if events is None else {event_type: [callback] for event_type, callback in events.items()}
         self._active_page = 0
         self._front_page = 0
         self._link()
@@ -72,6 +58,9 @@ class Menu:
             event (MenuEvents): event that is added
             callback (Callable[[Menu], Any]): callback that is called when the event is triggered
         """
+        if event not in self._events:
+            self._events[event] = [callback]
+            return
         self._events[event].append(callback)
 
     def call_event(self, event: MenuEvents) -> None:
@@ -92,17 +81,13 @@ class Menu:
         Returns (List[discord.ui.Button]): list of the arrow buttons
         """
 
-        def create_view(index: int, action: MenuActions) -> Callback:
-            hook = self._events[MenuEvents.ON_CHANGE] if MenuEvents.ON_CHANGE in self._events else None
-
-            target_index = index - 1 if action == MenuActions.PREVIOUS else index + 1
-
+        def create_view(index: int) -> Callback:
             async def callback(interaction: discord.Interaction):
                 await interaction.response.edit_message(
-                    **self._pages[target_index].convert_to_interaction_message().as_edit().dict()
+                    **self._pages[index].convert_to_interaction_message().as_edit().dict()
                 )
 
-                self._active_page = target_index
+                self._active_page = index
                 self.call_event(MenuEvents.ON_CHANGE)
 
             return callback
@@ -112,8 +97,9 @@ class Menu:
         def construct_button(display: Optional[int], action: MenuActions) -> None:
             if display is None:
                 return
-            button = deepcopy(self._arrows[action] if action in self._arrows else DefaultButtons[action])
-            button["callback"] = create_view(display, action)
+            button = deepcopy(
+                self._arrows[action] if self._arrows is not None and action in self._arrows else DefaultButtons[action])
+            button["callback"] = create_view(display)
             buttons.append(create_button(button))
 
         construct_button(left, MenuActions.PREVIOUS)
@@ -139,7 +125,7 @@ class Menu:
         return self._pages[item]
 
     def current_page(self) -> Message:
-        return self._pages[self._active_page]
+        return self[self._active_page]
 
     @property
     def index(self) -> int:
