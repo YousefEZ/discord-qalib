@@ -15,7 +15,7 @@ from typing_extensions import NotRequired
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, DiscordIdentifier, Message
 from qalib.translators.deserializer import Deserializer, ElementTypes, Types, ReturnType, K_contra, EventCallbacks
-from qalib.translators.menu import MenuActions, Menu, Pages
+from qalib.translators.menu import MenuActions, Menu
 from qalib.translators.message_parsing import (
     ButtonComponent,
     ButtonStyle,
@@ -35,7 +35,7 @@ from qalib.translators.message_parsing import (
     Author,
     TextInputRaw,
     TextInputComponent,
-    make_expansive_embeds, apply, bind_menu, attach_views
+    make_expansive_embeds, apply
 )
 from qalib.translators.templater import Templater
 
@@ -204,9 +204,15 @@ class RegularMessage(BaseMessage):
     embed: NotRequired[Embed]
 
 
+class Arrows(TypedDict):
+    previous: ButtonComponent
+    next: ButtonComponent
+
+
 class ExpansiveMessage(BaseMessage):
     page_number_key: NotRequired[str]
     embed: ExpansiveEmbed
+    arrows: NotRequired[Arrows]
 
 
 Page = Union[RegularMessage, ExpansiveMessage]
@@ -215,7 +221,7 @@ Page = Union[RegularMessage, ExpansiveMessage]
 class MenuMessage(Element):
     timeout: NotRequired[Optional[float]]
     pages: List[Union[str, Page]]
-    view: NotRequired[View]
+    arrows: NotRequired[Arrows]
 
 
 class Modal(Element):
@@ -322,7 +328,8 @@ class JSONDeserializer(Deserializer[K_contra]):
             ElementTypes.MENU: partial(self.deserialize_menu, document=document, events=events),
             ElementTypes.MODAL: self.deserialize_modal,
         }
-        assert element_type is not None, f"Invalid element type: {element['type']}"
+        if element_type is None:
+            raise KeyError(f"Element type {element['type']} not found")
         return deserializers[element_type](element, callables)
 
     # pylint: disable= too-many-locals
@@ -390,28 +397,25 @@ class JSONDeserializer(Deserializer[K_contra]):
         """
         pages = self.deserialize_expansive(message_tree, callbacks)
         timeout = message_tree.get("timeout", 180.0)
-        arrows: Dict[MenuActions, ButtonComponent] = self._deserialize_menu_arrows(message_tree["view"])
+        if "arrows" not in message_tree:
+            return Menu(pages, timeout, events=events)
 
+        arrows: Dict[MenuActions, ButtonComponent] = self._deserialize_menu_arrows(message_tree["arrows"])
         return Menu(pages, timeout, arrows, events)
 
     @staticmethod
-    def _deserialize_menu_arrows(menu_view: View) -> Dict[MenuActions, ButtonComponent]:
+    def _deserialize_menu_arrows(arrows: Arrows) -> Dict[MenuActions, ButtonComponent]:
         """Method to deserialize the arrows of a menu
 
         Args:
-            menu_view (View): The view of the menu
+            arrows (Arrows): The view of the menu
 
         Returns (Dict[MenuActions, ButtonComponent]): A dictionary containing the arrows of the menu
         """
-        arrows: Dict[MenuActions, ButtonComponent] = {}
-        for key, component in menu_view.items():
-            if component["type"] == "button":
-
-                action = MenuActions.from_str(cast(Button, component).get("id"))
-                if action is not None:
-                    arrows[action] = cast(ButtonComponent, component)
-
-        return arrows
+        return {
+            MenuActions.PREVIOUS: cast(ButtonComponent, arrows["previous"]),
+            MenuActions.NEXT: cast(ButtonComponent, arrows["next"]),
+        }
 
     def deserialize_expansive(
             self,
@@ -452,7 +456,8 @@ class JSONDeserializer(Deserializer[K_contra]):
             ElementTypes.MESSAGE: lambda msg, callback: [self.deserialize_message(msg, callback)],
             ElementTypes.EXPANSIVE: self.deserialize_expansive,
         }
-        assert element_type is not None, f"Element type {element_type} not found"
+        if element_type is None:
+            raise TypeError(f"Unknown Element type {page['type']}")
         return page_deserializers[element_type](page, callables)
 
     def deserialize_menu(
@@ -476,10 +481,10 @@ class JSONDeserializer(Deserializer[K_contra]):
         pages: List[Message] = sum((self.deserialize_page(document, page, callables) for page in menu["pages"]), [])
         timeout: Optional[float] = menu.get("timeout", 180.0)
 
-        if "view" not in menu:
+        if "arrows" not in menu:
             return Menu(pages, timeout, events=events)
 
-        arrows: Dict[MenuActions, ButtonComponent] = self._deserialize_menu_arrows(menu["view"])
+        arrows: Dict[MenuActions, ButtonComponent] = self._deserialize_menu_arrows(menu["arrows"])
         return Menu(pages, timeout, arrows, events)
 
     def deserialize_modal(self, tree: Modal, methods: Dict[str, Callback]) -> discord.ui.Modal:

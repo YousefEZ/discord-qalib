@@ -133,7 +133,7 @@ class XMLDeserializer(Deserializer[K_contra]):
             events: EventCallbacks
     ) -> Menu:
         pages = self.deserialize_expansive(element, callbacks)
-
+        print(element)
         timeout_element = element.find("timeout")
         timeout: Optional[float] = 180.0
         if timeout_element is not None:
@@ -161,19 +161,22 @@ class XMLDeserializer(Deserializer[K_contra]):
         return [self.deserialize_message(element, callbacks, embed=embed)
                 for embed in self._separate_embed(raw_embed, element.get("page_number_key"))]
 
-    def deserialize_menu_arrows(self, view: ElementTree.Element) -> Dict[MenuActions, ButtonComponent]:
+    def deserialize_menu_arrows(self, arrows_view: ElementTree.Element) -> Dict[MenuActions, ButtonComponent]:
         """Deserializes the arrows of a menu from an XML file, and returns it as a dictionary.
 
         Args:
-            view (ElementTree.Element): templated document contents to deserialize.
+            arrows_view (ElementTree.Element): templated document contents to deserialize.
 
         Returns (Dict[MenuActions, ButtonComponent]): A dictionary containing the arrows.
         """
         arrows: Dict[MenuActions, ButtonComponent] = {}
-        for component in view:
-            action = MenuActions.from_str(component.get("id"))
-            if action is not None:
-                arrows[action] = self._create_button_component(component)
+        previous_element = arrows_view.find("previous")
+        next_element = arrows_view.find("next")
+        if previous_element is not None:
+            arrows[MenuActions.PREVIOUS] = self._create_button_component(previous_element)
+        if next_element is not None:
+            arrows[MenuActions.NEXT] = self._create_button_component(next_element)
+
         return arrows
 
     def deserialize_message(
@@ -276,7 +279,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         timeout_ele = element.find("timeout")
         timeout = float(timeout_ele.text) if timeout_ele is not None and timeout_ele.text is not None else None
 
-        view = element.find("view")
+        view = element.find("arrows")
         if view is None:
             return Menu(pages, timeout, events=events)
 
