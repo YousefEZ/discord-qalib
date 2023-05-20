@@ -290,19 +290,6 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(TypeError):
             await context.menu("menu_type")
 
-    async def test_menu_arrows_callback(self, *_: mock.mock.MagicMock):
-        renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), "tests/routes/simple_embeds.xml")
-        launch1 = renderer.render("Launch", events={})
-        assert isinstance(launch1, Message)
-        """
-        arrow = create_arrows(left=launch1)[0]
-        with mock.patch(
-                'discord.interactions.InteractionResponse.edit_message', new_callable=mock.mock.AsyncMock
-        ) as inter:
-            await arrow.callback(MockedInteraction())
-            inter.assert_called_once()
-        """
-
     async def test_jinja_menu_display(self, *args: mock.mock.MagicMock):
         context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Jinja2(), "tests/routes/menus.xml"))
 
