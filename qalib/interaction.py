@@ -8,7 +8,8 @@ from discord.ui import Modal
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.deserializer import K_contra
+from qalib.translators.deserializer import K_contra, EventCallback
+from qalib.translators.menu import Menu
 
 if TYPE_CHECKING:
     from discord.types.interactions import Interaction as InteractionPayload
@@ -60,6 +61,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
             identifier: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
+            events: Optional[EventCallback] = None,
             **kwargs,
     ) -> None:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
@@ -69,11 +71,17 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
             identifier (str): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
+            events (Optional[EventCallback]): callbacks that are hooked to the event.
             **kwargs: kwargs that are passed to the context's send method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(identifier, callables, keywords)
+        message = self._renderer.render(identifier, callables, keywords, events)
+
+        if isinstance(message, Menu):
+            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message = message.front
+
         if isinstance(message, Message):
             assert isinstance(self.response, InteractionResponse)  # pyright: ignore [reportGeneralTypeIssues]
             # pylint: disable= no-member
@@ -102,7 +110,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(key, callables, keywords)
+        message = self._renderer.render(key, callables, keywords, EventCallback)
         assert isinstance(message, Message)
         if self._displayed:
             await self._display(**{**message.convert_to_interaction_message().as_edit().dict(), **kwargs})
