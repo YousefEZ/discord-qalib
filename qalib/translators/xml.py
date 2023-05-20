@@ -53,7 +53,6 @@ class XMLTemplater(Templater):
             source (str): the text of the XML file
         """
         self.source = source
-        self.root = ElementTree.fromstring(source)
 
     def template(self, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
         """This method is used to template an element, by identifying it by its key and using the template engine to
