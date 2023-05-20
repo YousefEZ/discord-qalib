@@ -78,6 +78,11 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         Returns (discord.message.Message): Message object that got sent to the client.
         """
         message = self._renderer.render(identifier, callables, keywords, events)
+
+        if isinstance(message, Menu):
+            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message = message.front
+
         assert isinstance(message, Message)
         return await self.send(**{**message.convert_to_context_message().dict(), **kwargs})
 
@@ -142,6 +147,4 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             **kwargs: kwargs that are passed to the context's send method
         """
         warnings.warn("use rendered_send method instead", DeprecationWarning)
-        display = self._renderer.render(key, callbacks=callbacks, keywords=keywords, events=EventCallback)
-        assert isinstance(display, Message)
-        await self._display(**{**display.convert_to_context_message().dict(), **kwargs})
+        await self.rendered_send(key, callbacks, keywords, events, **kwargs)
