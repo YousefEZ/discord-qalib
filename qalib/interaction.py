@@ -97,6 +97,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
             key: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
+            events: Optional[EventCallback] = None,
             **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
@@ -106,11 +107,17 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
             key (K): identifies the message in the template file
             callables: callable coroutines that are called when the user interacts with the message
             keywords: keywords that are passed to the embed renderer to format the text
+            events (Optional[EventCallback]): callbacks that are called on the event.
             **kwargs: kwargs that are passed to the context send method or the message edit method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(key, callables, keywords, EventCallback)
+        message = self._renderer.render(key, callables, keywords, events)
+
+        if isinstance(message, Menu):
+            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message = message.front
+
         assert isinstance(message, Message)
         if self._displayed:
             await self._display(**{**message.convert_to_interaction_message().as_edit().dict(), **kwargs})
