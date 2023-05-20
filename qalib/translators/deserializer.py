@@ -1,17 +1,21 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Protocol, Optional, Literal, TypeVar, Union
+from typing import Dict, Protocol, Optional, Literal, TypeVar, Union, Callable
 
 from discord.ui import Modal
 
 from qalib.translators import Callback, Message
+from qalib.translators.menu import Menu, MenuEvents
 
 Types = Literal["message", "menu", "modal", "expansive"]
 
-ReturnType = Union[Message, Modal]
+ReturnType = Union[Message, Modal, Menu]
 
 K_contra = TypeVar("K_contra", bound=str, contravariant=True)
+Events = MenuEvents
+EventCallback = Callable[[Menu], None]
+EventCallbacks = Dict[Events, EventCallback]
 
 
 class ElementTypes(Enum):
@@ -34,13 +38,20 @@ class Deserializer(Protocol[K_contra]):
     """Protocol that represents the deserializer. It is meant to be placed into a Renderer, and is responsible for
     deserializing the document into embeds and views."""
 
-    def deserialize(self, source: str, key: K_contra, callables: Dict[str, Callback]) -> ReturnType:
+    def deserialize(
+            self,
+            source: str,
+            key: K_contra,
+            callables: Dict[str, Callback],
+            events: EventCallbacks
+    ) -> ReturnType:
         """This method is used to deserialize a document into an embed and a view.
 
         Parameters:
             source (str): document that is deserialized
-            key:
+            key (K_contra): key that is used to deserialize the document
             callables (Dict[str, Callback]): callables that are used to deserialize the document
+            events (EventCallbacks): hooks that are called on events
 
         Returns (ReturnType): All possible deserialized types
         """
