@@ -54,5 +54,8 @@
         "type": "RANDOM"
       }
     ]
+  },
+  "unknown_type": {
+    "type": "unknown"
   }
 }

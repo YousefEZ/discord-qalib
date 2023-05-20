@@ -14,7 +14,6 @@ from qalib.interaction import QalibInteraction
 from qalib.template_engines.formatter import Formatter
 from qalib.template_engines.jinja2 import Jinja2
 from qalib.translators import Message
-from qalib.translators.message_parsing import create_arrows
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
 from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals, ErrorEmbeds
 
@@ -36,6 +35,13 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
             self.ctx, Renderer(Formatter(), "tests/routes/simple_embeds.xml")
         )
         await context.display("Launch")
+        args[0].assert_called_once()
+
+    async def test_menu_in_context(self, *args: mock.mock.MagicMock):
+        context: QalibContext[Menus] = QalibContext(
+            self.ctx, Renderer(Formatter(), "tests/routes/menus.xml")
+        )
+        await context.display("Menu4")
         args[0].assert_called_once()
 
     async def test_xml_get_message(self, *_: mock.mock.MagicMock):
@@ -117,17 +123,25 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         await interaction.menu("Menu1")
         args[-1].assert_called_once()
 
+    async def test_interaction_menu_front_page_change(self, *args: mock.mock.MagicMock):
+        interaction: QalibInteraction[Menus] = QalibInteraction(
+            MockedInteraction(), Renderer(Formatter(), "tests/routes/menus.xml")
+        )
+
+        await interaction.display("Menu1", page=1)
+        args[-1].assert_called_once()
+
     async def test_xml_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.xml"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        modal = renderer.render("modal1")
+        modal = renderer.render("modal1", events={})
         assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
     async def test_json_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
-        modal = renderer.render("modal1")
+        modal = renderer.render("modal1", events={})
         assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
@@ -275,17 +289,6 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(TypeError):
             await context.menu("menu_type")
-
-    async def test_menu_arrows_callback(self, *_: mock.mock.MagicMock):
-        renderer: Renderer[SimpleEmbeds] = Renderer(Formatter(), "tests/routes/simple_embeds.xml")
-        launch1 = renderer.render("Launch")
-        assert isinstance(launch1, Message)
-        arrow = create_arrows(left=launch1)[0]
-        with mock.patch(
-                'discord.interactions.InteractionResponse.edit_message', new_callable=mock.mock.AsyncMock
-        ) as inter:
-            await arrow.callback(MockedInteraction())
-            inter.assert_called_once()
 
     async def test_jinja_menu_display(self, *args: mock.mock.MagicMock):
         context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Jinja2(), "tests/routes/menus.xml"))

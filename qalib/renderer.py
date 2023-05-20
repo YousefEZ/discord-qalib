@@ -5,7 +5,7 @@ from typing import Any, Dict, Generic, Optional, cast
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback
-from qalib.translators.deserializer import ReturnType, K_contra, Deserializer
+from qalib.translators.deserializer import ReturnType, K_contra, Deserializer, EventCallbacks
 from qalib.translators.factory import DeserializerFactory, TemplaterFactory
 from qalib.translators.templater import Templater
 
@@ -53,6 +53,7 @@ class Renderer(Generic[K_contra]):
             key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
+            events: Optional[EventCallbacks] = None
     ) -> ReturnType:
         """This method is used to render an embed and a view, and places it in a NamedTuple
 
@@ -60,6 +61,7 @@ class Renderer(Generic[K_contra]):
             key (K): key of the embed,
             callbacks (Optional[Dict[str, Callable]]): callbacks that are attached to the components of the view,
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text,
+            events (Optional[EventCallbacks]): callbacks that are called on events
 
         Returns (ReturnType): All possible deserialized types
         """
@@ -69,5 +71,8 @@ class Renderer(Generic[K_contra]):
         if keywords is None:
             keywords = {}
 
+        if events is None:
+            events = {}
+
         source = self._pre_template(keywords).template(self._template_engine, keywords)
-        return self._deserializer.deserialize(source, key, callbacks)
+        return self._deserializer.deserialize(source, key, callbacks, events)

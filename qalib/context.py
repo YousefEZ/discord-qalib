@@ -7,7 +7,8 @@ from deprecated import deprecated
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.deserializer import K_contra
+from qalib.translators.deserializer import K_contra, EventCallback
+from qalib.translators.menu import Menu
 
 
 class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
@@ -61,6 +62,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             identifier: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
+            events: Optional[EventCallback] = None,
             **kwargs,
     ) -> discord.message.Message:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
@@ -70,11 +72,17 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             identifier (str): identifies the embed in the route file
             callables (Optional[Dict[str, Callback]]) : functions that are hooked to components
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
+            events (Optional[EventCallback]): callbacks that are called on the event
             **kwargs: kwargs that are passed to the context's send method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(identifier, callables, keywords)
+        message = self._renderer.render(identifier, callables, keywords, events)
+
+        if isinstance(message, Menu):
+            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message = message.front
+
         assert isinstance(message, Message)
         return await self.send(**{**message.convert_to_context_message().dict(), **kwargs})
 
@@ -83,6 +91,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             key: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
+            events: Optional[EventCallback] = None,
             **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
@@ -90,13 +99,18 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
 
         Args:
             key (str): identifies the embed in the route file
-            callables: callable coroutines that are called when the user interacts with the message
-            keywords: keywords that are passed to the embed renderer to format the text
+            callables (Optional[Dict[str, Callback]]): callable coroutines that are called when the user interacts
+            keywords (Optional[Dict[str, Any]]: keywords that are passed to the embed renderer to format the text
+            events (Optional[EventCallback]): callbacks that are called on the event
             **kwargs: kwargs that are passed to the context send method or the message edit method
 
         Returns (discord.message.Message): Message object that got sent to the client.
         """
-        message = self._renderer.render(key, callables, keywords)
+        message = self._renderer.render(key, callables, keywords, events)
+        if isinstance(message, Menu):
+            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message = message.front
+
         assert isinstance(message, Message)
         if self._displayed:
             await self._display(**{**message.convert_to_context_message().as_edit().dict(), **kwargs})
@@ -120,6 +134,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
+            events: Optional[EventCallback] = None,
             **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.
@@ -128,9 +143,8 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             key (K): identifies the menu in the template file
             callbacks (Dict[str, Callback]): callbacks that are called when the user interacts with the menu
             keywords (Dict[str, Any]): keywords that are passed to the embed renderer to format the text
+            events (Optional[EventCallback]): callbacks that are called on the event
             **kwargs: kwargs that are passed to the context's send method
         """
         warnings.warn("use rendered_send method instead", DeprecationWarning)
-        display = self._renderer.render(key, callbacks=callbacks, keywords=keywords)
-        assert isinstance(display, Message)
-        await self._display(**{**display.convert_to_context_message().dict(), **kwargs})
+        await self.rendered_send(key, callbacks, keywords, events, **kwargs)

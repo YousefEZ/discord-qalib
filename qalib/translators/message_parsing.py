@@ -26,10 +26,6 @@ __all__ = (
     "create_type_select",
     "create_text_input",
     "make_expansive_embeds",
-    "create_arrows",
-    "attach_views",
-    "bind_menu",
-    "make_menu",
     "TextStyle",
     "ButtonStyle",
     "ChannelType",
@@ -404,66 +400,6 @@ def make_expansive_embeds(
 ) -> List[discord.Embed]:
     return [make_expansive_embed(name, value, str(i + 1), replacement_key, raw_embed, embed_renderer)
             for i, value in enumerate(split_text(text))]
-
-
-def attach_views(messages: List[Message], timeout: Optional[float]) -> None:
-    for message in messages:
-        if message.view is None:
-            message.view = ui.View()
-        message.view.timeout = timeout
-
-
-def create_arrows(left: Optional[Message] = None, right: Optional[Message] = None) -> List[discord.ui.Button]:
-    """This function creates the arrow buttons that are used to navigate between the pages.
-
-    Args:
-        left (Optional[Message]): embed and view of the left page
-        right (Optional[Display]): embed and view of the right page
-
-    Returns (List[discord.ui.Button]): list of the arrow buttons
-    """
-
-    def view(message: Message) -> Callback:
-        async def callback(interaction: discord.Interaction):
-            await interaction.response.edit_message(**message.convert_to_interaction_message().as_edit().dict())
-
-        return callback
-
-    buttons: List[discord.ui.Button] = []
-
-    def construct_button(display: Optional[Message], emoji_string: str):
-        if display is None:
-            return
-        button: ButtonComponent = {"emoji": emoji_string, "style": "primary", "callback": view(display)}
-        buttons.append(create_button(button))
-
-    construct_button(left, "⬅️")
-    construct_button(right, "➡️")
-
-    return buttons
-
-
-def make_menu(messages: List[Message]) -> Message:
-    for i, message in enumerate(messages):
-        arrow_up = messages[i - 1] if i > 0 else None
-        arrow_down = messages[i + 1] if i + 1 < len(messages) else None
-
-        if message.view is None:
-            message.view = ui.View()
-
-        for arrow in create_arrows(arrow_up, arrow_down):
-            message.view.add_item(arrow)
-
-    return messages[0]
-
-
-def bind_menu(
-        method: Callable[[T, Dict[str, Callback]], List[Message]]
-) -> Callable[[T, Dict[str, Callback]], Message]:
-    def wrapper(message: T, callbacks: Dict[str, Callback]) -> Message:
-        return make_menu(method(message, callbacks))
-
-    return wrapper
 
 
 def apply(
