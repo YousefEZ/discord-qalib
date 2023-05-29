@@ -14,6 +14,7 @@ from qalib.interaction import QalibInteraction
 from qalib.template_engines.formatter import Formatter
 from qalib.template_engines.jinja2 import Jinja2
 from qalib.translators import Message
+from qalib.translators.view import ViewEvents
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
 from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals, ErrorEmbeds
 
@@ -101,7 +102,49 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
 
-        self.assertEqual(args[1].return_value.add_item.call_count, 5)
+    async def test_xml_render_message_bound_with_timeout(self, *args: mock.mock.MagicMock):
+        called = False
+
+        async def test_call() -> None:
+            nonlocal called
+            called = True
+
+        renderer = Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        message = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()},
+                                  events={ViewEvents.ON_TIMEOUT: test_call})
+        await message.view.on_timeout()
+        self.assertTrue(called)
+
+    async def test_xml_render_message_bound_on_error(self, *args: mock.mock.MagicMock):
+        called = False
+
+        async def on_error(interaction: discord.Interaction, exception: Exception, item: discord.ui.Item) -> None:
+            nonlocal called
+            called = True
+
+        renderer = Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        message = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()},
+                                  events={ViewEvents.ON_ERROR: on_error})
+        await message.view.on_error(MockedInteraction(), Exception(), discord.ui.Button())
+        self.assertTrue(called)
+
+    async def test_xml_render_message_bound_on_check(self, *args: mock.mock.MagicMock):
+        called = False
+
+        async def on_check(interaction: discord.Interaction) -> None:
+            nonlocal called
+            called = True
+
+        renderer = Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        message = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()},
+                                  events={ViewEvents.ON_CHECK: on_check})
+        await message.view.interaction_check(MockedInteraction())
+        self.assertTrue(called)
+
+    async def test_xml_render_message_bound_on_default_check(self, *args: mock.mock.MagicMock):
+        renderer = Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        message = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        self.assertTrue(await message.view.interaction_check(MockedInteraction()))
 
     async def test_xml_menu_display(self, *args: mock.mock.MagicMock):
         context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
@@ -247,7 +290,6 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         )
 
         await context.display("test_key2", keywords={"todays_date": datetime.datetime.now()})
-        self.assertEqual(args[1].return_value.add_item.call_count, 5)
 
     async def test_json_menu_display(self, *args: mock.mock.MagicMock):
         context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.json"))
@@ -300,7 +342,6 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         context: QalibContext[Menus] = QalibContext(self.ctx, Renderer(Formatter(), "tests/routes/menus.xml"))
 
         await context.menu("Menu1")
-        self.assertEqual(args[1].return_value.add_item.call_count, 2)
 
     async def test_decorator(self, *_: mock.mock.MagicMock):
         @qalib_context(Formatter(), "tests/routes/simple_embeds.json")

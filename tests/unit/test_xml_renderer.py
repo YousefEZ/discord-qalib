@@ -12,13 +12,13 @@ from tests.unit.types import FullEmbeds, ErrorEmbeds, SimpleEmbeds, JinjaEmbeds,
 from tests.unit.utils import render_message
 
 
-def render_select_test_key3() -> None:
+def render_select_test_key3() -> Message:
     path = "tests/routes/full_embeds.xml"
     renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-    renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
+    return renderer.render("test_key3", keywords={"todays_date": datetime.datetime.now()})
 
 
-@mock.patch("discord.ui.View")
+@mock.patch("asyncio.get_running_loop")
 class TestXMLRenderer(unittest.TestCase):
     """Tests the XML Renderer"""
 
@@ -42,15 +42,15 @@ class TestXMLRenderer(unittest.TestCase):
         self.assertRaises(KeyError, renderer.render, "not_a_key")
 
     def test_button_rendering(self, view: mock.mock.MagicMock):
-        render_message("tests/routes/full_embeds.xml", "test_key2", todays_date=datetime.datetime.now())
-        self.assertEqual(view.return_value.add_item.call_count, 5)
+        message = render_message("tests/routes/full_embeds.xml", "test_key2", todays_date=datetime.datetime.now())
+        self.assertEqual(len(message.view.children), 5)
 
     def test_button_rendering_with_callback(self, view: mock.mock.MagicMock):
         path = "tests/routes/full_embeds.xml"
         renderer: Renderer[FullEmbeds] = Renderer(Formatter(), path)
-        renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
+        message = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()})
 
-        self.assertEqual(view.return_value.add_item.call_count, 5)
+        self.assertEqual(len(message.view.children), 5)
 
     def test_missing_components(self, view: mock.mock.MagicMock):
         path = "tests/routes/simple_embeds.xml"
@@ -60,46 +60,46 @@ class TestXMLRenderer(unittest.TestCase):
         self.assertEqual(view.add_item.call_count, 0)
 
     def test_select_rendering(self, view: mock.mock.MagicMock):
-        render_select_test_key3()
-        self.assertEqual(view.return_value.add_item.call_count, 2)
+        message = render_select_test_key3()
+        self.assertEqual(len(message.view.children), 2)
 
-        child = view.return_value.add_item.call_args_list[0].args[0]
+        child = message.view.children[0]
         self.assertIsInstance(child, discord.ui.Select)
         self.assertEqual(child.placeholder, "Select a date")
 
     def test_channel_select_rendering(self, view: mock.mock.MagicMock):
-        render_select_test_key3()
-        self.assertEqual(view.return_value.add_item.call_count, 2)
+        message = render_select_test_key3()
+        self.assertEqual(len(message.view.children), 2)
 
-        child = view.return_value.add_item.call_args_list[1].args[0]
+        child = message.view.children[1]
         assert isinstance(child, discord.ui.ChannelSelect)
         self.assertEqual(child.placeholder, "Select a channel")
 
     def test_role_select_rendering(self, view: mock.mock.MagicMock):
-        render_message("tests/routes/select_embeds.xml", "Launch")
-        self.assertEqual(view.return_value.add_item.call_count, 4)
-        child = view.return_value.add_item.call_args_list[0].args[0]
+        message = render_message("tests/routes/select_embeds.xml", "Launch")
+        self.assertEqual(len(message.view.children), 4)
+        child = message.view.children[0]
         assert isinstance(child, discord.ui.RoleSelect)
         self.assertEqual(child.placeholder, "Select a Role")
 
     def test_user_select_rendering(self, view: mock.mock.MagicMock):
-        render_message("tests/routes/select_embeds.xml", "Launch")
-        self.assertEqual(view.return_value.add_item.call_count, 4)
-        child = view.return_value.add_item.call_args_list[1].args[0]
+        message = render_message("tests/routes/select_embeds.xml", "Launch")
+        self.assertEqual(len(message.view.children), 4)
+        child = message.view.children[1]
         self.assertIsInstance(child, discord.ui.UserSelect)
         self.assertEqual(child.placeholder, "Select a User")
 
     def test_mentionable_select_rendering(self, view: mock.mock.MagicMock):
-        render_message("tests/routes/select_embeds.xml", "Launch")
-        self.assertEqual(view.return_value.add_item.call_count, 4)
-        child = view.return_value.add_item.call_args_list[2].args[0]
+        message = render_message("tests/routes/select_embeds.xml", "Launch")
+        self.assertEqual(len(message.view.children), 4)
+        child = message.view.children[2]
         self.assertIsInstance(child, discord.ui.MentionableSelect)
         self.assertEqual(child.placeholder, "Select a Mention")
 
     def test_text_input_rendering(self, view: mock.mock.MagicMock):
-        render_message("tests/routes/select_embeds.xml", "Launch")
-        self.assertEqual(view.return_value.add_item.call_count, 4)
-        child = view.return_value.add_item.call_args_list[3].args[0]
+        message = render_message("tests/routes/select_embeds.xml", "Launch")
+        self.assertEqual(len(message.view.children), 4)
+        child = message.view.children[3]
         self.assertIsInstance(child, discord.ui.TextInput)
         self.assertEqual(child.placeholder, "Test Placeholder")
 
@@ -151,8 +151,8 @@ class TestXMLRenderer(unittest.TestCase):
 
     def test_jinja_view_rendering(self, view: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
-        renderer.render("test1")
-        self.assertEqual(view.return_value.add_item.call_count, 1)
+        message = renderer.render("test1")
+        self.assertEqual(len(message.view.children), 1)
 
     def test_combined_rendering(self, view: mock.mock.MagicMock):
         template = "tests/routes/jinja-test.xml"
@@ -162,7 +162,7 @@ class TestXMLRenderer(unittest.TestCase):
         assert isinstance(message, Message)
         assert message.embed is not None
         self.assertEqual(len(message.embed.fields), 3)
-        self.assertEqual(view.return_value.add_item.call_count, 1)
+        self.assertEqual(len(message.view.children), 1)
 
     def test_jinja_empty_view(self, _: mock.mock.MagicMock):
         template = "tests/routes/jinja-test.xml"
