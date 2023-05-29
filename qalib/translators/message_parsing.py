@@ -9,7 +9,7 @@ import emoji
 from discord import ui, utils
 from typing_extensions import NotRequired, Concatenate, ParamSpec
 
-from qalib.translators import Callback, CallbackMethod, Message, M, N
+from qalib.translators import Callback, CallbackMethod, M, N
 
 P = ParamSpec("P")
 T = TypeVar("T")
