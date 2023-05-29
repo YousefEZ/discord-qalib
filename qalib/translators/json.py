@@ -14,7 +14,8 @@ from typing_extensions import NotRequired
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, DiscordIdentifier, Message
-from qalib.translators.deserializer import Deserializer, ElementTypes, Types, ReturnType, K_contra, EventCallbacks
+from qalib.translators.deserializer import Deserializer, ElementTypes, Types, ReturnType, K_contra
+from qalib.translators.events import EventCallbacks
 from qalib.translators.menu import MenuActions, Menu
 from qalib.translators.message_parsing import (
     ButtonComponent,
@@ -37,7 +38,9 @@ from qalib.translators.message_parsing import (
     TextInputComponent,
     make_expansive_embeds, apply
 )
+from qalib.translators.modal import ModalEvents
 from qalib.translators.templater import Templater
+from qalib.translators.view import QalibView
 
 OBJ = TypeVar("OBJ")
 
@@ -322,21 +325,22 @@ class JSONDeserializer(Deserializer[K_contra]):
         """
         element_type: Optional[ElementTypes] = ElementTypes.from_str(element["type"])
 
-        deserializers: Dict[ElementTypes, Callable[[Elements, Dict[str, Callback]], ReturnType]] = {
+        deserializers: Dict[ElementTypes, Callable[[Elements, Dict[str, Callback], EventCallbacks], ReturnType]] = {
             ElementTypes.MESSAGE: self.deserialize_message,
-            ElementTypes.EXPANSIVE: partial(self.deserialize_expansive_into_menu, events=events),
-            ElementTypes.MENU: partial(self.deserialize_menu, document=document, events=events),
+            ElementTypes.EXPANSIVE: self.deserialize_expansive_into_menu,
+            ElementTypes.MENU: partial(self.deserialize_menu, document=document),
             ElementTypes.MODAL: self.deserialize_modal,
         }
         if element_type is None:
             raise KeyError(f"Element type {element['type']} not found")
-        return deserializers[element_type](element, callables)
+        return deserializers[element_type](element, callables, events)
 
     # pylint: disable= too-many-locals
     def deserialize_message(
             self,
             message_tree: Union[RegularMessage, ExpansiveMessage],
             callables: Dict[str, Callback],
+            events: EventCallbacks,
             **overrides: Any
     ) -> Message:
         """Method to deserialize an embed into a Display NamedTuple containing the embed and the view
@@ -344,6 +348,7 @@ class JSONDeserializer(Deserializer[K_contra]):
         Args:
             message_tree (Dict[str, Any]): The embed to deserialize
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            events (EventCallbacks): A dictionary containing the event callbacks.
             **overrides (Any): keyword arguments that override the messages
 
         Returns (Display): A Display NamedTuple containing the embed and the view
@@ -369,7 +374,7 @@ class JSONDeserializer(Deserializer[K_contra]):
                 guild_id=reference.get("guild_id"),
             )),
             mention_author=message_tree.get("mention_author"),
-            view=apply(message_tree.get("view"), self._render_view, callables),
+            view=apply(message_tree.get("view"), self._render_view, callables, events),
             stickers=None,
             ephemeral=message_tree.get("ephemeral"),
             silent=message_tree.get("silent"),
@@ -395,7 +400,7 @@ class JSONDeserializer(Deserializer[K_contra]):
 
         Returns (Menu): A Menu object
         """
-        pages = self.deserialize_expansive(message_tree, callbacks)
+        pages = self.deserialize_expansive(message_tree, callbacks, events)
         timeout = message_tree.get("timeout", 180.0)
         if "arrows" not in message_tree:
             return Menu(pages, timeout, events=events)
@@ -421,23 +426,26 @@ class JSONDeserializer(Deserializer[K_contra]):
             self,
             message_tree: ExpansiveMessage,
             callbacks: Dict[str, Callback],
+            events: EventCallbacks
     ) -> List[Message]:
         """Method to deserialize a source into a list of Display objects
 
         Args:
             message_tree (ExpansiveMessage): The ExpansiveMessage of the message_tree
             callbacks (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            events (EventCallbacks): A dictionary containing the event callbacks.
 
         Returns (List[Display]): A list of Display objects
         """
-        return [self.deserialize_message(message_tree, callbacks, embed=embed)
+        return [self.deserialize_message(message_tree, callbacks, events=events, embed=embed)
                 for embed in self._separate_embed(message_tree["embed"], message_tree.get("page_number_key"))]
 
     def deserialize_page(
             self,
             document: Document,
             raw_page: Union[str, Page],
-            callables: Dict[str, Callback]
+            callables: Dict[str, Callback],
+            events: EventCallbacks
     ) -> List[Message]:
         """Method to deserialize a page into a Display object
 
@@ -445,6 +453,7 @@ class JSONDeserializer(Deserializer[K_contra]):
             document (Document): the original document containing all the keys.
             raw_page (Page): The page to deserialize
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            events (EventCallbacks): A dictionary containing the event callbacks.
 
         Returns (List[Message]): List of pages
         """
@@ -452,13 +461,13 @@ class JSONDeserializer(Deserializer[K_contra]):
         element_type = ElementTypes.from_str(page["type"])
 
         page_deserializers: Dict[
-            ElementTypes, Callable[[BaseMessage, Dict[str, Callback]], List[Message]]] = {
-            ElementTypes.MESSAGE: lambda msg, callback: [self.deserialize_message(msg, callback)],
+            ElementTypes, Callable[[BaseMessage, Dict[str, Callback], EventCallbacks], List[Message]]] = {
+            ElementTypes.MESSAGE: lambda msg, callback, m_events: [self.deserialize_message(msg, callback, m_events)],
             ElementTypes.EXPANSIVE: self.deserialize_expansive,
         }
         if element_type is None:
             raise TypeError(f"Unknown Element type {page['type']}")
-        return page_deserializers[element_type](page, callables)
+        return page_deserializers[element_type](page, callables, events)
 
     def deserialize_menu(
             self,
@@ -478,7 +487,8 @@ class JSONDeserializer(Deserializer[K_contra]):
 
         Returns (List[Message]): A list of Display objects
         """
-        pages: List[Message] = sum((self.deserialize_page(document, page, callables) for page in menu["pages"]), [])
+        pages: List[Message] = sum((self.deserialize_page(document, page, callables, events) for page in menu["pages"]),
+                                   [])
         timeout: Optional[float] = menu.get("timeout", 180.0)
 
         if "arrows" not in menu:
@@ -487,18 +497,28 @@ class JSONDeserializer(Deserializer[K_contra]):
         arrows: Dict[MenuActions, ButtonComponent] = self._deserialize_menu_arrows(menu["arrows"])
         return Menu(pages, timeout, arrows, events)
 
-    def deserialize_modal(self, tree: Modal, methods: Dict[str, Callback]) -> discord.ui.Modal:
+    def deserialize_modal(
+            self,
+            tree: Modal,
+            callables: Dict[str, Callback],
+            events: EventCallbacks,
+            **kwargs
+    ) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
 
         Args:
             tree (Modal): The Modal Dictionary to deserialize into a discord.ui.Modal object
-            methods (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
+            events (EventCallbacks): A dictionary containing the event callbacks.
+            **kwargs
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        modal = type(f"{tree['title']} Modal", (discord.ui.Modal,), methods)(title=tree["title"])
+        modal = type(f"{tree['title']} Modal", (discord.ui.Modal,),
+                     {**{event.value: callback for event, callback in events.items() if event in ModalEvents},
+                      **kwargs})(title=tree["title"])
 
-        components = self.render_components(tree["components"]) if "components" in tree else []
+        components = self.render_components(tree["components"], callables) if "components" in tree else []
 
         for component in components:
             modal.add_item(component)
@@ -551,7 +571,7 @@ class JSONDeserializer(Deserializer[K_contra]):
             spoiler=raw_file["spoiler"] if "spoiler" in raw_file else False,
         )
 
-    def _render_view(self, raw_view: View, callables: Dict[str, Callback]) -> ui.View:
+    def _render_view(self, raw_view: View, callables: Dict[str, Callback], events: EventCallbacks) -> ui.View:
         """Method to render a view element into a discord.ui.View object
 
         Args:
@@ -560,7 +580,8 @@ class JSONDeserializer(Deserializer[K_contra]):
 
         Returns (ui.View): A discord.ui.View object
         """
-        view = ui.View()
+
+        view = QalibView(events)
         if "timeout" in raw_view:
             view.timeout = raw_view["timeout"]
         for component in self.render_components(raw_view["components"], callables):
@@ -720,7 +741,7 @@ class JSONDeserializer(Deserializer[K_contra]):
     def render_components(
             self,
             components: Components,
-            callables: Optional[Dict[str, Callback]] = None
+            callables: Dict[str, Callback]
     ) -> List[ui.Item]:
         """Renders the components specified by the identifier
 
@@ -730,8 +751,6 @@ class JSONDeserializer(Deserializer[K_contra]):
 
         Returns (List[ui.Item]): the rendered components
         """
-        if callables is None:
-            callables = {}
         return [self.render_component(component, callables.get(key)) for key, component in components.items()]
 
     def _render_embed(self, raw_embed: Embed, *replacements: Tuple[str, str]) -> discord.Embed:
