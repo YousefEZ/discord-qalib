@@ -218,6 +218,28 @@ class TestJSONRenderer(unittest.TestCase):
 
     @mock.patch("asyncio.get_running_loop")
     @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)
+    def test_menu_page_retrieval(self, mock_response: mock.mock.MagicMock, mock_view: mock.mock.MagicMock):
+        messages = [Message(content=str(_), embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                            ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                            delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
+                    for _ in range(4)]
+
+        menu = Menu(messages)
+        self.assertEqual(menu[3].content, "3")
+
+    @mock.patch("asyncio.get_running_loop")
+    @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)
+    def test_menu_current_page_retrieval(self, mock_response: mock.mock.MagicMock, mock_view: mock.mock.MagicMock):
+        messages = [Message(content=str(_), embed=None, embeds=None, file=None, files=None, view=None, tts=None,
+                            ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
+                            delete_after=None, mention_author=None, nonce=None, reference=None, stickers=None)
+                    for _ in range(4)]
+
+        menu = Menu(messages)
+        self.assertEqual(menu.current_page().content, "0")
+
+    @mock.patch("asyncio.get_running_loop")
+    @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)
     def test_menu_with_added_events(self, mock_response: mock.mock.MagicMock, mock_view: mock.mock.MagicMock):
         messages = [Message(content=str(_), embed=None, embeds=None, file=None, files=None, view=None, tts=None,
                             ephemeral=None, allowed_mentions=None, suppress_embeds=None, silent=None,
