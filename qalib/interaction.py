@@ -8,8 +8,8 @@ from discord.ui import Modal
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.events import EventCallback, EventCallbacks
 from qalib.translators.deserializer import K_contra
+from qalib.translators.events import EventCallbacks
 from qalib.translators.menu import Menu
 
 if TYPE_CHECKING:
