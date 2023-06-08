@@ -82,8 +82,8 @@ class TestJSONRenderer(unittest.TestCase):
             "test4": callback_mocked,
         }, keywords={"todays_date": datetime.datetime.now()}, events={})
         self.assertGreater(len(message.view.children), 0)
-        for i in range(len(message.view.children)):
-            asyncio.run(message.view.children[i].callback(MockedInteraction()))
+        for child in message.view.children:
+            asyncio.run(child.callback(MockedInteraction()))
 
     @mock.patch("asyncio.get_running_loop")
     def test_component_rendering(self, mock_view: mock.mock.MagicMock):
