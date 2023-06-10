@@ -62,7 +62,7 @@ class Menu:
         """
         self._events[event] = callback
 
-    def call_event(self, event: MenuEvents) -> None:
+    async def call_event(self, event: MenuEvents) -> None:
         await self._events[event](self)
 
     def _create_arrows(
@@ -86,7 +86,7 @@ class Menu:
                 )
 
                 self._active_page = index
-                self.call_event(MenuEvents.ON_CHANGE)
+                await self.call_event(MenuEvents.ON_CHANGE)
 
             return callback
 
