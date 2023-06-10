@@ -38,7 +38,7 @@ from qalib.translators.message_parsing import (
     TextInputComponent,
     make_expansive_embeds, apply
 )
-from qalib.translators.modal import ModalEvents, QalibModal
+from qalib.translators.modal import QalibModal
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
 
