@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable, Union, TYPE_CHECKING, Optional, Coroutine, Any
+from typing import Callable, Union, TYPE_CHECKING, Optional, Coroutine, Any, TypeVar
 
 import discord
 from discord import ui
@@ -15,10 +15,10 @@ class ViewEvents(Enum):
     ON_ERROR = "on_cancel"
     ON_CHECK = "on_check"
 
-
-TimeoutEvent = Callable[[], Coroutine[Any, Any, None]]
-CheckEvent = Callable[[discord.Interaction], Coroutine[Any, Any, bool]]
-ErrorEvent = Callable[[discord.Interaction, Exception, discord.ui.Item], Coroutine[Any, Any, None]]
+View = TypeVar("View", bound=ui.View, covariant=True)
+TimeoutEvent = Callable[[View], Coroutine[Any, Any, None]]
+CheckEvent = Callable[[View, discord.Interaction], Coroutine[Any, Any, bool]]
+ErrorEvent = Callable[[View, discord.Interaction, Exception, discord.ui.Item], Coroutine[Any, Any, None]]
 ViewEventsCallbacks = Union[TimeoutEvent, CheckEvent, ErrorEvent]
 
 
@@ -30,13 +30,13 @@ class QalibView(ui.View):
 
     async def on_timeout(self) -> None:
         if ViewEvents.ON_TIMEOUT in self._events:
-            await self._events[ViewEvents.ON_TIMEOUT]()
+            await self._events[ViewEvents.ON_TIMEOUT](self)
 
     async def on_error(self, interaction: discord.Interaction, exception: Exception, item: discord.ui.Item) -> None:
         if ViewEvents.ON_ERROR in self._events:
-            await self._events[ViewEvents.ON_ERROR](interaction, exception, item)
+            await self._events[ViewEvents.ON_ERROR](self, interaction, exception, item)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if ViewEvents.ON_CHECK in self._events:
-            return await self._events[ViewEvents.ON_CHECK](interaction)
+            return await self._events[ViewEvents.ON_CHECK](self, interaction)
         return True

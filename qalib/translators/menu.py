@@ -29,6 +29,10 @@ DefaultButtons: Dict[MenuActions, ButtonComponent] = {
 }
 
 
+class MenuEvents(Enum):
+    ON_CHANGE = "on_change"
+
+
 class Menu:
     """Class that represents a menu. It is used to store the pages of the menu, as well as the buttons that are used"""
 
@@ -136,5 +140,4 @@ class Menu:
         self._front_page = index
 
 
-class MenuEvents(Enum):
-    ON_CHANGE = "on_change"
+MenuChangeEvent = Callable[[Menu], None]
