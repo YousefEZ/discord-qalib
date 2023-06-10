@@ -15,6 +15,7 @@ class ViewEvents(Enum):
     ON_ERROR = "on_cancel"
     ON_CHECK = "on_check"
 
+
 View = TypeVar("View", bound=ui.View, covariant=True)
 TimeoutEvent = Callable[[View], Coroutine[Any, Any, None]]
 CheckEvent = Callable[[View, discord.Interaction], Coroutine[Any, Any, bool]]
