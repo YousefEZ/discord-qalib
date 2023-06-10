@@ -2,17 +2,16 @@ from __future__ import annotations
 
 from copy import deepcopy
 from enum import Enum
-from typing import List, Optional, Dict, Any, Callable
+from typing import List, Optional, Dict, Any, Callable, TYPE_CHECKING
 
 import discord.ui.button
-from discord import ui
 
 from qalib.translators import Message, Callback
+
+if TYPE_CHECKING:
+    from qalib.translators.events import EventCallbacks
+from qalib.translators.view import QalibView
 from qalib.translators.message_parsing import ButtonComponent, create_button
-
-
-class MenuEvents(Enum):
-    ON_CHANGE = "on_change"
 
 
 class MenuActions(Enum):
@@ -30,6 +29,10 @@ DefaultButtons: Dict[MenuActions, ButtonComponent] = {
 }
 
 
+class MenuEvents(Enum):
+    ON_CHANGE = "on_change"
+
+
 class Menu:
     """Class that represents a menu. It is used to store the pages of the menu, as well as the buttons that are used"""
 
@@ -40,12 +43,12 @@ class Menu:
             pages: List[Message],
             timeout: Optional[float] = None,
             arrows: Optional[Dict[MenuActions, ButtonComponent]] = None,
-            events: Optional[Dict[MenuEvents, Callable[[Menu], Any]]] = None
+            events: Optional[EventCallbacks] = None
     ) -> None:
         self._pages = pages
         self._timeout = timeout
         self._arrows = arrows
-        self._events = {} if events is None else {event_type: [callback] for event_type, callback in events.items()}
+        self._events = {} if events is None else events
         self._active_page = 0
         self._front_page = 0
         self._link()
@@ -57,14 +60,10 @@ class Menu:
             event (MenuEvents): event that is added
             callback (Callable[[Menu], Any]): callback that is called when the event is triggered
         """
-        if event not in self._events:
-            self._events[event] = [callback]
-            return
-        self._events[event].append(callback)
+        self._events[event] = callback
 
     def call_event(self, event: MenuEvents) -> None:
-        for action in self._events[event]:
-            action(self)
+        self._events[event](self)
 
     def _create_arrows(
             self,
@@ -112,7 +111,7 @@ class Menu:
             right = i + 1 if i + 1 < len(self._pages) else None
 
             if message.view is None:
-                message.view = ui.View(timeout=self._timeout)
+                message.view = QalibView(self._events, timeout=self._timeout)
 
             for arrow in self._create_arrows(left, right):
                 message.view.add_item(arrow)
@@ -139,3 +138,6 @@ class Menu:
         if index >= len(self._pages):
             raise IndexError("Index out of bounds")
         self._front_page = index
+
+
+MenuChangeEvent = Callable[[Menu], None]

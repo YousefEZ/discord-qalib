@@ -7,7 +7,8 @@ from deprecated import deprecated
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.deserializer import K_contra, EventCallback
+from qalib.translators.events import EventCallback, EventCallbacks
+from qalib.translators.deserializer import K_contra
 from qalib.translators.menu import Menu
 
 
@@ -62,7 +63,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             identifier: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallback] = None,
+            events: Optional[EventCallbacks] = None,
             **kwargs,
     ) -> discord.message.Message:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
@@ -91,7 +92,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             key: K_contra,
             callables: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallback] = None,
+            events: Optional[EventCallbacks] = None,
             **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that

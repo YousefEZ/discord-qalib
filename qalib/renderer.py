@@ -5,7 +5,8 @@ from typing import Any, Dict, Generic, Optional, cast
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback
-from qalib.translators.deserializer import ReturnType, K_contra, Deserializer, EventCallbacks
+from qalib.translators.events import EventCallbacks
+from qalib.translators.deserializer import ReturnType, K_contra, Deserializer
 from qalib.translators.factory import DeserializerFactory, TemplaterFactory
 from qalib.translators.templater import Templater
 

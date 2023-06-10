@@ -13,4 +13,14 @@
             </text_input>
         </components>
     </modal>
+    <modal key="modal2" title="Request">
+        <timeout/>
+        <components>
+            <text_input>
+                <label>Place</label>
+                <placeholder>Enter the Area</placeholder>
+                <style>short</style>
+            </text_input>
+        </components>
+    </modal>
 </discord>

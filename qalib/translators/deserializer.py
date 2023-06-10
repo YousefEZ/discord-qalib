@@ -1,21 +1,19 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Protocol, Optional, Literal, TypeVar, Union, Callable
+from typing import Dict, Protocol, Optional, Literal, TypeVar, Union
 
 from discord.ui import Modal
 
 from qalib.translators import Callback, Message
-from qalib.translators.menu import Menu, MenuEvents
+from qalib.translators.events import EventCallbacks
+from qalib.translators.menu import Menu
 
 Types = Literal["message", "menu", "modal", "expansive"]
 
 ReturnType = Union[Message, Modal, Menu]
 
 K_contra = TypeVar("K_contra", bound=str, contravariant=True)
-Events = MenuEvents
-EventCallback = Callable[[Menu], None]
-EventCallbacks = Dict[Events, EventCallback]
 
 
 class ElementTypes(Enum):
