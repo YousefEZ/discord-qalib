@@ -187,11 +187,11 @@ class TestJSONRenderer(unittest.TestCase):
 
         called = False
 
-        def callback(menu: Menu) -> None:
+        async def callback(m: Menu) -> None:
             nonlocal called
             called = True
 
-            self.assertEqual(menu.index, 1)
+            self.assertEqual(m.index, 1)
 
         menu = Menu(messages, events={MenuEvents.ON_CHANGE: callback})
         self.assertEqual(menu.index, 0)
@@ -248,7 +248,7 @@ class TestJSONRenderer(unittest.TestCase):
 
         called = False
 
-        def callback(m: Menu) -> None:
+        async def callback(m: Menu) -> None:
             nonlocal called
             called = True
 
