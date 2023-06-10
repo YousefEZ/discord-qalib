@@ -32,7 +32,7 @@ from qalib.translators.message_parsing import (
     Author,
     TextInputComponent,
     make_expansive_embeds, apply, )
-from qalib.translators.modal import ModalEvents, ModalEventsCallbacks
+from qalib.translators.modal import ModalEvents, ModalEventsCallbacks, QalibModal
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
 
@@ -311,9 +311,12 @@ class XMLDeserializer(Deserializer[K_contra]):
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
         title = self.get_attribute(element, "title")
-        modal = type(f"{title} Modal", (discord.ui.Modal,),
-                     {**{event.value: callback for event, callback in events.items() if event in ModalEvents},
-                      **kwargs})(title=title)
+        timeout_element = element.find("timeout")
+        if timeout_element is not None:
+            timeout = float(timeout_element.text) if timeout_element.text is not None else None
+            modal = QalibModal(title=title, events=events, timeout=timeout, custom_id=element.get("custom_id"))
+        else:
+            modal = QalibModal(title=title, events=events, custom_id=element.get("custom_id"))
 
         for component in self.render_components(element, callables):
             modal.add_item(component)

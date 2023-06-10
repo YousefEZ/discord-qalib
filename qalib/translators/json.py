@@ -38,7 +38,7 @@ from qalib.translators.message_parsing import (
     TextInputComponent,
     make_expansive_embeds, apply
 )
-from qalib.translators.modal import ModalEvents
+from qalib.translators.modal import ModalEvents, QalibModal
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
 
@@ -229,6 +229,8 @@ class MenuMessage(Element):
 
 class Modal(Element):
     title: str
+    timeout: NotRequired[Optional[float]]
+    custom_id: NotRequired[str]
     components: Components
 
 
@@ -514,9 +516,10 @@ class JSONDeserializer(Deserializer[K_contra]):
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
-        modal = type(f"{tree['title']} Modal", (discord.ui.Modal,),
-                     {**{event.value: callback for event, callback in events.items() if event in ModalEvents},
-                      **kwargs})(title=tree["title"])
+        modal = QalibModal(title=tree["title"],
+                           events=events,
+                           timeout=tree.get("timeout", 180.0),
+                           custom_id=tree.get("custom_id", None))
 
         components = self.render_components(tree["components"], callables) if "components" in tree else []
 
