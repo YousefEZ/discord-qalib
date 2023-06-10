@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from enum import Enum
-from typing import List, Optional, Dict, Any, Callable, TYPE_CHECKING
+from typing import List, Optional, Dict, Any, Callable, TYPE_CHECKING, Coroutine
 
 import discord.ui.button
 
@@ -53,7 +53,7 @@ class Menu:
         self._front_page = 0
         self._link()
 
-    def add_event(self, event: MenuEvents, callback: Callable[[Menu], Any]) -> None:
+    def add_event(self, event: MenuEvents, callback: MenuChangeEvent) -> None:
         """This method is used to add an event to the menu.
 
         Args:
@@ -63,7 +63,7 @@ class Menu:
         self._events[event] = callback
 
     def call_event(self, event: MenuEvents) -> None:
-        self._events[event](self)
+        await self._events[event](self)
 
     def _create_arrows(
             self,
@@ -140,4 +140,4 @@ class Menu:
         self._front_page = index
 
 
-MenuChangeEvent = Callable[[Menu], None]
+MenuChangeEvent = Callable[[Menu], Coroutine[Any, Any, None]]
