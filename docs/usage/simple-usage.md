@@ -264,8 +264,90 @@ async def on_ready():
 
 ```
 
+## :memo: Modals
+
 ``QalibInteractions`` are also able to render Modals from their documents using
-the ``.respond_with_modal(key, methods, keywords)`` method.
+the ``.render(key, callables, keywords, events)`` method. With the events allowing you to respond to user actions
+
+- ``ModalEvents.ON_TIMEOUT``: when the view times out.
+
+```py
+async def on_timeout(view: discord.ui.Modal) -> None:
+    ...
+```
+
+- ``ModalEvents.ON_CHECK``: when the view is being interacted with, have a check to return a bool to call any callbacks
+
+```py
+async def check(view: discord.ui.Modal, interaction: discord.Interaction) -> bool:
+    ...
+```
+
+- ``ModalEvents.ON_ERROR``: when the view throws out an exception, this event is called
+
+```py
+async def error_handling(
+        view: discord.ui.Modal,
+        interaction: discord.Interaction,
+        error: Exception
+) -> None:
+    ...
+```
+
+- ``ModalEvents.ON_SUBMIT``: when the modal is submitted this event is called
+
+```py
+async def submit(view: discord.ui.Modal, interaction: discord.Interaction) -> None:
+    ...
+```
+
+You can also attach the callables to the button using the dictionary in the callables keyword in the ``.rendered_send``
+method, and the dictionary in the events keywords
+
+```xml
+
+<discord>
+    <modal key="modal1" title="Questionnaire">
+        <timeout/>
+        <components>
+            <text_input>
+                <label>What is your name?</label>
+                <placeholder>Enter your name</placeholder>
+                <style>long</style>
+            </text_input>
+            <text_input>
+                <label>What is your age?</label>
+                <placeholder>Enter your age</placeholder>
+                <style>long</style>
+            </text_input>
+        </components>
+    </modal>
+</discord>
+```
+
+```py
+from typing import Literal
+
+import discord
+from discord.ext import commands
+
+import qalib
+from qalib.template_engines.formatter import Formatter
+from qalib.translators.modal import ModalEvents
+
+bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
+
+Messages = Literal["welcome"]
+
+
+@bot.command()
+@qalib.qalib_context(Formatter(), "templates/button.xml")
+async def greet(ctx: qalib.QalibContext[Messages]):
+    async def on_submit(view: discord.ui.View, interaction: discord.Interaction):
+        ...
+
+    await ctx.rendered_send("modal1", events={ModalEvents.ON_SUBMIT: on_submit})
+```
 
 
 ---
@@ -275,7 +357,6 @@ the ``.respond_with_modal(key, methods, keywords)`` method.
 We also support the rendering of views, and the different UI Components for each embed.
 
 ```xml
-
 <discord>
     <message key="welcome">
         <embed>
@@ -305,7 +386,40 @@ _This is stored as ``templates/button.xml``_
 There are other components that can be rendered, and is shown in
 the [XML View Section](https://github.com/YousefEZ/discord-qalib/wiki/2.-XML-Rendering/#%EF%B8%8F-views)
 
-and then can be rendered using the EmbedManager
+You can hook into the events of the components by passing a dictionary of events to the ``.rendered_send`` method,
+
+there are multiple events that can be triggered,
+
+Views:
+
+- ``ViewEvents.ON_TIMEOUT``: when the view times out.
+
+```py
+async def on_timeout(view: discord.ui.View) -> None:
+    ...
+```
+
+- ``ViewEvents.ON_CHECK``: when the view is being interacted with, have a check to return a bool to call any callbacks
+
+```py
+async def check(view: discord.ui.View, interaction: discord.Interaction) -> bool:
+    ...
+```
+
+- ``ViewEvents.ON_ERROR``: when the view throws out an exception, this event is called
+
+```py
+async def error_handling(
+        view: discord.ui.View,
+        interaction: discord.Interaction,
+        error: Exception,
+        item: discord.ui.Item
+) -> None:
+    ...
+```
+
+You can also attach the callables to the button using the dictionary in the callables keyword in the ``.rendered_send``
+method, and the dictionary in the events keywords
 
 ```py
 from typing import Literal
@@ -315,6 +429,7 @@ from discord.ext import commands
 
 import qalib
 from qalib.template_engines.formatter import Formatter
+from qalib.translators.view import ViewEvents
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
@@ -328,7 +443,10 @@ async def acknowledged(interaction: discord.Interaction):
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/button.xml")
 async def greet(ctx: qalib.QalibContext[Messages]):
-    await ctx.rendered_send("welcome", callables={"greet": acknowledged})
+    async def on_check(view: discord.ui.View, interaction: discord.Interaction):
+        return interaction.user.id == ctx.message.author.id
+
+    await ctx.rendered_send("welcome", callables={"greet": acknowledged}, events={ViewEvents.ON_CHECK: on_check})
 ```
 
 ---
@@ -387,6 +505,18 @@ unique ``key`` attribute, and you can use that to make a sequential menu (order 
 To render the menu you have to use [.rendered_send()](../qalib/context.md) method with the key as the first argument,
 and that will render the menu.
 
+You can also add a ``MenuEvents.ON_CHANGE`` hook, such that everytime the page changes, the callback is run.
+
+```py
+from qalib.translators.menu import Menu
+
+
+async def on_change(menu: Menu) -> None:
+    print(menu.index)
+```
+
+an example of a menu being rendered can be seen here:
+
 ```py
 from typing import Literal
 
@@ -395,6 +525,7 @@ from discord.ext import commands
 
 import qalib
 from qalib.template_engines.formatter import Formatter
+from qalib.translators.menu import Menu, MenuEvents
 
 bot = commands.AutoShardedBot(command_prefix="!", intents=discord.Intents.all())
 
@@ -404,7 +535,10 @@ Messages = Literal["menu1"]
 @bot.command()
 @qalib.qalib_context(Formatter(), "templates/player.xml")
 async def test(ctx: qalib.QalibContext[Messages]):
-    await ctx.rendered_send("menu1")
+    async def on_change(menu: Menu):
+        print(menu.index)
+
+    await ctx.rendered_send("menu1", events={MenuEvents.ON_CHANGE: on_change})
 ```
 
 or you can manually define it as so:
