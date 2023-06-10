@@ -13,7 +13,7 @@ from qalib.context import QalibContext
 from qalib.interaction import QalibInteraction
 from qalib.template_engines.formatter import Formatter
 from qalib.template_engines.jinja2 import Jinja2
-from qalib.translators import Message
+from qalib.translators.modal import ModalEvents, QalibModal
 from qalib.translators.view import ViewEvents
 from tests.unit.mocked_classes import MessageMocked, MockedInteraction, BotMocked
 from tests.unit.types import SimpleEmbeds, FullEmbeds, Menus, Modals, ErrorEmbeds
@@ -105,7 +105,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_render_message_bound_with_timeout(self, *args: mock.mock.MagicMock):
         called = False
 
-        async def test_call() -> None:
+        async def test_call(view: discord.ui.View) -> None:
             nonlocal called
             called = True
 
@@ -118,7 +118,12 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_render_message_bound_on_error(self, *args: mock.mock.MagicMock):
         called = False
 
-        async def on_error(interaction: discord.Interaction, exception: Exception, item: discord.ui.Item) -> None:
+        async def on_error(
+                view: discord.ui.View,
+                interaction: discord.Interaction,
+                exception: Exception,
+                item: discord.ui.Item
+        ) -> None:
             nonlocal called
             called = True
 
@@ -131,7 +136,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_xml_render_message_bound_on_check(self, *args: mock.mock.MagicMock):
         called = False
 
-        async def on_check(interaction: discord.Interaction) -> None:
+        async def on_check(view: discord.ui.View, interaction: discord.Interaction) -> None:
             nonlocal called
             called = True
 
@@ -367,3 +372,62 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
                 message=cast(discord.message.Message, MessageMocked()), bot=BotMocked(), view=StringView("")
             )
         )
+
+    async def test_modal_on_submit(self, *_: mock.mock.MagicMock):
+        submitted = False
+
+        async def submit(modal: discord.ui.Modal, interaction: discord.Interaction) -> None:
+            nonlocal submitted
+            submitted = True
+
+        qalib_modal = QalibModal(title="Test", events={
+            ModalEvents.ON_SUBMIT: submit
+        })
+        await qalib_modal.on_submit(MockedInteraction())
+        self.assertTrue(submitted)
+
+    async def test_modal_on_check(self, *_: mock.mock.MagicMock):
+        checked = False
+
+        async def check(modal: discord.ui.Modal, interaction: discord.Interaction) -> bool:
+            nonlocal checked
+            checked = True
+            return True
+
+        qalib_modal = QalibModal(title="Test", events={
+            ModalEvents.ON_CHECK: check,
+        })
+        self.assertTrue(await qalib_modal.interaction_check(MockedInteraction()))
+        self.assertTrue(checked)
+
+    async def test_modal_on_timeout(self, *_: mock.mock.MagicMock):
+        timed_out = False
+
+        async def timeout(modal: discord.ui.Modal) -> None:
+            nonlocal timed_out
+            timed_out = True
+            return
+
+        qalib_modal = QalibModal(title="Test", events={
+            ModalEvents.ON_TIMEOUT: timeout,
+        })
+        await qalib_modal.on_timeout()
+        self.assertTrue(timed_out)
+
+    async def test_modal_default_on_check(self, *_: mock.mock.MagicMock):
+        qalib_modal = QalibModal(title="Test")
+        self.assertTrue(await qalib_modal.interaction_check(MockedInteraction()))
+
+    async def test_modal_on_error(self, *_: mock.mock.MagicMock):
+        errored = False
+
+        async def error(modal: discord.ui.Modal, interaction: discord.Interaction, exception: Exception) -> None:
+            nonlocal errored
+            errored = True
+            return
+
+        qalib_modal = QalibModal(title="Test", events={
+            ModalEvents.ON_ERROR: error,
+        })
+        await qalib_modal.on_error(MockedInteraction(), Exception())
+        self.assertTrue(errored)
