@@ -186,6 +186,14 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         assert isinstance(modal, discord.ui.Modal)
         self.assertEqual(len(modal.children), 2)
 
+    async def test_xml_modal_rendering_with_endless_timeout(self, *_: mock.mock.MagicMock):
+        path = "tests/routes/modal.xml"
+        renderer: Renderer[Modals] = Renderer(Formatter(), path)
+        modal = renderer.render("modal2")
+        assert isinstance(modal, discord.ui.Modal)
+        self.assertEqual(len(modal.children), 1)
+        self.assertIsNone(modal.timeout)
+
     async def test_json_modal_rendering(self, *_: mock.mock.MagicMock):
         path = "tests/routes/modal.json"
         renderer: Renderer[Modals] = Renderer(Formatter(), path)
