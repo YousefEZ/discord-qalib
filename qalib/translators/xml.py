@@ -207,8 +207,7 @@ class XMLDeserializer(Deserializer[K_contra]):
                 lambda raw_tree: list(map(self._render_embed, raw_tree)),
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
-            content="".join(get_text(message_tree, "content").split()) if (content := get_element("content")) \ 
-                    and get_attribute(content, "strip") == "true" else get_text(message_tree, "content"),
+            content="".join(get_text(message_tree, "content").split()) if (content := get_element("content")) and get_attribute(content, "strip") == "true" else get_text(message_tree, "content"),
             tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
             nonce=apply(get_text(message_tree, "nonce"), int),
             delete_after=apply(get_text(message_tree, "delete_after"), float),
