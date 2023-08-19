@@ -208,7 +208,7 @@ class XMLDeserializer(Deserializer[K_contra]):
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
             content=" ".join(get_text(message_tree, "content").split())
-            if (content := get_element(message_tree, "content"))
+            if (content := get_element(message_tree, "content")) is not None
             and self.get_attribute(content, "strip") == "true"
             else get_text(message_tree, "content"),
             tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
