@@ -228,3 +228,10 @@ class TestXMLRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
         self.assertRaises(ValueError, renderer.render, "message_reference_test3")
+
+    def test_empty_content_message(self, _: mock.mock.MagicMock):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
+        message = renderer.render("empty_content_test")
+        self.assertEqual(message.content, "")
