@@ -53,11 +53,10 @@ def filter_tabs(text: Optional[str]) -> str:
     if not text:
         return ""
     lines = text.split("\n")
-
     for base_line in lines:
         grp = re.match(r"(\s*).*", base_line).group(1)
         if grp:
-            return "\n".join(line.replace(grp, "", 1) for line in lines if line)
+            return "\n".join(line.replace(grp, "", 1) for line in lines)
 
     return "\n".join(lines)
 
@@ -221,7 +220,10 @@ class XMLDeserializer(Deserializer[K_contra]):
                 lambda raw_tree: list(map(self._render_embed, raw_tree)),
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
-            content=" ".join(filter_tabs(get_text(message_tree, "content")).split()),
+            content="".join(filter_tabs(get_text(message_tree, "content")))
+            if apply(get_element(message_tree, "content"),
+                     lambda element: self.get_attribute(element, "wrap")) == "true"
+            else filter_tabs(get_text(message_tree, "content")),
             tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
             nonce=apply(get_text(message_tree, "nonce"), int),
             delete_after=apply(get_text(message_tree, "delete_after"), float),
