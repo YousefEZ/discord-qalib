@@ -21,7 +21,7 @@ __title__ = "qalib"
 __author__ = "YousefEZ"
 __license__ = "MIT"
 __copyright__ = "Copyright 2022-present YousefEZ"
-__version__ = "2.4.4"
+__version__ = "2.4.5"
 
 T = TypeVar("T")
 Coro = Coroutine[Any, Any, T]
