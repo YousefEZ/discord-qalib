@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple
@@ -46,6 +47,18 @@ def get_text(element_tree: ElementTree.Element, child: str) -> Optional[str]:
 
 def get_element(element_tree: ElementTree.Element, child: str) -> Optional[ElementTree.Element]:
     return None if (element := element_tree.find(child)) is None else element
+
+
+def filter_tabs(text: Optional[str]) -> str:
+    if not text:
+        return ""
+    lines = text.split("\n")
+    for base_line in lines:
+        grp = re.match(r"(\s*).*", base_line).group(1)
+        if grp:
+            return "\n".join(line.replace(grp, "", 1) for line in lines)
+
+    return "\n".join(lines)
 
 
 class XMLTemplater(Templater):
@@ -207,10 +220,10 @@ class XMLDeserializer(Deserializer[K_contra]):
                 lambda raw_tree: list(map(self._render_embed, raw_tree)),
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
-            content=" ".join(get_text(message_tree, "content").split())
-            if (content := get_element(message_tree, "content")) is not None
-            and self.get_attribute(content, "strip") == "true"
-            else get_text(message_tree, "content"),
+            content="".join(filter_tabs(get_text(message_tree, "content")))
+            if apply(get_element(message_tree, "content"),
+                     lambda element: self.get_attribute(element, "strip")) == "true"
+            else filter_tabs(get_text(message_tree, "content")),
             tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
             nonce=apply(get_text(message_tree, "nonce"), int),
             delete_after=apply(get_text(message_tree, "delete_after"), float),
@@ -517,8 +530,8 @@ class XMLDeserializer(Deserializer[K_contra]):
         """
         return [] if fields_element is None else [
             {
-                "name": self.get_element_text(field.find("name")),
-                "value": self.get_element_text(field.find("value")),
+                "name": filter_tabs(self.get_element_text(field.find("name"))),
+                "value": filter_tabs(self.get_element_text(field.find("value"))),
                 "inline": self.get_attribute(field, "inline").lower() == "true",
             }
             for field in fields_element.findall("field")
