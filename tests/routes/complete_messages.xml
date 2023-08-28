@@ -60,4 +60,11 @@
 
         </content>
     </message>
+    <message key="multi_line_content_test">
+        <content>
+            - This is a test message
+            - This is a test message
+                - This is a test message
+        </content>
+    </message>
 </discord>

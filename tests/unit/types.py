@@ -4,6 +4,7 @@ SimpleEmbeds = Literal["Launch", "Launch2"]
 FullEmbeds = Literal["Launch", "test_key", "test_key2", "test_key3"]
 SelectEmbeds = Literal["Launch"]
 CompleteEmbeds = Literal[
+    "multi_line_content_test",
     "empty_content_test",
     "content_test",
     "tts_test",
