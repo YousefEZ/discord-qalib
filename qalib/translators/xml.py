@@ -220,7 +220,7 @@ class XMLDeserializer(Deserializer[K_contra]):
                 lambda raw_tree: list(map(self._render_embed, raw_tree)),
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
-            content="".join(filter_tabs(get_text(message_tree, "content")).split("\n"))
+            content=" ".join(filter_tabs(get_text(message_tree, "content")).split("\n"))
             if apply(get_element(message_tree, "content"),
                      lambda element: self.get_attribute(element, "strip")) == "true"
             else filter_tabs(get_text(message_tree, "content")),
