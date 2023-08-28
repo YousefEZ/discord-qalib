@@ -234,4 +234,15 @@ class TestXMLRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
         message = renderer.render("empty_content_test")
-        self.assertEqual(message.content, "")
+        self.assertEqual(message.content.strip(), "")
+
+    def test_multi_line_content_message(self, _: mock.mock.MagicMock):
+        template = "tests/routes/complete_messages.xml"
+
+        renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
+        message = renderer.render("multi_line_content_test")
+        message_lines = message.content.strip().split("\n")
+        self.assertEqual(len(message_lines), 3)
+        self.assertEqual(message_lines[0], "- This is a test message")
+        self.assertEqual(message_lines[1], "- This is a test message")
+        self.assertEqual(message_lines[2], "    - This is a test message")
