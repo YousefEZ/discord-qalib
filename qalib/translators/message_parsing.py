@@ -252,10 +252,6 @@ def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     )
 
 
-def replace_with_page(value: str, replacement_key: str, page_number: str) -> str:
-    return value.replace(replacement_key, page_number)
-
-
 def apply(
         element: Optional[M],
         func: Callable[Concatenate[M, P], N],
