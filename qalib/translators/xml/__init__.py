@@ -1,41 +1,28 @@
 from __future__ import annotations
 
-import re
-from datetime import datetime
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Sequence, Type, cast, Tuple
+from typing import Optional, Dict, Any, List, Callable, Sequence, cast, Type
 from xml.etree import ElementTree
 
 import discord
-import discord.types.embed as embed_types
 from discord import ui
 from discord.abc import Snowflake
 
 from qalib.template_engines.template_engine import TemplateEngine
-from qalib.translators import Callback, DiscordIdentifier, Message
-from qalib.translators.deserializer import Deserializer, ElementTypes, ReturnType, K_contra
+from qalib.translators import Callback, Message, DiscordIdentifier
+from qalib.translators.deserializer import Deserializer, K_contra, ReturnType, ElementTypes
+from qalib.translators.element.embed import render
+from qalib.translators.element.expansive import expand
+from qalib.translators.element.types.embed import Emoji
 from qalib.translators.events import EventCallbacks
-from qalib.translators.menu import MenuActions, Menu
-from qalib.translators.message_parsing import (
-    ButtonComponent,
-    ChannelType,
-    Emoji,
-    create_button,
-    create_channel_select,
-    create_select,
-    create_text_input,
-    create_type_select,
-    make_channel_types,
-    make_colour,
-    make_emoji,
-    Field,
-    Footer,
-    Author,
-    TextInputComponent,
-    make_expansive_embeds, apply, )
+from qalib.translators.menu import Menu, MenuActions
+from qalib.translators.message_parsing import ButtonComponent, apply, create_button, make_emoji, \
+    create_select, make_channel_types, ChannelType, create_channel_select, create_type_select, create_text_input, \
+    TextInputComponent
 from qalib.translators.modal import ModalEvents, ModalEventsCallbacks, QalibModal
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
+from qalib.translators.xml.embed import filter_tabs, XMLEmbedAdapter, XMLExpansiveEmbedAdapter
 
 
 def get_text(element_tree: ElementTree.Element, child: str) -> Optional[str]:
@@ -47,18 +34,6 @@ def get_text(element_tree: ElementTree.Element, child: str) -> Optional[str]:
 
 def get_element(element_tree: ElementTree.Element, child: str) -> Optional[ElementTree.Element]:
     return None if (element := element_tree.find(child)) is None else element
-
-
-def filter_tabs(text: Optional[str]) -> str:
-    if not text:
-        return ""
-    lines = text.split("\n")
-    for base_line in lines:
-        grp = re.match(r"(\s*).*", base_line).group(1)
-        if grp:
-            return "\n".join(line.replace(grp, "", 1) for line in lines)
-
-    return "\n".join(lines)
 
 
 class XMLTemplater(Templater):
@@ -175,8 +150,8 @@ class XMLDeserializer(Deserializer[K_contra]):
         raw_embed = element.find("embed")
         assert raw_embed is not None, "Embed not found"
 
-        return [self.deserialize_message(element, callbacks, events, embed=embed)
-                for embed in self._separate_embed(raw_embed, element.get("page_number_key"))]
+        return [self.deserialize_message(element, callbacks, events, embed=e)
+                for e in expand(XMLExpansiveEmbedAdapter(raw_embed))]
 
     def deserialize_menu_arrows(self, arrows_view: ElementTree.Element) -> Dict[MenuActions, ButtonComponent]:
         """Deserializes the arrows of a menu from an XML file, and returns it as a dictionary.
@@ -214,10 +189,10 @@ class XMLDeserializer(Deserializer[K_contra]):
         Returns (Message): A display object containing the embed and its view.
         """
         message = Message(
-            embed=apply(get_element(message_tree, "embed"), self._render_embed),
+            embed=apply(get_element(message_tree, "embed"), lambda raw_embed: render(XMLEmbedAdapter(raw_embed))),
             embeds=apply(
                 get_element(message_tree, "embeds"),
-                lambda raw_tree: list(map(self._render_embed, raw_tree)),
+                lambda raw_tree: [render(XMLEmbedAdapter(raw_embed)) for raw_embed in raw_tree],
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
             content=" ".join(filter_tabs(get_text(message_tree, "content")).split("\n"))
@@ -339,33 +314,6 @@ class XMLDeserializer(Deserializer[K_contra]):
 
         return modal
 
-    def _separate_embed(self, raw_embed: ElementTree.Element, replacement_key: Optional[str]) -> List[discord.Embed]:
-        """Separates the embeds from the raw embed element.
-
-        Args:
-            raw_embed (ElementTree.Element): The raw embed element.
-
-        Returns (List[discord.Embed]): A list of embeds.
-        """
-
-        def get(tree: ElementTree.Element, key: str) -> ElementTree.Element:
-            element = tree.find(key)
-            assert element is not None, f"{key} is not present"
-            return element
-
-        def get_element_text(tree: ElementTree.Element, key: str) -> str:
-            element_text = get(tree, key).text
-            assert element_text is not None, f"{key} is does not have text"
-            return element_text
-
-        expansive_text = get(raw_embed, "expansive_field")
-
-        return make_expansive_embeds(get_element_text(expansive_text, "name"),
-                                     get_element_text(expansive_text, "value"),
-                                     replacement_key,
-                                     raw_embed,
-                                     self._render_embed)
-
     @staticmethod
     def _render_reference(
             reference_tree: ElementTree.Element,
@@ -475,67 +423,6 @@ class XMLDeserializer(Deserializer[K_contra]):
         Returns (str): The value of the attribute.
         """
         return "" if (value := element.get(attribute)) is None else value
-
-    def _render_timestamp(self, timestamp_element: Optional[ElementTree.Element]) -> Optional[datetime]:
-        """Renders the timestamp from an ElementTree.Element. Element may contain an attribute "format" which will be
-        used to parse the timestamp.
-
-        Args:
-            timestamp_element (Optional[ElementTree.Element]): The element to render the timestamp from.
-
-        Returns (Optional[datetime]): A datetime object containing the timestamp.
-        """
-        if timestamp_element is not None:
-            timestamp = self.get_element_text(timestamp_element)
-            date_format = self.get_attribute(timestamp_element, "format")
-            if date_format == "":
-                date_format = "%Y-%m-%d %H:%M:%S.%f"
-            return datetime.strptime(timestamp, date_format) if timestamp != "" else None
-        return None
-
-    def _render_author(self, author_element: ElementTree.Element) -> Author:
-        """Renders the author from an ElementTree.Element.
-
-        Args:
-            author_element (ElementTree.Element): The element to render the author information from.
-
-        Returns (Optional[dict]): A dictionary containing the raw author.
-        """
-        return {
-            "name": self.get_element_text(author_element.find("name")),
-            "url": self.get_element_text(author_element.find("url")),
-            "icon_url": self.get_element_text(author_element.find("icon")),
-        }
-
-    def _render_footer(self, footer_element: ElementTree.Element) -> Footer:
-        """Renders the footer from an ElementTree.Element.
-
-        Args:
-            footer_element (ElementTree.Element): The element to render the footer from.
-
-        Returns (Optional[dict]): A dictionary containing the raw footer.
-        """
-        return {
-            "text": self.get_element_text(footer_element.find("text")),
-            "icon_url": self.get_element_text(footer_element.find("icon")),
-        }
-
-    def _render_fields(self, fields_element: Optional[ElementTree.Element]) -> List[Field]:
-        """Renders the fields from an ElementTree.Element.
-
-        Args:
-            fields_element (ElementTree.Element): The element to render the fields from.
-
-        Returns (List[dict]): A list of dictionaries containing the raw fields.
-        """
-        return [] if fields_element is None else [
-            {
-                "name": filter_tabs(self.get_element_text(field.find("name"))),
-                "value": filter_tabs(self.get_element_text(field.find("value"))),
-                "inline": self.get_attribute(field, "inline").lower() == "true",
-            }
-            for field in fields_element.findall("field")
-        ]
 
     @staticmethod
     def pop_component(component: ElementTree.Element, key: str) -> Optional[ElementTree.Element]:
@@ -755,47 +642,3 @@ class XMLDeserializer(Deserializer[K_contra]):
             )
             for component in components
         ]
-
-    def _render_embed(self, raw_embed: ElementTree.Element, *replacements: Tuple[str, str]) -> discord.Embed:
-        """Render the desired templated embed in discord.Embed instance.
-
-        Args:
-           raw_embed(ElementTree.Element): The element to render the embed from.
-           *replacements:
-
-        Returns:
-            Embed: Embed Object, discord compatible.
-        """
-
-        def render(name: str) -> str:
-            element_text = self.get_element_text(raw_embed.find(name))
-            for replacement in replacements:
-                element_text = element_text.replace(*replacement)
-            return element_text
-
-        embed_type: embed_types.EmbedType = "rich"
-        if cast(embed_types.EmbedType, given_type := render("type")) != "":
-            embed_type = cast(embed_types.EmbedType, given_type)
-
-        embed = discord.Embed(
-            title=render("title"),
-            colour=make_colour(render("colour")),
-            type=embed_type,
-            url=render("url"),
-            description=render("description"),
-            timestamp=self._render_timestamp(raw_embed.find("timestamp")),
-        )
-
-        for field in self._render_fields(raw_embed.find("fields")):
-            embed.add_field(**field)
-
-        if (footer := raw_embed.find("footer")) is not None:
-            embed.set_footer(**self._render_footer(footer))
-
-        embed.set_thumbnail(url=self.get_element_text(raw_embed.find("thumbnail")))
-        embed.set_image(url=self.get_element_text(raw_embed.find("image")))
-
-        if (author := raw_embed.find("author")) is not None:
-            embed.set_author(**self._render_author(author))
-
-        return embed
