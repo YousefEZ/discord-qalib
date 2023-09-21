@@ -147,9 +147,6 @@ class JSONDeserializer(Deserializer[K_contra]):
         Returns (Display): A Display NamedTuple containing the embed and the view
         """
 
-        def render_embeds(embeds: List[Embed]) -> Sequence[discord.Embed]:
-            return [render(JSONEmbedAdapter(e)) for e in embeds]
-
         message = Message(
             embed=apply(message_tree.get("embed"), lambda e: render(JSONEmbedAdapter(e))),
             embeds=apply(message_tree.get("embeds"), lambda embeds: [render(JSONEmbedAdapter(e)) for e in embeds]),
