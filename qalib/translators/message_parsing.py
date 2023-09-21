@@ -10,6 +10,7 @@ from discord import ui, utils
 from typing_extensions import NotRequired, Concatenate, ParamSpec
 
 from qalib.translators import Callback, CallbackMethod, M, N
+from qalib.translators.element.types.embed import Emoji
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -18,24 +19,18 @@ __all__ = (
     "CustomSelects",
     "make_channel_types",
     "make_emoji",
-    "make_colour",
     "apply",
     "create_button",
     "create_select",
     "create_channel_select",
     "create_type_select",
     "create_text_input",
-    "make_expansive_embeds",
     "TextStyle",
     "ButtonStyle",
     "ChannelType",
-    "Emoji",
     "ButtonComponent",
     "TextInputRaw",
     "TextInputComponent",
-    "Field",
-    "Author",
-    "Footer",
 )
 
 CustomSelects = Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]
@@ -86,83 +81,8 @@ TEXT_STYLES: Dict[TextStyle, discord.TextStyle] = {
     "long": discord.TextStyle.long,
 }
 
-Colour = Literal[
-    "teal",
-    "dark_teal",
-    "green",
-    "dark_green",
-    "blue",
-    "dark_blue",
-    "purple",
-    "dark_purple",
-    "magenta",
-    "dark_magenta",
-    "gold",
-    "dark_gold",
-    "orange",
-    "dark_orange",
-    "red",
-    "dark_red",
-    "lighter_grey",
-    "dark_grey",
-    "light_grey",
-    "darker_grey",
-    "blurple",
-    "greyple",
-]
-
-COLOURS: Dict[Colour, int] = {
-    "teal": 0x1ABC9C,
-    "dark_teal": 0x11806A,
-    "green": 0x2ECC71,
-    "dark_green": 0x1F8B4C,
-    "blue": 0x3498DB,
-    "dark_blue": 0x206694,
-    "purple": 0x9B59B6,
-    "dark_purple": 0x71368A,
-    "magenta": 0xE91E63,
-    "dark_magenta": 0xAD1457,
-    "gold": 0xF1C40F,
-    "dark_gold": 0xC27C0E,
-    "orange": 0xE67E22,
-    "dark_orange": 0xA84300,
-    "red": 0xE74C3C,
-    "dark_red": 0x992D22,
-    "lighter_grey": 0x95A5A6,
-    "dark_grey": 0x607D8B,
-    "light_grey": 0x979C9F,
-    "darker_grey": 0x546E7A,
-    "blurple": 0x7289DA,
-    "greyple": 0x99AAB5,
-}
-
 SelectTypes = Type[Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]]
 MAX_CHAR = 1024
-
-
-class Field(TypedDict):
-    name: str
-    value: str
-    inline: bool
-
-
-class Footer(TypedDict):
-    text: str
-    icon_url: str
-
-
-class Author(TypedDict):
-    name: str
-    url: str
-    icon_url: str
-
-
-class Emoji(TypedDict):
-    """This class is used to represent the blueprint of an emoji."""
-
-    name: str
-    id: NotRequired[int]
-    animated: NotRequired[bool]
 
 
 class Component(TypedDict):
@@ -206,20 +126,6 @@ def make_a_method_from_callback(callback: Callback) -> CallbackMethod:
         await callback(interaction)
 
     return method
-
-
-def make_colour(colour: str) -> Union[discord.Colour, int]:
-    """maps the name of a colour to its value
-    Args:
-        colour (str): the name of the colour, or it's rgb components.
-    Returns:
-        int: hexadecimal value of the colour.
-    """
-    colour = colour.replace(" ", "_")
-    if colour in COLOURS:
-        return COLOURS[cast(Colour, colour)]
-    rgb = colour.split(",")
-    return discord.Colour.from_rgb(*map(int, rgb))
 
 
 def make_channel_types(channel_types: Iterable[ChannelType]) -> List[discord.ChannelType]:
@@ -346,68 +252,16 @@ def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     )
 
 
-def split_text(text: str) -> List[str]:
-    start = 0
-    lines = [string.strip() for string in text.strip().split("\n")]
-
-    values: List[str] = []
-
-    def compile_lines(end: Optional[int] = None) -> str:
-        if end is None:
-            return "\n".join([string.replace("\\n", "\n") for string in lines[start:]])
-        return "\n".join([string.replace("\\n", "\n") for string in lines[start: end]])
-
-    for i in range(len(lines)):
-        if sum(map(len, lines[start: i + 1])) > MAX_CHAR:
-            values.append(compile_lines(i))
-            start = i
-
-    values.append(compile_lines())
-    return values
-
-
 def replace_with_page(value: str, replacement_key: str, page_number: str) -> str:
     return value.replace(replacement_key, page_number)
-
-
-# pylint: disable= too-many-arguments
-def make_expansive_embed(
-        name: str,
-        value: str,
-        page_number: str,
-        replacement_key: Optional[str],
-        raw_embed: Any,
-        embed_renderer: Callable[..., discord.Embed]
-) -> discord.Embed:
-    if replacement_key is not None:
-        replacement: Tuple[str, str] = (replacement_key, page_number)
-        embed = embed_renderer(raw_embed, replacement)
-        embed.add_field(name=replace_with_page(name, *replacement) if replacement_key is not None else name,
-                        value=replace_with_page(value, *replacement) if replacement_key is not None else value,
-                        inline=False)
-    else:
-        embed = embed_renderer(raw_embed)
-        embed.add_field(name=name, value=value, inline=False)
-    return embed
-
-
-def make_expansive_embeds(
-        name: str,
-        text: str,
-        replacement_key: Optional[str],
-        raw_embed: T,
-        embed_renderer: Callable[Concatenate[T, P], discord.Embed]
-) -> List[discord.Embed]:
-    return [make_expansive_embed(name, value, str(i + 1), replacement_key, raw_embed, embed_renderer)
-            for i, value in enumerate(split_text(text))]
 
 
 def apply(
         element: Optional[M],
         func: Callable[Concatenate[M, P], N],
         *args: P.args,
-        **keyword_args: P.kwargs,
+        **kwargs: P.kwargs,
 ) -> Optional[N]:
     if element is None:
         return None
-    return func(element, *args, **keyword_args)
+    return func(element, *args, **kwargs)
