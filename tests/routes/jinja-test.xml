@@ -44,14 +44,14 @@
         <embed>
             <title>Test Title</title>
             <colour>teal</colour>
-            <expansive_field>
+            <field>
                 <name>%s</name>
                 <value>
                     {% for i in range(0, 1500) %}
                     T
                     {% endfor %}
                 </value>
-            </expansive_field>
+            </field>
         </embed>
     </expansive>
     <expansive page_number_key="%s" key="test4">
@@ -59,14 +59,14 @@
         <embed>
             <title>Test Title</title>
             <colour>teal</colour>
-            <expansive_field>
+            <field>
                 <name>%s</name>
                 <value>
                     {% for i in range(0, 1500) %}
                     T
                     {% endfor %}
                 </value>
-            </expansive_field>
+            </field>
         </embed>
     </expansive>
 </discord>

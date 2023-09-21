@@ -70,7 +70,7 @@
                 <embed>
                     <title>Title</title>
                     <colour>teal</colour>
-                    <expansive_field>
+                    <field>
                         <name>hello planet</name>
                         <value>
                             in iaculis nunc sed augue lacus viverra vitae congue eu consequat ac felis donec et
@@ -92,7 +92,7 @@
                             posuere sollicitudin aliquam ultrices sagittis orci a scelerisque purus semper eget
                             duis at tellus at urna condimentum
                         </value>
-                    </expansive_field>
+                    </field>
                 </embed>
             </expansive>
             <expansive page_number_key="%s" key="test_key3">
@@ -100,7 +100,7 @@
                 <embed>
                     <title>Title %s</title>
                     <colour>teal</colour>
-                    <expansive_field>
+                    <field>
                         <name>hello planet</name>
                         <value>
                             in iaculis nunc sed augue lacus viverra vitae congue eu consequat ac felis donec et
@@ -122,7 +122,7 @@
                             posuere sollicitudin aliquam ultrices sagittis orci a scelerisque purus semper eget
                             duis at tellus at urna condimentum
                         </value>
-                    </expansive_field>
+                    </field>
                 </embed>
                 <view>
                     <components>
