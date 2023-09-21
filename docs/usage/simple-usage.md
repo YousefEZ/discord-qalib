@@ -272,22 +272,37 @@ the ``.render(key, callables, keywords, events)`` method. With the events allowi
 - ``ModalEvents.ON_TIMEOUT``: when the view times out.
 
 ```py
-async def on_timeout(view: discord.ui.Modal) -> None:
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
+async def on_timeout(view: qalib.translators.json.components.Modal) -> None:
     ...
 ```
 
 - ``ModalEvents.ON_CHECK``: when the view is being interacted with, have a check to return a bool to call any callbacks
 
 ```py
-async def check(view: discord.ui.Modal, interaction: discord.Interaction) -> bool:
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
+async def check(view: qalib.translators.json.components.Modal, interaction: discord.Interaction) -> bool:
     ...
 ```
 
 - ``ModalEvents.ON_ERROR``: when the view throws out an exception, this event is called
 
 ```py
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
 async def error_handling(
-        view: discord.ui.Modal,
+        view: qalib.translators.json.components.Modal,
         interaction: discord.Interaction,
         error: Exception
 ) -> None:
@@ -297,7 +312,12 @@ async def error_handling(
 - ``ModalEvents.ON_SUBMIT``: when the modal is submitted this event is called
 
 ```py
-async def submit(view: discord.ui.Modal, interaction: discord.Interaction) -> None:
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
+async def submit(view: qalib.translators.json.components.Modal, interaction: discord.Interaction) -> None:
     ...
 ```
 
@@ -395,22 +415,37 @@ Views:
 - ``ViewEvents.ON_TIMEOUT``: when the view times out.
 
 ```py
-async def on_timeout(view: discord.ui.View) -> None:
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
+async def on_timeout(view: qalib.translators.json.components.View) -> None:
     ...
 ```
 
 - ``ViewEvents.ON_CHECK``: when the view is being interacted with, have a check to return a bool to call any callbacks
 
 ```py
-async def check(view: discord.ui.View, interaction: discord.Interaction) -> bool:
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
+async def check(view: qalib.translators.json.components.View, interaction: discord.Interaction) -> bool:
     ...
 ```
 
 - ``ViewEvents.ON_ERROR``: when the view throws out an exception, this event is called
 
 ```py
+import qalib.translators.json.components
+
+import qalib.translators.json
+
+
 async def error_handling(
-        view: discord.ui.View,
+        view: qalib.translators.json.components.View,
         interaction: discord.Interaction,
         error: Exception,
         item: discord.ui.Item
