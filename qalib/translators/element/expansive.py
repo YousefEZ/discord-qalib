@@ -24,7 +24,7 @@ class ExpansiveEmbedAdapter(EmbedBaseAdapter):
         raise NotImplementedError
 
 
-def _split_field(field: Field, characters_taken: int) -> List[Field]:
+def _split_field(field: Field) -> List[Field]:
     start = 0
     lines = [string.strip() for string in field["value"].strip().split("\n")]
 
@@ -39,35 +39,16 @@ def _split_field(field: Field, characters_taken: int) -> List[Field]:
         return {
             "name": field["name"],
             "value": compile_lines(end),
-            "inline": field["inline"]
+            "inline": field.get("inline", True)
         }
 
-    remaining = MAX_FIELD_LENGTH - characters_taken
     for i in range(len(lines)):
-        if sum(map(len, lines[start: i + 1])) > remaining:
+        if sum(map(len, lines[start: i + 1])) >= MAX_FIELD_LENGTH:
             values.append(compile_field(i))
             start = i
 
-    if start != len(lines) - 1:
-        values.append(compile_field())
+    values.append(compile_field())
     return values
-
-
-def _size_of_static_elements(embed_adapter: ExpansiveEmbedAdapter) -> int:
-    """Calculate the size of the embed, in characters.
-
-    Args:
-        embed_adapter (ExpansiveEmbedAdapter): The embed proxy to calculate the size of.
-
-    Returns:
-        int: The size of the embed, in characters.
-    """
-    total = len(embed_adapter.title or '') + len(embed_adapter.description or '')
-    if embed_adapter.footer:
-        total += len(embed_adapter.footer["text"]) if "text" in embed_adapter.footer else 0
-    if embed_adapter.author:
-        total += len(embed_adapter.footer["name"]) if "name" in embed_adapter.footer else 0
-    return total
 
 
 _T = TypeVar("_T")
@@ -172,5 +153,5 @@ def expand(embed_adapter: ExpansiveEmbedAdapter) -> List[discord.Embed]:
             thumbnail=embed_adapter.thumbnail,
             image=embed_adapter.image,
             author=embed_adapter.author
-        )) for page, field in enumerate(_split_field(embed_adapter.field, _size_of_static_elements(embed_adapter)))
+        )) for page, field in enumerate(_split_field(embed_adapter.field))
     ]
