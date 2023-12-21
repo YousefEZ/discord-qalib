@@ -10,10 +10,16 @@ from qalib.translators.element.types.embed import Field, EmbedBaseAdapter, Foote
 
 __all__ = "ExpansiveEmbedAdapter", "expand"
 
+from qalib.translators.json import components
+
 MAX_FIELD_LENGTH = 1_024
 
 
 class ExpansiveEmbedAdapter(EmbedBaseAdapter):
+
+    def __init__(self, embed: components.ExpansiveEmbed, page_number_key: Optional[str] = None):
+        super().__init__(embed)
+        self._page_number_key = page_number_key
 
     @cached_property
     def field(self) -> Field:
@@ -21,7 +27,7 @@ class ExpansiveEmbedAdapter(EmbedBaseAdapter):
 
     @cached_property
     def page_number_key(self) -> Optional[str]:
-        raise NotImplementedError
+        return self._page_number_key
 
 
 def _split_field(field: Field) -> List[Field]:
@@ -68,8 +74,8 @@ def _page_key_guard(
 
     @wraps(func)
     def wrapper(embed_adapter: ExpansiveEmbedAdapter, replaceable: _T, page: int) -> Optional[_T]:
-        if not embed_adapter.page_number_key:
-            return None
+        if embed_adapter.page_number_key is None or replaceable is None:
+            return replaceable
         return func(embed_adapter, replaceable, page)
 
     return wrapper
@@ -128,6 +134,9 @@ def _replace_field_with_page_key(
 
 @_page_key_guard
 def replace(embed_adapter: ExpansiveEmbedAdapter, value: str, page: int) -> str:
+    # TODO: make sure that once the page number has been replaced to ensure that the number of characters
+    # TODO: does not exceed the stated limit in the compilation, some thoughts on how to remedy this issue is to
+    # TODO: rerun it into the splitter for further splitting.
     return value.replace(embed_adapter.page_number_key, str(page))
 
 
