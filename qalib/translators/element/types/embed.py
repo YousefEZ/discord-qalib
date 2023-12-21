@@ -63,7 +63,7 @@ COLOURS: Dict[Colour, int] = {
 class Field(TypedDict):
     name: str
     value: str
-    inline: bool
+    inline: NotRequired[bool]
 
 
 class Footer(TypedDict):
