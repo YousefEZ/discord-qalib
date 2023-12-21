@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import discord.types.embed
 
@@ -64,7 +64,7 @@ class JSONEmbedBaseAdapter(EmbedBaseAdapter):
 class JSONEmbedAdapter(JSONEmbedBaseAdapter, EmbedAdapter):
 
     @property
-    def fields(self) -> list[components.Field]:
+    def fields(self) -> List[components.Field]:
         return self._embed.get("fields", [])
 
 
