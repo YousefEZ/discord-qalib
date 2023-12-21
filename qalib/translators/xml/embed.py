@@ -11,6 +11,7 @@ from discord.types import embed as embed_types
 from qalib.translators.element.embed import EmbedAdapter
 from qalib.translators.element.expansive import ExpansiveEmbedAdapter
 from qalib.translators.element.types.embed import Author, Footer, Colour, make_colour, Field
+from qalib.translators.json import components
 
 
 def filter_tabs(text: Optional[str]) -> str:
@@ -175,6 +176,10 @@ class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
 
 class XMLExpansiveEmbedAdapter(XMLBaseEmbedAdapter, ExpansiveEmbedAdapter):
 
+    def __init__(self, embed: components.ExpansiveEmbed, page_number_key: Optional[str] = None):
+        super().__init__(embed)
+        ExpansiveEmbedAdapter.__init__(self, embed, page_number_key)
+
     @cached_property
     def field(self) -> Field:
         """Renders the field from an ElementTree.Element.
@@ -188,11 +193,3 @@ class XMLExpansiveEmbedAdapter(XMLBaseEmbedAdapter, ExpansiveEmbedAdapter):
             "value": filter_tabs(self.get_element_text(field_element.find("value"))),
             "inline": self.get_attribute(field_element, "inline").lower() == "true",
         }
-
-    @cached_property
-    def page_number_key(self) -> Optional[str]:
-        """Renders the page key from an ElementTree.Element.
-
-        Returns (str): A string containing the raw page key.
-        """
-        return self._raw_embed.get("page_number_key")

@@ -71,13 +71,10 @@ class JSONEmbedAdapter(JSONEmbedBaseAdapter, EmbedAdapter):
 class JSONExpansiveEmbedAdapter(JSONEmbedBaseAdapter, ExpansiveEmbedAdapter):
     _embed: components.ExpansiveEmbed
 
-    def __init__(self, embed: components.ExpansiveEmbed):
+    def __init__(self, embed: components.ExpansiveEmbed, page_number_key: Optional[str] = None):
         super().__init__(embed)
+        ExpansiveEmbedAdapter.__init__(self, embed, page_number_key)
 
     @property
     def field(self) -> components.Field:
         return self._embed["field"]
-
-    @property
-    def page_number_key(self) -> Optional[str]:
-        return self._embed.get("page_number_key")

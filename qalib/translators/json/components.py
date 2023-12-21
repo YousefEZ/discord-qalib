@@ -115,6 +115,7 @@ class ExpansiveEmbed(Embed):
     field: Field
     page_number_key: NotRequired[str]
 
+
 class File(TypedDict):
     """This class is used to represent the blueprint of a file."""
 
@@ -180,6 +181,7 @@ class Arrows(TypedDict):
 class ExpansiveMessage(BaseMessage):
     embed: ExpansiveEmbed
     arrows: NotRequired[Arrows]
+    page_number_key: NotRequired[str]
 
 
 Page = Union[RegularMessage, ExpansiveMessage]

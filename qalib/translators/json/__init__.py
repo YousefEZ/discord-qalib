@@ -228,7 +228,7 @@ class JSONDeserializer(Deserializer[K_contra]):
         Returns (List[Display]): A list of Display objects
         """
         return [self.deserialize_message(message_tree, callbacks, events=events, embed=e)
-                for e in expand(JSONExpansiveEmbedAdapter(message_tree["embed"]))]
+                for e in expand(JSONExpansiveEmbedAdapter(message_tree["embed"], message_tree.get("page_number_key")))]
 
     def deserialize_page(
             self,
@@ -363,22 +363,6 @@ class JSONDeserializer(Deserializer[K_contra]):
         for component in self.render_components(raw_view["components"], callables):
             view.add_item(component)
         return view
-
-    @staticmethod
-    def _render_timestamp(timestamp: Optional[Timestamp]) -> Optional[datetime]:
-        """Method to render a timestamp element into a datetime object
-
-        Args:
-            timestamp (Optional[Dict[str, str]]): The timestamp element to render
-
-        Returns (Optional[datetime]): A datetime object
-        """
-        if timestamp is None:
-            return None
-
-        date = timestamp["date"]
-        date_format = timestamp.get("format", "%Y-%m-%d %H:%M:%S.%f")
-        return datetime.strptime(date, date_format)
 
     @staticmethod
     def _render_button(component: Button, callback: Optional[Callback]) -> ui.Button:
