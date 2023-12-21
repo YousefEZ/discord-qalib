@@ -69,4 +69,18 @@
             </field>
         </embed>
     </expansive>
+    <expansive page_number_key="%s" key="test5">
+        <timeout>150</timeout>
+        <embed>
+            <title>T</title>
+            <colour>teal</colour>
+            <field>
+                <name>T</name>
+                <value>
+                    {% for i in range(0, 600) %}T{% endfor %}
+                    {% for i in range(0, 6025) %}X{% endfor %}
+                </value>
+            </field>
+        </embed>
+    </expansive>
 </discord>

@@ -144,6 +144,13 @@ class TestXMLRenderer(unittest.TestCase):
         message = renderer.render("test3")
         self.assertIsNotNone(message)
 
+    def test_expansive_with_static_elements(self, _: mock.mock.MagicMock):
+        template = "tests/routes/jinja-test.xml"
+
+        renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), template)
+        message = renderer.render("test5")
+        self.assertEqual(len(message), 2)
+
     def test_expansive_message_with_timeout(self, _: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
         message = renderer.render("test4")
