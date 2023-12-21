@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 
 import discord.types.embed
 
@@ -27,7 +27,7 @@ class JSONEmbedBaseAdapter(EmbedBaseAdapter):
         return self._embed["type"] if "type" in self._embed else "rich"
 
     @property
-    def colour(self) -> Colour | int:
+    def colour(self) -> Union[Colour, int]:
         return make_colour(self._embed["colour"] if "colour" in self._embed else self._embed["color"])
 
     @property
