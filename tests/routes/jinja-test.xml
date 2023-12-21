@@ -69,7 +69,7 @@
             </field>
         </embed>
     </expansive>
-    <expansive page_number_key="%s" key="test5">
+    <expansive key="test5">
         <timeout>150</timeout>
         <embed>
             <title>T</title>
