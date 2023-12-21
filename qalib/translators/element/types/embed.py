@@ -79,7 +79,6 @@ class Author(TypedDict):
 
 class Emoji(TypedDict):
     """This class is used to represent the blueprint of an emoji."""
-
     name: str
     id: NotRequired[int]
     animated: NotRequired[bool]
