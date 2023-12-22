@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import dataclasses
 from functools import cached_property
-from typing import List
+from typing import List, Union, cast, Protocol
 
 import discord
 
-from qalib.translators.element.types.embed import Field, EmbedBaseAdapter, EmbedBaseData
+from qalib.translators.element.types.embed import Field, EmbedBaseAdapter, EmbedBaseData, COLOURS
 
 __all__ = "EmbedAdapter", "EmbedData", "render"
 
 
-class EmbedAdapter(EmbedBaseAdapter):
+class EmbedAdapter(EmbedBaseAdapter, Protocol):
 
-    @cached_property
+    @property
     def fields(self) -> List[Field]:
         raise NotImplementedError
 
@@ -23,10 +23,10 @@ class EmbedData(EmbedBaseData):
     fields: List[Field] = dataclasses.field(default_factory=list)
 
 
-def render(embed_data: EmbedData | EmbedAdapter) -> discord.Embed:
+def render(embed_data: Union[EmbedData, EmbedAdapter]) -> discord.Embed:
     embed = discord.Embed(
         title=embed_data.title,
-        colour=embed_data.colour,
+        colour=COLOURS[embed_data.colour] if type(embed_data.colour) == str else cast(int, embed_data.colour),
         type=embed_data.type,
         description=embed_data.description,
         timestamp=embed_data.timestamp

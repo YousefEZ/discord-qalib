@@ -19,11 +19,11 @@ class ExpansiveEmbedAdapter(EmbedBaseAdapter):
         super().__init__()
         self._page_number_key = page_number_key
 
-    @cached_property
+    @property
     def field(self) -> Field:
         raise NotImplementedError
 
-    @cached_property
+    @property
     def page_number_key(self) -> Optional[str]:
         return self._page_number_key
 
@@ -59,8 +59,8 @@ _T = TypeVar("_T")
 
 
 def _page_key_guard(
-        func: Callable[[ExpansiveEmbedAdapter, _T, int], Optional[_T]]
-) -> Callable[[ExpansiveEmbedAdapter, _T, int], Optional[_T]]:
+        func: Callable[[ExpansiveEmbedAdapter, _T, int], _T]
+) -> Callable[[ExpansiveEmbedAdapter, _T, int], _T]:
     """A decorator that guards a function so that it only runs if the embed proxy has a page key.
 
     Args:
@@ -71,7 +71,7 @@ def _page_key_guard(
     """
 
     @wraps(func)
-    def wrapper(embed_adapter: ExpansiveEmbedAdapter, replaceable: _T, page: int) -> Optional[_T]:
+    def wrapper(embed_adapter: ExpansiveEmbedAdapter, replaceable: _T, page: int) -> _T:
         if embed_adapter.page_number_key is None or replaceable is None:
             return replaceable
         return func(embed_adapter, replaceable, page)
@@ -100,8 +100,11 @@ def _replace_footer_with_page_key(
     if "text" not in embed_adapter.footer:
         return footer
 
+    page_key = embed_adapter.page_number_key
+    assert page_key, "page key is None"
+
     return {
-        "text": embed_adapter.footer['text'].replace(embed_adapter.page_number_key, str(page)),
+        "text": embed_adapter.footer['text'].replace(page_key, str(page)),
         "icon_url": embed_adapter.footer['icon_url']
     }
 
@@ -123,23 +126,28 @@ def _replace_field_with_page_key(
     if "value" not in field:
         return field
 
+    page_key = embed_adapter.page_number_key
+    assert page_key, "Page Key is Empty"
+
     return {
         "name": field["name"],
-        "value": field["value"].replace(embed_adapter.page_number_key, str(page)),
-        "inline": field["inline"]
+        "value": field["value"].replace(page_key, str(page)),
+        "inline": field.get("inline", True)
     }
 
 
 @_page_key_guard
 def replace(embed_adapter: ExpansiveEmbedAdapter, value: str, page: int) -> str:
-    return value.replace(embed_adapter.page_number_key, str(page))
+    page_key = embed_adapter.page_number_key
+    assert page_key, "Page Key is Empty"
+    return value.replace(page_key, str(page))
 
 
-def expand(embed_adapter: ExpansiveEmbedAdapter) -> List[discord.Embed]:
+def expand(embed: ExpansiveEmbedAdapter) -> List[discord.Embed]:
     """Render the desired templated embed in discord.Embed instance.
 
     Args:
-        embed_adapter (ExpansiveEmbedAdapter): The embed proxy to render.
+        embed (ExpansiveEmbedAdapter): The embed proxy to render.
 
     Returns:
         Embed: Embed Object, discord compatible.
@@ -147,15 +155,15 @@ def expand(embed_adapter: ExpansiveEmbedAdapter) -> List[discord.Embed]:
 
     return [
         render(EmbedData(
-            title=replace(embed_adapter, embed_adapter.title, page + 1),
-            colour=embed_adapter.colour,
-            type=embed_adapter.type,
-            description=replace(embed_adapter, embed_adapter.description, page + 1),
-            timestamp=embed_adapter.timestamp,
+            title=replace(embed, embed.title, page + 1),
+            colour=embed.colour,
+            type=embed.type,
+            description=replace(embed, embed.description, page + 1) if embed.description else None,
+            timestamp=embed.timestamp,
             fields=[field],
-            footer=_replace_footer_with_page_key(embed_adapter, embed_adapter.footer, page + 1),
-            thumbnail=embed_adapter.thumbnail,
-            image=embed_adapter.image,
-            author=embed_adapter.author
-        )) for page, field in enumerate(_split_field(embed_adapter.field, embed_adapter.page_number_key is not None))
+            footer=_replace_footer_with_page_key(embed, embed.footer, page + 1) if embed.footer else None,
+            thumbnail=embed.thumbnail,
+            image=embed.image,
+            author=embed.author
+        )) for page, field in enumerate(_split_field(embed.field, embed.page_number_key is not None))
     ]

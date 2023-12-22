@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import re
+from abc import ABC
 from datetime import datetime
-from functools import cached_property
 from typing import Optional, List, get_args, cast
 from xml.etree import ElementTree
 
+import discord
 from discord.types import embed as embed_types
 
 from qalib.translators.element.embed import EmbedAdapter
@@ -18,14 +19,17 @@ def filter_tabs(text: Optional[str]) -> str:
         return ""
     lines = text.split("\n")
     for base_line in lines:
-        grp = re.match(r"(\s*).*", base_line).group(1)
+        match = re.match(r"(\s*).*", base_line)
+        if not match:
+            return base_line
+        grp = match.group(1)
         if grp:
             return "\n".join(line.replace(grp, "", 1) for line in lines)
 
     return "\n".join(lines)
 
 
-class XMLBaseEmbedAdapter(EmbedAdapter):
+class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
 
     def __init__(self, raw_embed: ElementTree.Element):
         self._raw_embed = raw_embed
@@ -53,7 +57,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
         """
         return "" if (value := element.get(attribute)) is None else value
 
-    @cached_property
+    @property
     def type(self) -> embed_types.EmbedType:
         """Renders the type from an ElementTree.Element.
 
@@ -66,7 +70,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
         assert embed_type_str in get_args(embed_types.EmbedType), f"Invalid embed type: {embed_type_str}"
         return cast(embed_types.EmbedType, embed_type_str)
 
-    @cached_property
+    @property
     def timestamp(self) -> Optional[datetime]:
         """Renders the timestamp from an ElementTree.Element. Element may contain an attribute "format" which will be
         used to parse the timestamp.
@@ -83,7 +87,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
             date_format = "%Y-%m-%d %H:%M:%S.%f"
         return datetime.strptime(timestamp, date_format) if timestamp != "" else None
 
-    @cached_property
+    @property
     def author(self) -> Optional[Author]:
         """Renders the author from an ElementTree.Element.
 
@@ -98,7 +102,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
             "icon_url": self.get_element_text(author_element.find("icon")),
         }
 
-    @cached_property
+    @property
     def footer(self) -> Optional[Footer]:
         """Renders the footer from an ElementTree.Element.
 
@@ -112,7 +116,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
             "icon_url": self.get_element_text(footer_element.find("icon")),
         }
 
-    @cached_property
+    @property
     def image(self) -> Optional[str]:
         """Renders the image from an ElementTree.Element.
 
@@ -120,7 +124,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
         """
         return image.text if (image := self._raw_embed.find("image")) is not None else None
 
-    @cached_property
+    @property
     def thumbnail(self) -> Optional[str]:
         """Renders the thumbnail from an ElementTree.Element.
 
@@ -128,7 +132,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
         """
         return thumbnail.text if (thumbnail := self._raw_embed.find("thumbnail")) is not None else None
 
-    @cached_property
+    @property
     def title(self) -> str:
         """Renders the title from an ElementTree.Element.
 
@@ -136,7 +140,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
         """
         return self.get_element_text(self._raw_embed.find("title"))
 
-    @cached_property
+    @property
     def description(self) -> Optional[str]:
         """Renders the description from an ElementTree.Element.
 
@@ -144,8 +148,8 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
         """
         return self.get_element_text(self._raw_embed.find("description"))
 
-    @cached_property
-    def colour(self) -> Colour | int:
+    @property
+    def colour(self) -> discord.Colour | int:
         """Renders the color from an ElementTree.Element.
 
         Returns (Optional[int]): An integer containing the raw color.
@@ -156,7 +160,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter):
 
 class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
 
-    @cached_property
+    @property
     def fields(self) -> List[Field]:
         """Renders the fields from an ElementTree.Element.
 
@@ -179,7 +183,7 @@ class XMLExpansiveEmbedAdapter(XMLBaseEmbedAdapter, ExpansiveEmbedAdapter):
         super().__init__(embed)
         ExpansiveEmbedAdapter.__init__(self, page_number_key)
 
-    @cached_property
+    @property
     def field(self) -> Field:
         """Renders the field from an ElementTree.Element.
 

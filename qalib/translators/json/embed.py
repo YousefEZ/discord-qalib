@@ -1,4 +1,6 @@
+from abc import ABC
 from datetime import datetime
+from functools import cached_property
 from typing import Optional, Union, List
 
 import discord.types.embed
@@ -9,9 +11,10 @@ from qalib.translators.element.types.embed import EmbedBaseAdapter, Colour, make
 from qalib.translators.json import components
 
 
-class JSONEmbedBaseAdapter(EmbedBaseAdapter):
+class JSONEmbedBaseAdapter(EmbedBaseAdapter, ABC):
 
     def __init__(self, embed: components.Embed):
+        super().__init__()
         self._embed = embed
 
     @property
@@ -27,8 +30,12 @@ class JSONEmbedBaseAdapter(EmbedBaseAdapter):
         return self._embed["type"] if "type" in self._embed else "rich"
 
     @property
-    def colour(self) -> Union[Colour, int]:
-        return make_colour(self._embed["colour"] if "colour" in self._embed else self._embed["color"])
+    def colour(self) -> Union[discord.Colour, int]:
+        if "colour" in self._embed:
+            return make_colour(self._embed["colour"])
+        if "color" in self._embed:
+            return make_colour(self._embed["color"])
+        raise ValueError("Missing colour/color value")
 
     @property
     def timestamp(self) -> Optional[datetime]:

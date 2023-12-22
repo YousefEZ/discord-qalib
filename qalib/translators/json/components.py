@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Literal, TypedDict, List, Union, Dict, Optional, TypeVar
 
 import discord
+import discord.types
+import discord.types.embed
 from typing_extensions import NotRequired
 
 from qalib.translators.deserializer import Types

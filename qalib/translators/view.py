@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable, Union, TYPE_CHECKING, Optional, Coroutine, Any, TypeVar
+from typing import Callable, Union, TYPE_CHECKING, Optional, Coroutine, Any, TypeVar, cast
 
 import discord
 from discord import ui
@@ -31,13 +31,13 @@ class QalibView(ui.View):
 
     async def on_timeout(self) -> None:
         if ViewEvents.ON_TIMEOUT in self._events:
-            await self._events[ViewEvents.ON_TIMEOUT](self)
+            await cast(TimeoutEvent, self._events[ViewEvents.ON_TIMEOUT])(self)
 
     async def on_error(self, interaction: discord.Interaction, exception: Exception, item: discord.ui.Item) -> None:
         if ViewEvents.ON_ERROR in self._events:
-            await self._events[ViewEvents.ON_ERROR](self, interaction, exception, item)
+            await cast(ErrorEvent, self._events[ViewEvents.ON_ERROR])(self, interaction, exception, item)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if ViewEvents.ON_CHECK in self._events:
-            return await self._events[ViewEvents.ON_CHECK](self, interaction)
+            return await cast(CheckEvent, self._events[ViewEvents.ON_CHECK])(self, interaction)
         return True

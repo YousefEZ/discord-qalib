@@ -24,7 +24,7 @@ from qalib.translators.menu import Menu, MenuActions
 from qalib.translators.message_parsing import ButtonComponent, apply, \
     create_button, make_emoji, make_channel_types, create_channel_select, create_select, \
     CustomSelects, create_type_select, TextInputComponent, create_text_input
-from qalib.translators.modal import QalibModal
+from qalib.translators.modal import QalibModal, ModalEvents, ModalEventsCallbacks
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
 
@@ -118,15 +118,20 @@ class JSONDeserializer(Deserializer[K_contra]):
         """
         element_type: Optional[ElementTypes] = ElementTypes.from_str(element["type"])
 
-        deserializers: Dict[ElementTypes, Callable[[Elements, Dict[str, Callback], EventCallbacks], ReturnType]] = {
-            ElementTypes.MESSAGE: self.deserialize_message,
-            ElementTypes.EXPANSIVE: self.deserialize_expansive_into_menu,
-            ElementTypes.MENU: partial(self.deserialize_menu, document=document),
-            ElementTypes.MODAL: self.deserialize_modal,
-        }
         if element_type is None:
             raise KeyError(f"Element type {element['type']} not found")
-        return deserializers[element_type](element, callables, events)
+
+        if element_type == ElementTypes.MESSAGE:
+            return self.deserialize_message(cast(Union[RegularMessage, ExpansiveMessage], element), callables, events)
+        if element_type == ElementTypes.EXPANSIVE:
+            return self.deserialize_expansive_into_menu(cast(ExpansiveMessage, element), callables, events)
+        if element_type == ElementTypes.MENU:
+            return self.deserialize_menu(cast(MenuMessage, element), callables, events, document=document)
+        if element_type == ElementTypes.MODAL:
+            return self.deserialize_modal(cast(Modal, element), callables,
+                                          cast(Dict[ModalEvents, ModalEventsCallbacks], events))
+
+        raise ValueError(f"Unrecognized Element Type: {element_type}")
 
     # pylint: disable= too-many-locals
     def deserialize_message(
@@ -250,14 +255,14 @@ class JSONDeserializer(Deserializer[K_contra]):
         page = document[raw_page] if isinstance(raw_page, str) else raw_page
         element_type = ElementTypes.from_str(page["type"])
 
-        page_deserializers: Dict[
-            ElementTypes, Callable[[BaseMessage, Dict[str, Callback], EventCallbacks], List[Message]]] = {
-            ElementTypes.MESSAGE: lambda msg, callback, m_events: [self.deserialize_message(msg, callback, m_events)],
-            ElementTypes.EXPANSIVE: self.deserialize_expansive,
-        }
         if element_type is None:
             raise TypeError(f"Unknown Element type {page['type']}")
-        return page_deserializers[element_type](page, callables, events)
+
+        if element_type == ElementTypes.MESSAGE:
+            return [self.deserialize_message(cast(Union[RegularMessage, ExpansiveMessage], page), callables, events)]
+        if element_type == ElementTypes.EXPANSIVE:
+            return self.deserialize_expansive(cast(ExpansiveMessage, page), callables, events)
+        raise TypeError(f"Unrecognized Element Type: {element_type}")
 
     def deserialize_menu(
             self,
@@ -291,16 +296,14 @@ class JSONDeserializer(Deserializer[K_contra]):
             self,
             tree: Modal,
             callables: Dict[str, Callback],
-            events: EventCallbacks,
-            **kwargs
+            events: Dict[ModalEvents, ModalEventsCallbacks]
     ) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
 
         Args:
             tree (Modal): The Modal Dictionary to deserialize into a discord.ui.Modal object
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the buttons
-            events (EventCallbacks): A dictionary containing the event callbacks.
-            **kwargs
+            events (Dict[ModalEvents, ModalEventsCallbacks]): A dictionary containing the event callbacks.
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """

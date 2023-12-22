@@ -107,15 +107,17 @@ class XMLDeserializer(Deserializer[K_contra]):
         """
         element_type = ElementTypes.from_str(element.tag)
 
-        deserializers: Dict[
-            ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback], EventCallbacks], ReturnType]] = {
-            ElementTypes.MESSAGE: self.deserialize_message,
-            ElementTypes.EXPANSIVE: self.deserialize_expansive_into_menu,
-            ElementTypes.MENU: partial(self.deserialize_menu, document=document),
-            ElementTypes.MODAL: self.deserialize_modal,
-        }
         assert element_type is not None, f"Element type {element.tag} not found"
-        return deserializers[element_type](element, callables, events)
+
+        if element_type == ElementTypes.MESSAGE:
+            return self.deserialize_message(element, callables, events)
+        if element_type == ElementTypes.EXPANSIVE:
+            return self.deserialize_expansive_into_menu(element, callables, events)
+        if element_type == ElementTypes.MENU:
+            return self.deserialize_menu(element, callables, events, document=document)
+        if element_type == ElementTypes.MODAL:
+            return self.deserialize_modal(element, callables, cast(Dict[ModalEvents, ModalEventsCallbacks], events))
+        raise TypeError(f"Unrecognized ElementType {element_type}")
 
     def deserialize_expansive_into_menu(
             self,
@@ -288,8 +290,7 @@ class XMLDeserializer(Deserializer[K_contra]):
             self,
             element: ElementTree.Element,
             callables: Dict[str, Callback],
-            events: Dict[ModalEvents, ModalEventsCallbacks],
-            **kwargs: Any
+            events: Dict[ModalEvents, ModalEventsCallbacks]
     ) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
 
@@ -297,7 +298,6 @@ class XMLDeserializer(Deserializer[K_contra]):
             element (ElementTree.Element): The element to deserialize into a modal
             callables (Dict[str, Callback]): A dictionary containing the callables to use for the components
             events (Dict[ModalEvents, ModalEventsCallbacks]): A dictionary containing the events to callback on
-            kwargs (Dict[str, Any]): A dictionary containing the keywords to use for the view
 
         Returns (discord.ui.Modal): A discord.ui.Modal object
         """
@@ -486,7 +486,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         attributes["emoji"] = self._render_emoji(emoji_component)
         attributes["disabled"] = attributes["disabled"].lower() == "true" if "disabled" in attributes else False
 
-        return attributes
+        return cast(ButtonComponent, attributes)
 
     def _render_button(self, component: ElementTree.Element, callback: Optional[Callback] = None) -> ui.Button:
         """Renders a button based on the template in the element, and formatted values given by the keywords.
@@ -498,7 +498,8 @@ class XMLDeserializer(Deserializer[K_contra]):
         Returns (ui.Button): The rendered button.
         """
         button: ButtonComponent = self._create_button_component(component)
-        button["callback"] = callback
+        if callback:
+            button["callback"] = callback
 
         return create_button(button)
 

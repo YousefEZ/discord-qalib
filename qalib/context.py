@@ -135,7 +135,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallback] = None,
+            events: Optional[EventCallbacks] = None,
             **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.

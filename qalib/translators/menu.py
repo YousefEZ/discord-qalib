@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from enum import Enum
-from typing import List, Optional, Dict, Any, Callable, TYPE_CHECKING, Coroutine
+from typing import List, Optional, Dict, Any, Callable, TYPE_CHECKING, Coroutine, cast
 
 import discord.ui.button
 
@@ -63,7 +63,7 @@ class Menu:
         self._events[event] = callback
 
     async def call_event(self, event: MenuEvents) -> None:
-        await self._events[event](self)
+        await cast(MenuChangeEvent, self._events[event])(self)
 
     def _create_arrows(
             self,
