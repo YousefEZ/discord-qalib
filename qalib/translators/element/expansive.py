@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from functools import cached_property, wraps, lru_cache
-from typing import Tuple, List, Optional, Callable, TypeVar
+from functools import cached_property, wraps
+from typing import List, Optional, Callable, TypeVar
 
 import discord
 
@@ -10,15 +10,13 @@ from qalib.translators.element.types.embed import Field, EmbedBaseAdapter, Foote
 
 __all__ = "ExpansiveEmbedAdapter", "expand"
 
-from qalib.translators.json import components
-
 MAX_FIELD_LENGTH = 1_024
 
 
 class ExpansiveEmbedAdapter(EmbedBaseAdapter):
 
-    def __init__(self, embed: components.ExpansiveEmbed, page_number_key: Optional[str] = None):
-        super().__init__(embed)
+    def __init__(self, page_number_key: Optional[str] = None):
+        super().__init__()
         self._page_number_key = page_number_key
 
     @cached_property
@@ -30,7 +28,7 @@ class ExpansiveEmbedAdapter(EmbedBaseAdapter):
         return self._page_number_key
 
 
-def _split_field(field: Field) -> List[Field]:
+def _split_field(field: Field, with_key: bool) -> List[Field]:
     start = 0
     lines = [string.strip() for string in field["value"].strip().split("\n")]
 
@@ -49,7 +47,7 @@ def _split_field(field: Field) -> List[Field]:
         }
 
     for i in range(len(lines)):
-        if sum(map(len, lines[start: i + 1])) >= MAX_FIELD_LENGTH:
+        if sum(map(len, lines[start: i + 1])) + (len(str(len(values))) * with_key) >= MAX_FIELD_LENGTH:
             values.append(compile_field(i))
             start = i
 
@@ -134,9 +132,6 @@ def _replace_field_with_page_key(
 
 @_page_key_guard
 def replace(embed_adapter: ExpansiveEmbedAdapter, value: str, page: int) -> str:
-    # TODO: make sure that once the page number has been replaced to ensure that the number of characters
-    # TODO: does not exceed the stated limit in the compilation, some thoughts on how to remedy this issue is to
-    # TODO: rerun it into the splitter for further splitting.
     return value.replace(embed_adapter.page_number_key, str(page))
 
 
@@ -162,5 +157,5 @@ def expand(embed_adapter: ExpansiveEmbedAdapter) -> List[discord.Embed]:
             thumbnail=embed_adapter.thumbnail,
             image=embed_adapter.image,
             author=embed_adapter.author
-        )) for page, field in enumerate(_split_field(embed_adapter.field))
+        )) for page, field in enumerate(_split_field(embed_adapter.field, embed_adapter.page_number_key is not None))
     ]
