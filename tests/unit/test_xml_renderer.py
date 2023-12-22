@@ -98,8 +98,11 @@ class TestXMLRenderer(unittest.TestCase):
 
     def test_text_input_rendering(self, view: mock.mock.MagicMock):
         message = render_message("tests/routes/select_embeds.xml", "Launch")
-        self.assertEqual(len(message.view.children), 4)
-        child = message.view.children[3]
+        assert isinstance(message, Message)
+        view = message.view
+        assert view is not None
+        self.assertEqual(len(view.children), 4)
+        child = view.children[3]
         self.assertIsInstance(child, discord.ui.TextInput)
         self.assertEqual(child.placeholder, "Test Placeholder")
 
@@ -159,6 +162,8 @@ class TestXMLRenderer(unittest.TestCase):
     def test_jinja_view_rendering(self, view: mock.mock.MagicMock):
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), "tests/routes/jinja-test.xml")
         message = renderer.render("test1")
+        assert isinstance(message, Message)
+        assert message.view
         self.assertEqual(len(message.view.children), 1)
 
     def test_combined_rendering(self, view: mock.mock.MagicMock):
@@ -241,14 +246,20 @@ class TestXMLRenderer(unittest.TestCase):
 
         renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
         message = renderer.render("empty_content_test")
-        self.assertEqual(message.content.strip(), "")
+        assert isinstance(message, Message), "Expected Message instance"
+        content = message.content
+        assert content is not None
+        self.assertEqual(content.strip(), "")
 
     def test_multi_line_content_message(self, _: mock.mock.MagicMock):
         template = "tests/routes/complete_messages.xml"
 
         renderer: Renderer[CompleteEmbeds] = Renderer(Formatter(), template)
         message = renderer.render("multi_line_content_test")
-        message_lines = message.content.strip().split("\n")
+        assert isinstance(message, Message), "Expected Message instance"
+        content = message.content
+        assert content is not None
+        message_lines = content.strip().split("\n")
         self.assertEqual(len(message_lines), 3)
         self.assertEqual(message_lines[0], "- This is a test message")
         self.assertEqual(message_lines[1], "- This is a test message")
