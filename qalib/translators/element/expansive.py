@@ -28,7 +28,7 @@ class ExpansiveEmbedAdapter(EmbedBaseAdapter):
         return self._page_number_key
 
 
-def _split_field(field: Field, with_key: bool) -> List[Field]:
+def _split_field(field: Field, key: Optional[str]) -> List[Field]:
     start = 0
     lines = [string.strip() for string in field["value"].strip().split("\n")]
 
@@ -41,13 +41,15 @@ def _split_field(field: Field, with_key: bool) -> List[Field]:
 
     def compile_field(end: Optional[int] = None) -> Field:
         return {
-            "name": field["name"],
-            "value": compile_lines(end),
+            "name": field["name"].replace(key, str(len(values) + 1)) if key else field["name"],
+            "value": compile_lines(end).replace(key, str(len(values) + 1)) if key else compile_lines(end),
             "inline": field.get("inline", True)
         }
 
     for i in range(len(lines)):
-        if sum(map(len, lines[start: i + 1])) + (len(str(len(values))) * with_key) >= MAX_FIELD_LENGTH:
+        diff_char = key is not None and len(str(len(values))) - len(key)
+        var_char: int = int(key is not None) and lines[start: i + 1].count(key) * diff_char
+        if sum(map(len, lines[start: i + 1])) + var_char >= MAX_FIELD_LENGTH:
             values.append(compile_field(i))
             start = i
 
@@ -165,5 +167,5 @@ def expand(embed: ExpansiveEmbedAdapter) -> List[discord.Embed]:
             thumbnail=embed.thumbnail,
             image=embed.image,
             author=embed.author
-        )) for page, field in enumerate(_split_field(embed.field, embed.page_number_key is not None))
+        )) for page, field in enumerate(_split_field(embed.field, embed.page_number_key))
     ]
