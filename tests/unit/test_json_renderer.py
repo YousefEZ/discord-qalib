@@ -220,7 +220,7 @@ class TestJSONRenderer(unittest.TestCase):
 
         menu = Menu(messages)
         with self.assertRaises(IndexError):
-            menu.front = 4
+            menu.set_front_page(4)
 
     @mock.patch("asyncio.get_running_loop")
     @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)

@@ -81,7 +81,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         message = self._renderer.render(identifier, callables, keywords, events)
 
         if isinstance(message, Menu):
-            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message.set_front_page(kwargs.get("page", 0))
             message = message.front
 
         assert isinstance(message, Message)
