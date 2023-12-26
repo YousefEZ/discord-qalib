@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable, Union, Coroutine, Any, Optional, TYPE_CHECKING, cast, Dict
+from typing import Callable, Union, Coroutine, Any, Optional, cast, Dict
 
 import discord
 from discord import ui

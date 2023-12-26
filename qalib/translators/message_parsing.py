@@ -20,6 +20,7 @@ __all__ = (
     "make_channel_types",
     "make_emoji",
     "apply",
+    "pipe",
     "create_button",
     "create_select",
     "create_channel_select",
@@ -252,7 +253,7 @@ def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     )
 
 
-def pipe(element: Optional[M], func: Callable[[M], N]) -> Optional[N]:
+def pipe(element: Optional[T], func: Callable[[T], N]) -> Optional[N]:
     if element is None:
         return None
     return func(element)

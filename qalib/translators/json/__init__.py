@@ -157,9 +157,10 @@ class JSONDeserializer(Deserializer[K_contra]):
             nonce=apply(message_tree.get("nonce"), int),
             delete_after=apply(message_tree.get("delete_after"), float),
             suppress_embeds=message_tree.get("suppress_embeds"),
-            file=pipe(message_tree.get("file"), self._render_file),
+            file=pipe(cast(Optional[File], message_tree.get("file")), self._render_file),
             files=apply(message_tree.get("files"), lambda files: list(map(self._render_file, files))),
-            allowed_mentions=pipe(message_tree.get("allowed_mentions"), self._render_allowed_mentions),
+            allowed_mentions=pipe(cast(Optional[AllowedMentions], message_tree.get("allowed_mentions")),
+                                  self._render_allowed_mentions),
             reference=apply(message_tree.get("message_reference"), lambda reference: discord.MessageReference(
                 message_id=reference["message_id"],
                 channel_id=reference["channel_id"],
