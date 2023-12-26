@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from functools import cached_property, wraps
+from functools import wraps
 from typing import List, Optional, Callable, TypeVar
 
 import discord
@@ -61,8 +61,8 @@ _T = TypeVar("_T")
 
 
 def _page_key_guard(
-        func: Callable[[ExpansiveEmbedAdapter, _T, int], _T]
-) -> Callable[[ExpansiveEmbedAdapter, _T, int], _T]:
+        func: Callable[[str, _T, int], _T]
+) -> Callable[[str, _T, int], _T]:
     """A decorator that guards a function so that it only runs if the embed proxy has a page key.
 
     Args:
@@ -73,75 +73,43 @@ def _page_key_guard(
     """
 
     @wraps(func)
-    def wrapper(embed_adapter: ExpansiveEmbedAdapter, replaceable: _T, page: int) -> _T:
-        if embed_adapter.page_number_key is None or replaceable is None:
+    def wrapper(page_key: Optional[str], replaceable: _T, page: int) -> _T:
+        if page_key is None:
             return replaceable
-        return func(embed_adapter, replaceable, page)
+        return func(page_key, replaceable, page)
 
     return wrapper
 
 
 @_page_key_guard
 def _replace_footer_with_page_key(
-        embed_adapter: ExpansiveEmbedAdapter,
+        page_key: str,
         footer: Optional[Footer],
         page: int
 ) -> Optional[Footer]:
     """Render the footer, if it exists, with the page key.
 
     Args:
-        embed_adapter (ExpansiveEmbedAdapter): The embed proxy to render the footer of.
+        page_key (str): the string to replace with the page number
         page (int): The page number to render the footer with.
 
     Returns:
         Optional[discord.EmbedFooter]: The rendered footer, if it exists.
     """
-    if not embed_adapter.footer:
+    if footer is None:
         return None
 
-    if "text" not in embed_adapter.footer:
+    if "text" not in footer:
         return footer
 
-    page_key = embed_adapter.page_number_key
-    assert page_key, "page key is None"
-
     return {
-        "text": embed_adapter.footer['text'].replace(page_key, str(page)),
-        "icon_url": embed_adapter.footer['icon_url']
+        "text": footer['text'].replace(page_key, str(page)),
+        "icon_url": footer['icon_url']
     }
 
 
 @_page_key_guard
-def _replace_field_with_page_key(
-        embed_adapter: ExpansiveEmbedAdapter,
-        field: Field,
-        page: int
-) -> Field:
-    """Render the field, if it exists, with the page key.
-
-    Args:
-        embed_adapter (ExpansiveEmbedAdapter): The embed proxy to render the field of.
-        page (int): The page number to render the field with.
-
-    Returns (Field): The replaced field, with the key swapped.
-    """
-    if "value" not in field:
-        return field
-
-    page_key = embed_adapter.page_number_key
-    assert page_key, "Page Key is Empty"
-
-    return {
-        "name": field["name"],
-        "value": field["value"].replace(page_key, str(page)),
-        "inline": field.get("inline", True)
-    }
-
-
-@_page_key_guard
-def replace(embed_adapter: ExpansiveEmbedAdapter, value: str, page: int) -> str:
-    page_key = embed_adapter.page_number_key
-    assert page_key, "Page Key is Empty"
+def replace(page_key: str, value: str, page: int) -> str:
     return value.replace(page_key, str(page))
 
 
@@ -157,13 +125,13 @@ def expand(embed: ExpansiveEmbedAdapter) -> List[discord.Embed]:
 
     return [
         render(EmbedData(
-            title=replace(embed, embed.title, page + 1),
+            title=replace(embed.page_number_key, embed.title, page + 1),
             colour=embed.colour,
             type=embed.type,
-            description=replace(embed, embed.description, page + 1) if embed.description else None,
+            description=replace(embed.page_number_key, embed.description, page + 1) if embed.description else None,
             timestamp=embed.timestamp,
             fields=[field],
-            footer=_replace_footer_with_page_key(embed, embed.footer, page + 1) if embed.footer else None,
+            footer=_replace_footer_with_page_key(embed.page_number_key, embed.footer, page + 1),
             thumbnail=embed.thumbnail,
             image=embed.image,
             author=embed.author
