@@ -15,8 +15,8 @@ CompleteEmbeds = Literal[
     "message_reference_test3",
 ]
 
-ErrorEmbeds = Literal["test1", "test2", "menu_type", "unknown_type"]
-JinjaEmbeds = Literal["test1", "test2", "test3", "test4", "test5"]
+ErrorEmbeds = Literal["test1", "test2", "menu_type", "unknown_type", "missing_colour"]
+JinjaEmbeds = Literal["test1", "test2", "test3", "test4", "test5", "test6"]
 Menus = Literal["Menu1", "Menu2", "Menu3", "Menu4"]
 Modals = Literal["modal1", "modal2"]
 CompleteJSONMessages = Literal[

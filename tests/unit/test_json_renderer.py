@@ -165,7 +165,13 @@ class TestJSONRenderer(unittest.TestCase):
         template = "tests/routes/error.json"
 
         renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), template)
-        self.assertRaises(KeyError, renderer.render, "unknown_type")
+        self.assertRaises(TypeError, renderer.render, "unknown_type")
+
+    def test_missing_colour(self):
+        template = "tests/routes/error.json"
+
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), template)
+        self.assertRaises(ValueError, renderer.render, "missing_colour")
 
     @mock.patch("asyncio.get_running_loop")
     def test_menu(self, mock_view: mock.mock.MagicMock):

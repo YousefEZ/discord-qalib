@@ -111,6 +111,11 @@ class TestXMLRenderer(unittest.TestCase):
         renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
         self.assertRaises(ValueError, renderer.render, "test1")
 
+    def test_unknown_type_error(self, _: mock.mock.MagicMock):
+        path = "tests/routes/error.xml"
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
+        self.assertRaises(TypeError, renderer.render, "unknown_type")
+
     def test_element_error(self, _: mock.mock.MagicMock):
         path = "tests/routes/error.xml"
         renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), path)
@@ -152,6 +157,13 @@ class TestXMLRenderer(unittest.TestCase):
 
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), template)
         message = renderer.render("test5")
+        self.assertEqual(len(message), 2)
+
+    def test_expansive_no_footer(self, _: mock.mock.MagicMock):
+        template = "tests/routes/jinja-test.xml"
+
+        renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), template)
+        message = renderer.render("test6")
         self.assertEqual(len(message), 2)
 
     def test_expansive_message_with_timeout(self, _: mock.mock.MagicMock):

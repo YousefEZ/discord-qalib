@@ -439,3 +439,16 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
         })
         await qalib_modal.on_error(MockedInteraction(), Exception())
         self.assertTrue(errored)
+
+    async def test_button_callback(self, *_: mock.mock.MagicMock):
+        invoked = False
+
+        async def callback(interaction: discord.Interaction):
+            nonlocal invoked
+            invoked = True
+
+        renderer: Renderer[str] = Renderer(Formatter(), "tests/routes/full_embeds.xml")
+        message = renderer.render("test_key2", keywords={"todays_date": datetime.datetime.now()},
+                                  callbacks={"button1": callback})
+        await message.view.children[0].callback(MockedInteraction())
+        self.assertTrue(invoked)
