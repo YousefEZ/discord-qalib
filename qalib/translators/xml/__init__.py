@@ -154,7 +154,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         assert raw_embed is not None, "Embed not found"
 
         return [self.deserialize_message(element, callbacks, events, embed=e)
-                for e in expand(XMLExpansiveEmbedAdapter(raw_embed, raw_embed.get("page_number_key")))]
+                for e in expand(XMLExpansiveEmbedAdapter(raw_embed, element.get("page_number_key")))]
 
     def deserialize_menu_arrows(self, arrows_view: ElementTree.Element) -> Dict[MenuActions, ButtonComponent]:
         """Deserializes the arrows of a menu from an XML file, and returns it as a dictionary.
