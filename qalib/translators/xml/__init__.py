@@ -108,8 +108,6 @@ class XMLDeserializer(Deserializer[K_contra]):
         """
         element_type = ElementTypes.from_str(element.tag)
 
-        assert element_type is not None, f"Element type {element.tag} not found"
-
         if element_type == ElementTypes.MESSAGE:
             return self.deserialize_message(element, callables, events)
         if element_type == ElementTypes.EXPANSIVE:

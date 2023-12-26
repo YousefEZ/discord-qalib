@@ -40,6 +40,7 @@ class JSONTemplater(Templater):
         Args:
             source (str): source text that is parsed
         """
+        super().__init__(source)
         self._data = json.loads(source)
 
     def recursive_template(self, obj: OBJ, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> OBJ:
@@ -118,9 +119,6 @@ class JSONDeserializer(Deserializer[K_contra]):
         """
         element_type: Optional[ElementTypes] = ElementTypes.from_str(element["type"])
 
-        if element_type is None:
-            raise KeyError(f"Element type {element['type']} not found")
-
         if element_type == ElementTypes.MESSAGE:
             return self.deserialize_message(cast(Union[RegularMessage, ExpansiveMessage], element), callables, events)
         if element_type == ElementTypes.EXPANSIVE:
@@ -131,7 +129,7 @@ class JSONDeserializer(Deserializer[K_contra]):
             return self.deserialize_modal(cast(Modal, element), callables,
                                           cast(Dict[ModalEvents, ModalEventsCallbacks], events))
 
-        raise ValueError(f"Unrecognized Element Type: {element_type}")
+        raise TypeError(f"Unrecognized Element Type: {element_type}")
 
     # pylint: disable= too-many-locals
     def deserialize_message(
@@ -254,9 +252,6 @@ class JSONDeserializer(Deserializer[K_contra]):
         """
         page = document[raw_page] if isinstance(raw_page, str) else raw_page
         element_type = ElementTypes.from_str(page["type"])
-
-        if element_type is None:
-            raise TypeError(f"Unknown Element type {page['type']}")
 
         if element_type == ElementTypes.MESSAGE:
             return [self.deserialize_message(cast(Union[RegularMessage, ExpansiveMessage], page), callables, events)]
