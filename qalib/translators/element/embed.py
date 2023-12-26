@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-from functools import cached_property
 from typing import List, Union, cast, Protocol
 
 import discord

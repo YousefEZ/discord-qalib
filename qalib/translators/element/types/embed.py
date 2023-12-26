@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from datetime import datetime
-from functools import cached_property
-
-from typing import Literal, Dict, TypedDict, Union, cast, Protocol, Optional, Any
+from typing import Literal, Dict, TypedDict, Union, cast, Protocol, Optional
 
 import discord
 from discord.types import embed as embed_types
