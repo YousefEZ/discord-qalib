@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 from copy import deepcopy
-from datetime import datetime
 from functools import partial
-from typing import List, Union, Dict, Optional, Any, cast, Callable, Sequence, Type
+from typing import List, Union, Dict, Optional, Any, cast, Callable, Type
 
 import discord
 from discord import ui

@@ -7,8 +7,6 @@ import discord
 from discord import ui
 from discord.utils import MISSING
 
-if TYPE_CHECKING:
-    from qalib.translators.events import EventCallbacks
 from qalib.translators.view import TimeoutEvent, CheckEvent
 
 

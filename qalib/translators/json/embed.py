@@ -1,13 +1,12 @@
 from abc import ABC
 from datetime import datetime
-from functools import cached_property
 from typing import Optional, Union, List
 
 import discord.types.embed
 
 from qalib.translators.element.embed import EmbedAdapter
 from qalib.translators.element.expansive import ExpansiveEmbedAdapter
-from qalib.translators.element.types.embed import EmbedBaseAdapter, Colour, make_colour
+from qalib.translators.element.types.embed import EmbedBaseAdapter, make_colour
 from qalib.translators.json import components
 
 

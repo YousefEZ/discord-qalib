@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import List, Union, cast, Protocol
+from typing import List, Union, Protocol
 
 import discord
 
-from qalib.translators.element.types.embed import Field, EmbedBaseAdapter, EmbedBaseData, COLOURS
+from qalib.translators.element.types.embed import Field, EmbedBaseAdapter, EmbedBaseData
 
 __all__ = "EmbedAdapter", "EmbedData", "render"
 

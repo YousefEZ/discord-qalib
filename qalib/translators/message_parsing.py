@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, TypeVar, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast, Callable, Any, Tuple
+from typing import Dict, TypeVar, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast, Callable
 
 import discord
 import discord.emoji

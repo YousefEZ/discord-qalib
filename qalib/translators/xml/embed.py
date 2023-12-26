@@ -11,7 +11,7 @@ from discord.types import embed as embed_types
 
 from qalib.translators.element.embed import EmbedAdapter
 from qalib.translators.element.expansive import ExpansiveEmbedAdapter
-from qalib.translators.element.types.embed import Author, Footer, Colour, make_colour, Field
+from qalib.translators.element.types.embed import Author, Footer, make_colour, Field
 
 
 def filter_tabs(text: Optional[str]) -> str:
