@@ -16,7 +16,7 @@ from qalib.translators.element.embed import render
 from qalib.translators.element.expansive import expand
 from qalib.translators.events import EventCallbacks
 from qalib.translators.json.components import ComponentTypes, Option, Button, Select, CustomSelect, ChannelSelect, \
-    ComponentType, Components, Timestamp, Embed, ExpansiveEmbed, File, AllowedMentions, MessageReference, View, \
+    ComponentType, Components, Timestamp, ExpansiveEmbed, File, AllowedMentions, MessageReference, View, \
     BaseMessage, RegularMessage, Arrows, ExpansiveMessage, Page, MenuMessage, Modal, OBJ, Elements, Document
 from qalib.translators.json.embed import JSONEmbedAdapter, JSONExpansiveEmbedAdapter
 from qalib.translators.menu import Menu, MenuActions
