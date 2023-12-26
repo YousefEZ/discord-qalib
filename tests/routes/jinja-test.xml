@@ -44,14 +44,16 @@
         <embed>
             <title>Test Title</title>
             <colour>teal</colour>
-            <expansive_field>
+            <field>
                 <name>%s</name>
                 <value>
                     {% for i in range(0, 1500) %}
                     T
                     {% endfor %}
                 </value>
-            </expansive_field>
+            </field>
+            <footer>
+            </footer>
         </embed>
     </expansive>
     <expansive page_number_key="%s" key="test4">
@@ -59,14 +61,46 @@
         <embed>
             <title>Test Title</title>
             <colour>teal</colour>
-            <expansive_field>
+            <field>
                 <name>%s</name>
                 <value>
                     {% for i in range(0, 1500) %}
                     T
                     {% endfor %}
                 </value>
-            </expansive_field>
+            </field>
+        </embed>
+    </expansive>
+    <expansive page_number_key="%s" key="test5">
+        <timeout>150</timeout>
+        <embed>
+            <title>T</title>
+            <colour>teal</colour>
+            <field>
+                <name>T</name>
+                <value>
+                    {% for i in range(0, 600) %}T{% endfor %}
+                    {% for i in range(0, 6025) %}X{% endfor %}
+                </value>
+            </field>
+            <footer>
+                <text>T</text>
+            </footer>
+        </embed>
+    </expansive>
+    <expansive page_number_key="%s" key="test6">
+        <timeout>150</timeout>
+        <embed>
+            <title>Test Title</title>
+            <colour>teal</colour>
+            <field>
+                <name>%s</name>
+                <value>
+                    {% for i in range(0, 1500) %}
+                    T
+                    {% endfor %}
+                </value>
+            </field>
         </embed>
     </expansive>
 </discord>

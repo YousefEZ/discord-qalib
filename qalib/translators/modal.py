@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable, Union, Coroutine, Any, Optional, TYPE_CHECKING
+from typing import Callable, Union, Coroutine, Any, Optional, cast, Dict
 
 import discord
 from discord import ui
 from discord.utils import MISSING
 
-if TYPE_CHECKING:
-    from qalib.translators.events import EventCallbacks
 from qalib.translators.view import TimeoutEvent, CheckEvent
 
 
@@ -31,7 +29,7 @@ class QalibModal(ui.Modal):
             title: Optional[str] = None,
             timeout: Optional[float] = 180,
             custom_id: Optional[str] = None,
-            events: Optional[EventCallbacks] = None
+            events: Optional[Dict[ModalEvents, ModalEventsCallbacks]] = None
     ) -> None:
         super().__init__(title=MISSING if title is None else title,
                          timeout=timeout,
@@ -40,17 +38,17 @@ class QalibModal(ui.Modal):
 
     async def on_timeout(self) -> None:
         if ModalEvents.ON_TIMEOUT in self._events:
-            await self._events[ModalEvents.ON_TIMEOUT](self)
+            await cast(TimeoutEvent, self._events[ModalEvents.ON_TIMEOUT])(self)
 
     async def on_error(self, interaction: discord.Interaction, exception: Exception, /) -> None:
         if ModalEvents.ON_ERROR in self._events:
-            await self._events[ModalEvents.ON_ERROR](self, interaction, exception)
+            await cast(ErrorEvent, self._events[ModalEvents.ON_ERROR])(self, interaction, exception)
 
     async def on_submit(self, interaction: discord.Interaction, /) -> None:
         if ModalEvents.ON_SUBMIT in self._events:
-            await self._events[ModalEvents.ON_SUBMIT](self, interaction)
+            await cast(SubmitEvent, self._events[ModalEvents.ON_SUBMIT])(self, interaction)
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
         if ModalEvents.ON_CHECK in self._events:
-            return await self._events[ModalEvents.ON_CHECK](self, interaction)
+            return await cast(CheckEvent, self._events[ModalEvents.ON_CHECK])(self, interaction)
         return True

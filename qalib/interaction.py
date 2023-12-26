@@ -80,7 +80,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
         message = self._renderer.render(identifier, callables, keywords, events)
 
         if isinstance(message, Menu):
-            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message.set_front_page(kwargs.get("page", 0))
             message = message.front
 
         if isinstance(message, Message):
@@ -116,7 +116,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
         message = self._renderer.render(key, callables, keywords, events)
 
         if isinstance(message, Menu):
-            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message.set_front_page(kwargs.get("page", 0))
             message = message.front
 
         assert isinstance(message, Message)

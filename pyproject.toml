@@ -16,12 +16,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "license"]
 
 [tool.poetry]
 name = "discord-qalib"
 version = "2.4.5"
-authors = ["YousefEZ syberprojects@gmail.com", ]
+authors = ["YousefEZ <syberprojects@gmail.com>", ]
 description = "Discord library built on discord.py to simplify source code by rendering templates of embeds and menus"
 packages = [{ include = "qalib" }]
 
@@ -49,6 +49,9 @@ typing-extensions = "^4.4.0"
 discord-py = "^2.1.0"
 emoji = "^2.2.0"
 jinja2 = "^3.1.2"
+pyright = "^1.1.342"
+discord = "^2.3.2"
+deprecated = "^1.2.14"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }

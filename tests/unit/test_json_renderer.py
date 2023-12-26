@@ -165,7 +165,13 @@ class TestJSONRenderer(unittest.TestCase):
         template = "tests/routes/error.json"
 
         renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), template)
-        self.assertRaises(KeyError, renderer.render, "unknown_type")
+        self.assertRaises(TypeError, renderer.render, "unknown_type")
+
+    def test_missing_colour(self):
+        template = "tests/routes/error.json"
+
+        renderer: Renderer[ErrorEmbeds] = Renderer(Formatter(), template)
+        self.assertRaises(ValueError, renderer.render, "missing_colour")
 
     @mock.patch("asyncio.get_running_loop")
     def test_menu(self, mock_view: mock.mock.MagicMock):
@@ -214,7 +220,7 @@ class TestJSONRenderer(unittest.TestCase):
 
         menu = Menu(messages)
         with self.assertRaises(IndexError):
-            menu.front = 4
+            menu.set_front_page(4)
 
     @mock.patch("asyncio.get_running_loop")
     @mock.patch("discord.interactions.InteractionResponse.edit_message", new_callable=AsyncMock)

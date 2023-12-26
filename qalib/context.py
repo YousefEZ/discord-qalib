@@ -7,8 +7,8 @@ from deprecated import deprecated
 
 from qalib.renderer import Renderer
 from qalib.translators import Callback, Message
-from qalib.translators.events import EventCallback, EventCallbacks
 from qalib.translators.deserializer import K_contra
+from qalib.translators.events import EventCallbacks
 from qalib.translators.menu import Menu
 
 
@@ -81,7 +81,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         message = self._renderer.render(identifier, callables, keywords, events)
 
         if isinstance(message, Menu):
-            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message.set_front_page(kwargs.get("page", 0))
             message = message.front
 
         assert isinstance(message, Message)
@@ -109,7 +109,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         """
         message = self._renderer.render(key, callables, keywords, events)
         if isinstance(message, Menu):
-            message.front = 0 if "page" not in kwargs else kwargs["page"]
+            message.set_front_page(kwargs.get("page", 0))
             message = message.front
 
         assert isinstance(message, Message)
@@ -135,7 +135,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             key: K_contra,
             callbacks: Optional[Dict[str, Callback]] = None,
             keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallback] = None,
+            events: Optional[EventCallbacks] = None,
             **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.

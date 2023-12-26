@@ -43,4 +43,6 @@
             </components>
         </view>
     </message>
+    <unknown key="unknown_type">
+    </unknown>
 </discord>
