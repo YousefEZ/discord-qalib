@@ -133,8 +133,7 @@ class Menu:
     def front(self) -> Message:
         return self._pages[self._front_page]
 
-    @front.setter
-    def front(self, index: int) -> None:
+    def set_front_page(self, index: int) -> None:
         if index >= len(self._pages):
             raise IndexError("Index out of bounds")
         self._front_page = index
