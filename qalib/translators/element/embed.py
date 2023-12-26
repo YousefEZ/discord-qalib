@@ -25,7 +25,7 @@ class EmbedData(EmbedBaseData):
 def render(embed_data: Union[EmbedData, EmbedAdapter]) -> discord.Embed:
     embed = discord.Embed(
         title=embed_data.title,
-        colour=COLOURS[embed_data.colour] if type(embed_data.colour) == str else cast(int, embed_data.colour),
+        colour=embed_data.colour,
         type=embed_data.type,
         description=embed_data.description,
         timestamp=embed_data.timestamp

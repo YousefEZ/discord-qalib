@@ -252,6 +252,12 @@ def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     )
 
 
+def pipe(element: Optional[M], func: Callable[[M], N]) -> Optional[N]:
+    if element is None:
+        return None
+    return func(element)
+
+
 def apply(
         element: Optional[M],
         func: Callable[Concatenate[M, P], N],

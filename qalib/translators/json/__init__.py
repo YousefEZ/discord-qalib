@@ -23,7 +23,7 @@ from qalib.translators.json.embed import JSONEmbedAdapter, JSONExpansiveEmbedAda
 from qalib.translators.menu import Menu, MenuActions
 from qalib.translators.message_parsing import ButtonComponent, apply, \
     create_button, make_emoji, make_channel_types, create_channel_select, create_select, \
-    CustomSelects, create_type_select, TextInputComponent, create_text_input
+    CustomSelects, create_type_select, TextInputComponent, create_text_input, pipe
 from qalib.translators.modal import QalibModal, ModalEvents, ModalEventsCallbacks
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
@@ -158,9 +158,9 @@ class JSONDeserializer(Deserializer[K_contra]):
             nonce=apply(message_tree.get("nonce"), int),
             delete_after=apply(message_tree.get("delete_after"), float),
             suppress_embeds=message_tree.get("suppress_embeds"),
-            file=apply(message_tree.get("file"), lambda file: self._render_file(file)),
+            file=pipe(message_tree.get("file"), self._render_file),
             files=apply(message_tree.get("files"), lambda files: list(map(self._render_file, files))),
-            allowed_mentions=apply(message_tree.get("allowed_mentions"), lambda am: self._render_allowed_mentions(am)),
+            allowed_mentions=pipe(message_tree.get("allowed_mentions"), self._render_allowed_mentions),
             reference=apply(message_tree.get("message_reference"), lambda reference: discord.MessageReference(
                 message_id=reference["message_id"],
                 channel_id=reference["channel_id"],

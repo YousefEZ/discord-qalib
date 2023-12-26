@@ -48,7 +48,7 @@ def _split_field(field: Field, key: Optional[str]) -> List[Field]:
 
     for i in range(len(lines)):
         diff_char = key is not None and len(str(len(values))) - len(key)
-        var_char: int = int(key is not None) and lines[start: i + 1].count(key) * diff_char
+        var_char: int = key is not None and lines[start: i + 1].count(key) * diff_char
         if sum(map(len, lines[start: i + 1])) + var_char >= MAX_FIELD_LENGTH:
             values.append(compile_field(i))
             start = i
@@ -62,7 +62,7 @@ _T = TypeVar("_T")
 
 def _page_key_guard(
         func: Callable[[str, _T, int], _T]
-) -> Callable[[str, _T, int], _T]:
+) -> Callable[[Optional[str], _T, int], _T]:
     """A decorator that guards a function so that it only runs if the embed proxy has a page key.
 
     Args:
