@@ -20,8 +20,7 @@ def filter_tabs(text: Optional[str]) -> str:
     lines = text.split("\n")
     for base_line in lines:
         match = re.match(r"(\s*).*", base_line)
-        if not match:
-            return base_line
+        assert match is not None, "Invalid line."
         grp = match.group(1)
         if grp:
             return "\n".join(line.replace(grp, "", 1) for line in lines)
