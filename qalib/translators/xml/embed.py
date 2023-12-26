@@ -44,18 +44,6 @@ class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
         """
         return "" if element is None or element.text is None else element.text
 
-    @staticmethod
-    def get_attribute(element: ElementTree.Element, attribute: str) -> str:
-        """Renders an attribute from an ElementTree.Element.
-
-        Args:
-            element (ElementTree.Element): The element to render the attribute from.
-            attribute (str): The name of the attribute to render.
-
-        Returns (str): The value of the attribute.
-        """
-        return "" if (value := element.get(attribute)) is None else value
-
     @property
     def type(self) -> embed_types.EmbedType:
         """Renders the type from an ElementTree.Element.
@@ -81,7 +69,7 @@ class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
             return None
 
         timestamp = self.get_element_text(timestamp_element)
-        date_format = self.get_attribute(timestamp_element, "format")
+        date_format = timestamp_element.get("format", "")
         if date_format == "":
             date_format = "%Y-%m-%d %H:%M:%S.%f"
         return datetime.strptime(timestamp, date_format) if timestamp != "" else None
@@ -170,7 +158,7 @@ class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
             {
                 "name": filter_tabs(self.get_element_text(field.find("name"))),
                 "value": filter_tabs(self.get_element_text(field.find("value"))),
-                "inline": self.get_attribute(field, "inline").lower() == "true",
+                "inline": field.get("inline", "").lower() == "true",
             }
             for field in fields_element.findall("field")
         ]
@@ -193,5 +181,5 @@ class XMLExpansiveEmbedAdapter(XMLBaseEmbedAdapter, ExpansiveEmbedAdapter):
         return {
             "name": filter_tabs(self.get_element_text(field_element.find("name"))),
             "value": filter_tabs(self.get_element_text(field_element.find("value"))),
-            "inline": self.get_attribute(field_element, "inline").lower() == "true",
+            "inline": field_element.get("inline", "").lower() == "true",
         }
