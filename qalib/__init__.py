@@ -99,10 +99,6 @@ def qalib_interaction(
     return command
 
 
-ItemCallback = Callable[[discord.ui.Item, QalibInteraction, ...], Coro[T]]
-ItemInteractionCallback = Callable[[discord.ui.Item, discord.Interaction, ...], Coro[T]]
-
-
 def qalib_item_interaction(
         template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
 ) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
