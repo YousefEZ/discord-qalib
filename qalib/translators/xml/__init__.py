@@ -577,12 +577,9 @@ class XMLDeserializer(Deserializer[K_contra]):
         Returns (ui.RoleSelect): The rendered role select.
         """
         attributes = self._extract_elements(component)
-        select_type = type(select_base.__name__, (select_base,), {"callback": callback})
+        attributes["callback"] = callback
 
-        assert issubclass(select_type, (ui.UserSelect, ui.RoleSelect, ui.MentionableSelect))
-
-        select = create_type_select(select_type, **attributes)
-        return select
+        return create_type_select(select_base, **attributes)
 
     def _render_text_input(self, component: ElementTree.Element, callback: (Optional[Callback])) -> ui.TextInput:
         """Renders a text input based on the template in the element, and formatted values given by the keywords.
