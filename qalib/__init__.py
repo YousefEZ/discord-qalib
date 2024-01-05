@@ -23,8 +23,6 @@ __license__ = "MIT"
 __copyright__ = "Copyright 2022-present YousefEZ"
 __version__ = "2.5.2"
 
-from .translators import P
-
 T = TypeVar("T")
 Coro = Coroutine[Any, Any, T]
 
@@ -102,8 +100,7 @@ def qalib_interaction(
 def qalib_item_interaction(
         template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
 ) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
-    """This decorator is used to create a QalibInteraction object, and pass it to the function as it's first argument,
-    overriding the default interaction.
+    """This decorator is used to create a QalibInteraction object, and pass it to the function as it's second argument
 
     Args:
         template_engine (TemplateEngine): template engine that is used to template the document
