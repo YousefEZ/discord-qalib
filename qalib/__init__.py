@@ -95,3 +95,28 @@ def qalib_interaction(
         return function
 
     return command
+
+
+def qalib_item_interaction(
+        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+) -> Callable[[Callable[..., Coro[T]]], Callable[..., Coro[T]]]:
+    """This decorator is used to create a QalibInteraction object, and pass it to the function as it's second argument
+
+    Args:
+        template_engine (TemplateEngine): template engine that is used to template the document
+        filename (str): filename of the document
+        renderer_options (RenderingOptions): options for the renderer
+
+    Returns (Callable): decorated function that takes the Interaction object and using the extended
+    QalibInteraction object
+    """
+    renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
+
+    def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
+        @wraps(func)
+        async def function(item: discord.ui.Item, inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
+            return await func(item, QalibInteraction(inter, renderer_instance), *args, **kwargs)
+
+        return function
+
+    return command
