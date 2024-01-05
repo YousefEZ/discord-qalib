@@ -8,6 +8,7 @@ import discord.interactions
 import mock
 from discord.ext.commands.view import StringView
 
+import qalib
 from qalib import Renderer, RenderingOptions, qalib_context, qalib_interaction
 from qalib.context import QalibContext
 from qalib.interaction import QalibInteraction
@@ -443,7 +444,8 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_button_callback(self, *_: mock.mock.MagicMock):
         invoked = False
 
-        async def callback(item: discord.ui.Item, interaction: discord.Interaction):
+        @qalib.qalib_item_interaction(Formatter(), "tests/routes/full_embeds.xml")
+        async def callback(item: discord.ui.Item, interaction: QalibInteraction[str]):
             nonlocal invoked
             invoked = True
 

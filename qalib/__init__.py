@@ -7,7 +7,7 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any, Callable, TypeVar, Coroutine
+from typing import Any, Callable, TypeVar, Coroutine, Concatenate
 
 import discord
 from discord.ext import commands
@@ -22,6 +22,8 @@ __author__ = "YousefEZ"
 __license__ = "MIT"
 __copyright__ = "Copyright 2022-present YousefEZ"
 __version__ = "2.5.2"
+
+from .translators import P
 
 T = TypeVar("T")
 Coro = Coroutine[Any, Any, T]
@@ -91,6 +93,36 @@ def qalib_interaction(
         @wraps(func)
         async def function(inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
             return await func(QalibInteraction(inter, renderer_instance), *args, **kwargs)
+
+        return function
+
+    return command
+
+
+ItemCallback = Callable[[discord.ui.Item, QalibInteraction, ...], Coro[T]]
+ItemInteractionCallback = Callable[[discord.ui.Item, discord.Interaction, ...], Coro[T]]
+
+
+def qalib_item_interaction(
+        template_engine: TemplateEngine, filename: str, *renderer_options: RenderingOptions
+) -> Callable[[ItemCallback[T]], ItemInteractionCallback[T]]:
+    """This decorator is used to create a QalibInteraction object, and pass it to the function as it's first argument,
+    overriding the default interaction.
+
+    Args:
+        template_engine (TemplateEngine): template engine that is used to template the document
+        filename (str): filename of the document
+        renderer_options (RenderingOptions): options for the renderer
+
+    Returns (Callable): decorated function that takes the Interaction object and using the extended
+    QalibInteraction object
+    """
+    renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
+
+    def command(func: ItemCallback[T]) -> ItemInteractionCallback[T]:
+        @wraps(func)
+        async def function(item: discord.ui.Item, inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
+            return await func(item, QalibInteraction(inter, renderer_instance), *args, **kwargs)
 
         return function
 
