@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import Dict, TypeVar, Iterable, List, Literal, Optional, Type, TypedDict, Union, cast, Callable
 
-import discord
-import discord.emoji
 import discord.partial_emoji
 import emoji
 from discord import ui, utils
 from typing_extensions import NotRequired, Concatenate, ParamSpec
 
-from qalib.translators import Callback, CallbackMethod, M, N
+from qalib.translators import Callback, M, N
 from qalib.translators.element.types.embed import Emoji
 
 P = ParamSpec("P")
@@ -113,22 +111,6 @@ class TextInputComponent(TextInputRaw):
     callback: NotRequired[Callback]
 
 
-def make_a_method_from_callback(callback: Callback) -> CallbackMethod:
-    """This function creates a method from a callback.
-
-    Args:
-        callback (Callback): the callback to be used.
-
-    Returns:
-        Callable: the method.
-    """
-
-    async def method(_, interaction: discord.Interaction):
-        await callback(interaction)
-
-    return method
-
-
 def make_channel_types(channel_types: Iterable[ChannelType]) -> List[discord.ChannelType]:
     return [CHANNEL_TYPES[channel_type] for channel_type in channel_types]
 
@@ -156,9 +138,10 @@ def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
 def create_button(component: ButtonComponent) -> ui.Button:
     button: Type[ui.Button] = ui.Button
     if "callback" in component:
+        callback = component["callback"]
         button = cast(
             Type[ui.Button],
-            type(ui.Button.__name__, (ui.Button,), {"callback": make_a_method_from_callback(component["callback"])}),
+            type(ui.Button.__name__, (ui.Button,), {"callback": callback}),
         )
 
     return button(
@@ -175,12 +158,13 @@ def create_button(component: ButtonComponent) -> ui.Button:
 def create_channel_select(**kwargs) -> ui.ChannelSelect:
     channel_select: Type[ui.ChannelSelect] = ui.ChannelSelect
     if kwargs.get("callback") is not None:
+        callback = kwargs["callback"]
         channel_select = cast(
             Type[ui.ChannelSelect],
             type(
                 ui.ChannelSelect.__name__,
                 (ui.ChannelSelect,),
-                {"callback": make_a_method_from_callback(kwargs["callback"])},
+                {"callback": callback},
             ),
         )
     return channel_select(
@@ -197,9 +181,10 @@ def create_channel_select(**kwargs) -> ui.ChannelSelect:
 def create_select(**kwargs) -> ui.Select:
     select: Type[ui.Select] = ui.Select
     if kwargs.get("callback") is not None:
+        callback = kwargs["callback"]
         select = cast(
             Type[ui.Select],
-            type(ui.Select.__name__, (ui.Select,), {"callback": make_a_method_from_callback(kwargs["callback"])}),
+            type(ui.Select.__name__, (ui.Select,), {"callback": callback}),
         )
 
     return select(
@@ -215,9 +200,10 @@ def create_select(**kwargs) -> ui.Select:
 
 def create_type_select(select: SelectTypes, **kwargs) -> Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]:
     if kwargs.get("callback") is not None:
+        callback = kwargs["callback"]
         select = cast(
             SelectTypes,
-            type(select.__name__, (select,), {"callback": make_a_method_from_callback(kwargs["callback"])}),
+            type(select.__name__, (select,), {"callback": callback}),
         )
 
     return select(
@@ -233,12 +219,13 @@ def create_type_select(select: SelectTypes, **kwargs) -> Union[ui.RoleSelect, ui
 def create_text_input(text_input_component: TextInputComponent) -> ui.TextInput:
     text_input: Type[ui.TextInput] = ui.TextInput
     if "callback" in text_input_component:
+        callback = text_input_component["callback"]
         text_input = cast(
             Type[ui.TextInput],
             type(
                 ui.TextInput.__name__,
                 (ui.TextInput,),
-                {"callback": make_a_method_from_callback(text_input_component["callback"])},
+                {"callback": callback},
             ),
         )
     return text_input(
