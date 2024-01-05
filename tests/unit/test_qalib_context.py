@@ -443,7 +443,7 @@ class TestEmbedManager(unittest.IsolatedAsyncioTestCase):
     async def test_button_callback(self, *_: mock.mock.MagicMock):
         invoked = False
 
-        async def callback(interaction: discord.Interaction):
+        async def callback(item: discord.ui.Item, interaction: discord.Interaction):
             nonlocal invoked
             invoked = True
 

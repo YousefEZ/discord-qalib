@@ -15,7 +15,7 @@ from tests.unit.types import FullEmbeds, SelectEmbeds, ErrorEmbeds, CompleteJSON
 from tests.unit.utils import render_message
 
 
-async def callback_mocked(_: discord.Interaction) -> None:
+async def callback_mocked(item: discord.ui.Item, _: discord.Interaction) -> None:
     return None
 
 
