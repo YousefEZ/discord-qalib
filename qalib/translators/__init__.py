@@ -5,14 +5,12 @@ import discord
 from discord.abc import Snowflake
 from typing_extensions import ParamSpec
 
-V_co = TypeVar("V_co", bound=discord.ui.View, covariant=True)
 
 M = TypeVar("M")
 N = TypeVar("N")
 P = ParamSpec("P")
 
-Callback = Callable[[discord.Interaction], Awaitable[None]]
-CallbackMethod = Callable[[discord.ui.Item[V_co], discord.Interaction], Awaitable[None]]
+Callback = Callable[[discord.ui.Item, discord.Interaction], Awaitable[None]]
 
 
 @dataclass

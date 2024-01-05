@@ -80,7 +80,7 @@ class Menu:
         """
 
         def create_view(index: int) -> Callback:
-            async def callback(interaction: discord.Interaction):
+            async def callback(item: discord.ui.Item, interaction: discord.Interaction):
                 await interaction.response.edit_message(
                     **self._pages[index].convert_to_interaction_message().as_edit().dict()
                 )
