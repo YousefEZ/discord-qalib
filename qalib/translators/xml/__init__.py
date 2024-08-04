@@ -43,7 +43,6 @@ class XMLTemplater(Templater):
         Args:
             source (str): the text of the XML file
         """
-        super().__init__(source)
         self.source = source
 
     def template(self, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> str:
