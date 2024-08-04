@@ -39,7 +39,6 @@ class JSONTemplater(Templater):
         Args:
             source (str): source text that is parsed
         """
-        super().__init__(source)
         self._data = json.loads(source)
 
     def recursive_template(self, obj: OBJ, template_engine: TemplateEngine, keywords: Dict[str, Any]) -> OBJ:

@@ -13,7 +13,6 @@ from qalib.translators.json import components
 class JSONEmbedBaseAdapter(EmbedBaseAdapter, ABC):
 
     def __init__(self, embed: components.Embed):
-        super().__init__()
         self._embed = embed
 
     @property

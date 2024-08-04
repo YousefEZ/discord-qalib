@@ -16,7 +16,6 @@ MAX_FIELD_LENGTH = 1_024
 class ExpansiveEmbedAdapter(EmbedBaseAdapter):
 
     def __init__(self, page_number_key: Optional[str] = None):
-        super().__init__()
         self._page_number_key = page_number_key
 
     @property
