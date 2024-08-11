@@ -24,7 +24,6 @@ ViewEventsCallbacks = Union[TimeoutEvent, CheckEvent, ErrorEvent]
 
 
 class QalibView(ui.View):
-
     def __init__(self, events: EventCallbacks, timeout: Optional[float] = 180) -> None:
         super().__init__(timeout=timeout)
         self._events = events

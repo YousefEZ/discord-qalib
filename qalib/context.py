@@ -59,12 +59,12 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         return confirm.content if confirm is not None else None
 
     async def rendered_send(
-            self,
-            identifier: K_contra,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallbacks] = None,
-            **kwargs,
+        self,
+        identifier: K_contra,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        events: Optional[EventCallbacks] = None,
+        **kwargs,
     ) -> discord.message.Message:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
         message.
@@ -88,12 +88,12 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         return await self.send(**{**message.convert_to_context_message().dict(), **kwargs})
 
     async def display(
-            self,
-            key: K_contra,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallbacks] = None,
-            **kwargs,
+        self,
+        key: K_contra,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        events: Optional[EventCallbacks] = None,
+        **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
         message can take place.
@@ -131,12 +131,12 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
 
     @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def menu(
-            self,
-            key: K_contra,
-            callbacks: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallbacks] = None,
-            **kwargs,
+        self,
+        key: K_contra,
+        callbacks: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        events: Optional[EventCallbacks] = None,
+        **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.
 

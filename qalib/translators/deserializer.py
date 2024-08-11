@@ -37,11 +37,7 @@ class Deserializer(Protocol[K_contra]):
     deserializing the document into embeds and views."""
 
     def deserialize(
-            self,
-            source: str,
-            key: K_contra,
-            callables: Dict[str, Callback],
-            events: EventCallbacks
+        self, source: str, key: K_contra, callables: Dict[str, Callback], events: EventCallbacks
     ) -> ReturnType:
         """This method is used to deserialize a document into an embed and a view.
 

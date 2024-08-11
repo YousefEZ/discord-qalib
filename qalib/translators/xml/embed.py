@@ -29,7 +29,6 @@ def filter_tabs(text: Optional[str]) -> str:
 
 
 class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
-
     def __init__(self, raw_embed: ElementTree.Element):
         self._raw_embed = raw_embed
 
@@ -148,7 +147,6 @@ class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
 
 
 class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
-
     @property
     def fields(self) -> List[Field]:
         """Renders the fields from an ElementTree.Element.
@@ -171,7 +169,6 @@ class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
 
 
 class XMLExpansiveEmbedAdapter(XMLBaseEmbedAdapter, ExpansiveEmbedAdapter):
-
     def __init__(self, embed: ElementTree.Element, page_number_key: Optional[str] = None):
         super().__init__(embed)
         ExpansiveEmbedAdapter.__init__(self, page_number_key)

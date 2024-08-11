@@ -247,10 +247,10 @@ def pipe(element: Optional[T], func: Callable[[T], N]) -> Optional[N]:
 
 
 def apply(
-        element: Optional[M],
-        func: Callable[Concatenate[M, P], N],
-        *args: P.args,
-        **kwargs: P.kwargs,
+    element: Optional[M],
+    func: Callable[Concatenate[M, P], N],
+    *args: P.args,
+    **kwargs: P.kwargs,
 ) -> Optional[N]:
     if element is None:
         return None

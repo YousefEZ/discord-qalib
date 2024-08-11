@@ -11,7 +11,6 @@ from qalib.translators.json import components
 
 
 class JSONEmbedBaseAdapter(EmbedBaseAdapter, ABC):
-
     def __init__(self, embed: components.Embed):
         self._embed = embed
 
@@ -67,7 +66,6 @@ class JSONEmbedBaseAdapter(EmbedBaseAdapter, ABC):
 
 
 class JSONEmbedAdapter(JSONEmbedBaseAdapter, EmbedAdapter):
-
     @property
     def fields(self) -> List[components.Field]:
         return self._embed.get("fields", [])

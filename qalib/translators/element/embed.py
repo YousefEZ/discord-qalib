@@ -11,7 +11,6 @@ __all__ = "EmbedAdapter", "EmbedData", "render"
 
 
 class EmbedAdapter(EmbedBaseAdapter, Protocol):
-
     @property
     def fields(self) -> List[Field]:
         raise NotImplementedError
@@ -28,7 +27,7 @@ def render(embed_data: Union[EmbedData, EmbedAdapter]) -> discord.Embed:
         colour=embed_data.colour,
         type=embed_data.type,
         description=embed_data.description,
-        timestamp=embed_data.timestamp
+        timestamp=embed_data.timestamp,
     )
 
     for field in embed_data.fields:
