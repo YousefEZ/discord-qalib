@@ -8,6 +8,7 @@ from qalib.renderer import Renderer
 from qalib.template_engines.formatter import Formatter
 from qalib.template_engines.jinja2 import Jinja2
 from qalib.translators import Message
+from qalib.translators.menu import Menu
 from tests.unit.types import FullEmbeds, ErrorEmbeds, SimpleEmbeds, JinjaEmbeds, CompleteEmbeds
 from tests.unit.utils import render_message
 
@@ -156,8 +157,13 @@ class TestXMLRenderer(unittest.TestCase):
         template = "tests/routes/jinja-test.xml"
 
         renderer: Renderer[JinjaEmbeds] = Renderer(Jinja2(), template)
-        message = renderer.render("test5")
-        self.assertEqual(len(message), 2)
+        messages = renderer.render("test5")
+        assert isinstance(messages, Menu)
+        self.assertEqual(len(messages), 2)
+        for idx in range(len(messages)):
+            embed = messages[idx].embed
+            assert embed is not None
+            self.assertEqual(embed.fields, 2)
 
     def test_expansive_no_footer(self, _: mock.mock.MagicMock):
         template = "tests/routes/jinja-test.xml"
@@ -185,6 +191,7 @@ class TestXMLRenderer(unittest.TestCase):
         message = renderer.render("test1")
         assert isinstance(message, Message)
         assert message.embed is not None
+        assert message.view is not None
         self.assertEqual(len(message.embed.fields), 3)
         self.assertEqual(len(message.view.children), 1)
 
