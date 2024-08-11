@@ -50,11 +50,11 @@ class Renderer(Generic[K_contra]):
         return self._parser
 
     def render(
-            self,
-            key: K_contra,
-            callbacks: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallbacks] = None
+        self,
+        key: K_contra,
+        callbacks: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        events: Optional[EventCallbacks] = None,
     ) -> ReturnType:
         """This method is used to render an embed and a view, and places it in a NamedTuple
 

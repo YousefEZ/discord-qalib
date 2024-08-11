@@ -78,6 +78,7 @@ class Author(TypedDict):
 
 class Emoji(TypedDict):
     """This class is used to represent the blueprint of an emoji."""
+
     name: str
     id: NotRequired[int]
     animated: NotRequired[bool]
@@ -98,7 +99,6 @@ def make_colour(colour: str) -> Union[discord.Colour, int]:
 
 
 class EmbedBaseAdapter(Protocol):
-
     @property
     def title(self) -> str:
         raise NotImplementedError

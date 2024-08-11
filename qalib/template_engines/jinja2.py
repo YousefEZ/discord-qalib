@@ -6,7 +6,6 @@ from qalib.template_engines.template_engine import TemplateEngine
 
 
 class Jinja2(TemplateEngine):
-
     def __init__(self, environment: Optional[Environment] = None):
         self._environment = environment or Environment(loader=BaseLoader(), autoescape=True)
 

@@ -29,7 +29,6 @@ def filter_tabs(text: Optional[str]) -> str:
 
 
 class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
-
     def __init__(self, raw_embed: ElementTree.Element):
         self._raw_embed = raw_embed
 
@@ -141,12 +140,13 @@ class XMLBaseEmbedAdapter(EmbedAdapter, ABC):
 
         Returns (Optional[int]): An integer containing the raw color.
         """
-        return make_colour(self.get_element_text(self._raw_embed.find("color")) or self.get_element_text(
-            self._raw_embed.find("colour")))
+        return make_colour(
+            self.get_element_text(self._raw_embed.find("color"))
+            or self.get_element_text(self._raw_embed.find("colour"))
+        )
 
 
 class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
-
     @property
     def fields(self) -> List[Field]:
         """Renders the fields from an ElementTree.Element.
@@ -154,21 +154,28 @@ class XMLEmbedAdapter(XMLBaseEmbedAdapter, EmbedAdapter):
         Returns (List[dict]): A list of dictionaries containing the raw fields.
         """
         fields_element = self._raw_embed.find("fields")
-        return [] if fields_element is None else [
-            {
-                "name": filter_tabs(self.get_element_text(field.find("name"))),
-                "value": filter_tabs(self.get_element_text(field.find("value"))),
-                "inline": field.get("inline", "").lower() == "true",
-            }
-            for field in fields_element.findall("field")
-        ]
+        return (
+            []
+            if fields_element is None
+            else [
+                {
+                    "name": filter_tabs(self.get_element_text(field.find("name"))),
+                    "value": filter_tabs(self.get_element_text(field.find("value"))),
+                    "inline": field.get("inline", "").lower() == "true",
+                }
+                for field in fields_element.findall("field")
+            ]
+        )
 
 
 class XMLExpansiveEmbedAdapter(XMLBaseEmbedAdapter, ExpansiveEmbedAdapter):
-
     def __init__(self, embed: ElementTree.Element, page_number_key: Optional[str] = None):
         super().__init__(embed)
         ExpansiveEmbedAdapter.__init__(self, page_number_key)
+
+    @property
+    def fields(self) -> List[Field]:
+        return [self.field]
 
     @property
     def field(self) -> Field:

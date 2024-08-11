@@ -172,6 +172,7 @@ class BaseMessage(Element):
 
 class RegularMessage(BaseMessage):
     """This class is used to represent the blueprint of a message."""
+
     embed: NotRequired[Embed]
 
 

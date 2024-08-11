@@ -14,7 +14,6 @@ MAX_FIELD_LENGTH = 1_024
 
 
 class ExpansiveEmbedAdapter(EmbedBaseAdapter):
-
     def __init__(self, page_number_key: Optional[str] = None):
         self._page_number_key = page_number_key
 
@@ -36,19 +35,19 @@ def _split_field(field: Field, key: Optional[str]) -> List[Field]:
     def compile_lines(end: Optional[int] = None) -> str:
         if end is None:
             return "\n".join([string.replace("\\n", "\n") for string in lines[start:]])
-        return "\n".join([string.replace("\\n", "\n") for string in lines[start: end]])
+        return "\n".join([string.replace("\\n", "\n") for string in lines[start:end]])
 
     def compile_field(end: Optional[int] = None) -> Field:
         return {
             "name": field["name"].replace(key, str(len(values) + 1)) if key else field["name"],
             "value": compile_lines(end).replace(key, str(len(values) + 1)) if key else compile_lines(end),
-            "inline": field.get("inline", True)
+            "inline": field.get("inline", True),
         }
 
     for i in range(len(lines)):
         diff_char = key is not None and len(str(len(values))) - len(key)
-        var_char: int = key is not None and lines[start: i + 1].count(key) * diff_char
-        if sum(map(len, lines[start: i + 1])) + var_char >= MAX_FIELD_LENGTH:
+        var_char: int = key is not None and lines[start : i + 1].count(key) * diff_char
+        if sum(map(len, lines[start : i + 1])) + var_char >= MAX_FIELD_LENGTH:
             values.append(compile_field(i))
             start = i
 
@@ -59,9 +58,7 @@ def _split_field(field: Field, key: Optional[str]) -> List[Field]:
 _T = TypeVar("_T")
 
 
-def _page_key_guard(
-        func: Callable[[str, _T, int], _T]
-) -> Callable[[Optional[str], _T, int], _T]:
+def _page_key_guard(func: Callable[[str, _T, int], _T]) -> Callable[[Optional[str], _T, int], _T]:
     """A decorator that guards a function so that it only runs if the embed proxy has a page key.
 
     Args:
@@ -81,11 +78,7 @@ def _page_key_guard(
 
 
 @_page_key_guard
-def _replace_footer_with_page_key(
-        page_key: str,
-        footer: Optional[Footer],
-        page: int
-) -> Optional[Footer]:
+def _replace_footer_with_page_key(page_key: str, footer: Optional[Footer], page: int) -> Optional[Footer]:
     """Render the footer, if it exists, with the page key.
 
     Args:
@@ -101,10 +94,7 @@ def _replace_footer_with_page_key(
     if "text" not in footer:
         return footer
 
-    return {
-        "text": footer['text'].replace(page_key, str(page)),
-        "icon_url": footer['icon_url']
-    }
+    return {"text": footer['text'].replace(page_key, str(page)), "icon_url": footer['icon_url']}
 
 
 @_page_key_guard
@@ -123,16 +113,19 @@ def expand(embed: ExpansiveEmbedAdapter) -> List[discord.Embed]:
     """
 
     return [
-        render(EmbedData(
-            title=replace(embed.page_number_key, embed.title, page + 1),
-            colour=embed.colour,
-            type=embed.type,
-            description=replace(embed.page_number_key, embed.description, page + 1) if embed.description else None,
-            timestamp=embed.timestamp,
-            fields=[field],
-            footer=_replace_footer_with_page_key(embed.page_number_key, embed.footer, page + 1),
-            thumbnail=embed.thumbnail,
-            image=embed.image,
-            author=embed.author
-        )) for page, field in enumerate(_split_field(embed.field, embed.page_number_key))
+        render(
+            EmbedData(
+                title=replace(embed.page_number_key, embed.title, page + 1),
+                colour=embed.colour,
+                type=embed.type,
+                description=replace(embed.page_number_key, embed.description, page + 1) if embed.description else None,
+                timestamp=embed.timestamp,
+                fields=[field],
+                footer=_replace_footer_with_page_key(embed.page_number_key, embed.footer, page + 1),
+                thumbnail=embed.thumbnail,
+                image=embed.image,
+                author=embed.author,
+            )
+        )
+        for page, field in enumerate(_split_field(embed.field, embed.page_number_key))
     ]

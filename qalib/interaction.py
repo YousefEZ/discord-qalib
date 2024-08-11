@@ -58,12 +58,12 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
         self._displayed = False
 
     async def rendered_send(
-            self,
-            identifier: K_contra,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallbacks] = None,
-            **kwargs,
+        self,
+        identifier: K_contra,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        events: Optional[EventCallbacks] = None,
+        **kwargs,
     ) -> None:
         """Methods that is fires a message to the client and returns the message object. Doesn't save/keep track of the
         message.
@@ -94,12 +94,12 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
             return await self.response.send_modal(message)  # pyright: ignore [reportGeneralTypeIssues]
 
     async def display(
-            self,
-            key: K_contra,
-            callables: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            events: Optional[EventCallbacks] = None,
-            **kwargs,
+        self,
+        key: K_contra,
+        callables: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        events: Optional[EventCallbacks] = None,
+        **kwargs,
     ) -> None:
         """this is the main function that we use to send one message, and one message only. However, edits to that
         message can take place.
@@ -142,11 +142,11 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
 
     @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def menu(
-            self,
-            key: K_contra,
-            callbacks: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
-            **kwargs,
+        self,
+        key: K_contra,
+        callbacks: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
+        **kwargs,
     ) -> None:
         """This method is used to create a menu for the user to select from.
 
@@ -161,10 +161,10 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
 
     @deprecated(version="2.1.2", reason="Use rendered_send method instead")
     async def respond_with_modal(
-            self,
-            key: K_contra,
-            methods: Optional[Dict[str, Callback]] = None,
-            keywords: Optional[Dict[str, Any]] = None,
+        self,
+        key: K_contra,
+        methods: Optional[Dict[str, Callback]] = None,
+        keywords: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Method that is responsible for templating the document, and then deserializing the requested modal based on
         its key and sending it to the user.

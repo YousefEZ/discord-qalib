@@ -16,9 +16,19 @@ from qalib.translators.element.expansive import expand
 from qalib.translators.element.types.embed import Emoji
 from qalib.translators.events import EventCallbacks
 from qalib.translators.menu import Menu, MenuActions
-from qalib.translators.message_parsing import ButtonComponent, apply, create_button, make_emoji, \
-    create_select, make_channel_types, ChannelType, create_channel_select, create_type_select, create_text_input, \
-    TextInputComponent
+from qalib.translators.message_parsing import (
+    ButtonComponent,
+    apply,
+    create_button,
+    make_emoji,
+    create_select,
+    make_channel_types,
+    ChannelType,
+    create_channel_select,
+    create_type_select,
+    create_text_input,
+    TextInputComponent,
+)
 from qalib.translators.modal import ModalEvents, ModalEventsCallbacks, QalibModal
 from qalib.translators.templater import Templater
 from qalib.translators.view import QalibView
@@ -68,11 +78,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         raise KeyError("Key not found")
 
     def deserialize(
-            self,
-            source: str,
-            key: K_contra,
-            callables: Dict[str, Callback],
-            events: EventCallbacks
+        self, source: str, key: K_contra, callables: Dict[str, Callback], events: EventCallbacks
     ) -> ReturnType:
         """This method is used to deserialize the embed from the XML file.
 
@@ -89,11 +95,11 @@ class XMLDeserializer(Deserializer[K_contra]):
         return self.deserialize_element(document, element, callables, events)
 
     def deserialize_element(
-            self,
-            document: ElementTree.Element,
-            element: ElementTree.Element,
-            callables: Dict[str, Callback],
-            events: EventCallbacks
+        self,
+        document: ElementTree.Element,
+        element: ElementTree.Element,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> ReturnType:
         """This method is used to deserialize the embed from the XML file.
 
@@ -118,10 +124,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         raise TypeError(f"Unrecognized ElementType {element_type}")
 
     def deserialize_expansive_into_menu(
-            self,
-            element: ElementTree.Element,
-            callbacks: Dict[str, Callback],
-            events: EventCallbacks
+        self, element: ElementTree.Element, callbacks: Dict[str, Callback], events: EventCallbacks
     ) -> Menu:
         pages = self.deserialize_expansive(element, callbacks, events)
         timeout_element = element.find("timeout")
@@ -133,10 +136,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         return Menu(pages, timeout, arrows, events)
 
     def deserialize_expansive(
-            self,
-            element: ElementTree.Element,
-            callbacks: Dict[str, Callback],
-            events: EventCallbacks
+        self, element: ElementTree.Element, callbacks: Dict[str, Callback], events: EventCallbacks
     ) -> List[Message]:
         """Deserializes an embed from an XML file, and returns it as a Display object.
 
@@ -150,8 +150,10 @@ class XMLDeserializer(Deserializer[K_contra]):
         raw_embed = element.find("embed")
         assert raw_embed is not None, "Embed not found"
 
-        return [self.deserialize_message(element, callbacks, events, embed=e)
-                for e in expand(XMLExpansiveEmbedAdapter(raw_embed, element.get("page_number_key")))]
+        return [
+            self.deserialize_message(element, callbacks, events, embed=e)
+            for e in expand(XMLExpansiveEmbedAdapter(raw_embed, element.get("page_number_key")))
+        ]
 
     def deserialize_menu_arrows(self, arrows_view: ElementTree.Element) -> Dict[MenuActions, ButtonComponent]:
         """Deserializes the arrows of a menu from an XML file, and returns it as a dictionary.
@@ -172,11 +174,11 @@ class XMLDeserializer(Deserializer[K_contra]):
         return arrows
 
     def deserialize_message(
-            self,
-            message_tree: ElementTree.Element,
-            callables: Dict[str, Callback],
-            events: EventCallbacks,
-            **overrides: Any
+        self,
+        message_tree: ElementTree.Element,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
+        **overrides: Any,
     ) -> Message:
         """Deserializes an embed from an ElementTree.Element, and returns it as a Display object.
 
@@ -196,8 +198,8 @@ class XMLDeserializer(Deserializer[K_contra]):
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
             content=" ".join(filter_tabs(get_text(message_tree, "content")).split("\n"))
-            if apply(get_element(message_tree, "content"),
-                     lambda element: self.get_attribute(element, "strip")) == "true"
+            if apply(get_element(message_tree, "content"), lambda element: self.get_attribute(element, "strip"))
+            == "true"
             else filter_tabs(get_text(message_tree, "content")),
             tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
             nonce=apply(get_text(message_tree, "nonce"), int),
@@ -232,18 +234,19 @@ class XMLDeserializer(Deserializer[K_contra]):
         return message
 
     def deserialize_page(
-            self,
-            document: ElementTree.Element,
-            element: ElementTree.Element,
-            callables: Dict[str, Callback],
-            events: EventCallbacks,
+        self,
+        document: ElementTree.Element,
+        element: ElementTree.Element,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> List[Message]:
         if element.tag == "page":
             element = self._get_element(document, self.get_attribute(element, "key"))
         element_type = ElementTypes.from_str(element.tag)
 
         page_deserializers: Dict[
-            ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback], EventCallbacks], List[Message]]] = {
+            ElementTypes, Callable[[ElementTree.Element, Dict[str, Callback], EventCallbacks], List[Message]]
+        ] = {
             ElementTypes.MESSAGE: lambda page, callback, m_events: [self.deserialize_message(page, callback, m_events)],
             ElementTypes.EXPANSIVE: self.deserialize_expansive,
         }
@@ -251,12 +254,12 @@ class XMLDeserializer(Deserializer[K_contra]):
         return page_deserializers[element_type](element, callables, events)
 
     def deserialize_menu(
-            self,
-            element: ElementTree.Element,
-            callables: Dict[str, Callback],
-            events: EventCallbacks,
-            *,
-            document: ElementTree.Element,
+        self,
+        element: ElementTree.Element,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
+        *,
+        document: ElementTree.Element,
     ) -> Menu:
         """Deserializes a menu from an XML file, by generating a list of displays that are connected by buttons in their
         views to navigate between them.
@@ -285,10 +288,10 @@ class XMLDeserializer(Deserializer[K_contra]):
         return Menu(pages, timeout, arrows, events)
 
     def deserialize_modal(
-            self,
-            element: ElementTree.Element,
-            callables: Dict[str, Callback],
-            events: Dict[ModalEvents, ModalEventsCallbacks]
+        self,
+        element: ElementTree.Element,
+        callables: Dict[str, Callback],
+        events: Dict[ModalEvents, ModalEventsCallbacks],
     ) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
 
@@ -314,7 +317,7 @@ class XMLDeserializer(Deserializer[K_contra]):
 
     @staticmethod
     def _render_reference(
-            reference_tree: ElementTree.Element,
+        reference_tree: ElementTree.Element,
     ) -> discord.MessageReference:
         """Renders a message reference object from an ElementTree.Element.
 
@@ -354,7 +357,7 @@ class XMLDeserializer(Deserializer[K_contra]):
             return self.get_attribute(element, "mention").lower() != "false"
 
         def extract_tags(
-                element: Optional[ElementTree.Element], child_tag: Optional[str] = None
+            element: Optional[ElementTree.Element], child_tag: Optional[str] = None
         ) -> bool | Sequence[Snowflake]:
             if element is None:
                 return True
@@ -378,10 +381,10 @@ class XMLDeserializer(Deserializer[K_contra]):
         )
 
     def _render_view(
-            self,
-            raw_view: ElementTree.Element,
-            callables: Dict[str, Callback],
-            events: EventCallbacks,
+        self,
+        raw_view: ElementTree.Element,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> ui.View:
         """Renders a view from an ElementTree.Element.
 
@@ -518,9 +521,9 @@ class XMLDeserializer(Deserializer[K_contra]):
         return options
 
     def _render_select(
-            self,
-            component: ElementTree.Element,
-            callback: Optional[Callback],
+        self,
+        component: ElementTree.Element,
+        callback: Optional[Callback],
     ) -> ui.Select:
         """Renders a select based on the template in the element, and formatted values given by the keywords.
 
@@ -561,10 +564,10 @@ class XMLDeserializer(Deserializer[K_contra]):
         return select
 
     def _render_type_select(
-            self,
-            component: ElementTree.Element,
-            callback: Optional[Callback],
-            select_base: Type[ui.UserSelect | ui.RoleSelect | ui.MentionableSelect],
+        self,
+        component: ElementTree.Element,
+        callback: Optional[Callback],
+        select_base: Type[ui.UserSelect | ui.RoleSelect | ui.MentionableSelect],
     ) -> ui.UserSelect | ui.RoleSelect | ui.MentionableSelect:
         """Renders a type select based on the template in the element, and formatted values given by the keywords.
 
@@ -617,9 +620,7 @@ class XMLDeserializer(Deserializer[K_contra]):
         renderer: Callable[[ElementTree.Element, Optional[Callback]], ui.Item] = components[component.tag]
         return renderer(component, callback)
 
-    def render_components(
-            self, view: ElementTree.Element, callables: Dict[str, Callback]
-    ) -> List[ui.Item]:
+    def render_components(self, view: ElementTree.Element, callables: Dict[str, Callback]) -> List[ui.Item]:
         """Renders a list of components based on the identifier given.
 
         Args:

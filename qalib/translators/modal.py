@@ -23,17 +23,18 @@ ModalEventsCallbacks = Union[TimeoutEvent, CheckEvent, ErrorEvent, SubmitEvent]
 
 
 class QalibModal(ui.Modal):
-
     def __init__(
-            self,
-            title: Optional[str] = None,
-            timeout: Optional[float] = 180,
-            custom_id: Optional[str] = None,
-            events: Optional[Dict[ModalEvents, ModalEventsCallbacks]] = None
+        self,
+        title: Optional[str] = None,
+        timeout: Optional[float] = 180,
+        custom_id: Optional[str] = None,
+        events: Optional[Dict[ModalEvents, ModalEventsCallbacks]] = None,
     ) -> None:
-        super().__init__(title=MISSING if title is None else title,
-                         timeout=timeout,
-                         custom_id=MISSING if custom_id is None else custom_id)
+        super().__init__(
+            title=MISSING if title is None else title,
+            timeout=timeout,
+            custom_id=MISSING if custom_id is None else custom_id,
+        )
         self._events = {} if events is None else events
 
     async def on_timeout(self) -> None:
