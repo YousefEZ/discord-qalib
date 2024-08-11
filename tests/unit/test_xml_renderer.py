@@ -163,7 +163,7 @@ class TestXMLRenderer(unittest.TestCase):
         for idx in range(len(messages)):
             embed = messages[idx].embed
             assert embed is not None
-            self.assertEqual(embed.fields, 2)
+            self.assertEqual(embed.fields, 1)
 
     def test_expansive_no_footer(self, _: mock.mock.MagicMock):
         template = "tests/routes/jinja-test.xml"
