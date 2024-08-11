@@ -9,8 +9,9 @@ from typing_extensions import ParamSpec
 M = TypeVar("M")
 N = TypeVar("N")
 P = ParamSpec("P")
+I = TypeVar("I", bound=discord.ui.Item, covariant=True)
 
-Callback = Callable[[discord.ui.Item, discord.Interaction], Awaitable[None]]
+Callback = Callable[[I, discord.Interaction], Awaitable[None]]
 
 
 @dataclass
@@ -74,7 +75,7 @@ class ContextMessage(BaseMessage):
             suppress=self.suppress_embeds,
             delete_after=self.delete_after,
             allowed_mentions=self.allowed_mentions,
-            view=self.view
+            view=self.view,
         )
 
 
@@ -94,7 +95,7 @@ class InteractionMessage(BaseMessage):
             attachments=self.files,
             delete_after=self.delete_after,
             allowed_mentions=self.allowed_mentions,
-            view=self.view
+            view=self.view,
         )
 
 
