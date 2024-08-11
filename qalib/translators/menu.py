@@ -25,7 +25,7 @@ PreviousButton: ButtonComponent = {"emoji": "⬅️", "style": "primary"}
 NextButton: ButtonComponent = {"emoji": "➡️", "style": "primary"}
 DefaultButtons: Dict[MenuActions, ButtonComponent] = {
     MenuActions.NEXT: NextButton,
-    MenuActions.PREVIOUS: PreviousButton
+    MenuActions.PREVIOUS: PreviousButton,
 }
 
 
@@ -39,11 +39,11 @@ class Menu:
     __slots__ = "_pages", "_timeout", "_arrows", "_events", "_active_page", "_front_page", "_linked"
 
     def __init__(
-            self,
-            pages: List[Message],
-            timeout: Optional[float] = None,
-            arrows: Optional[Dict[MenuActions, ButtonComponent]] = None,
-            events: Optional[EventCallbacks] = None
+        self,
+        pages: List[Message],
+        timeout: Optional[float] = None,
+        arrows: Optional[Dict[MenuActions, ButtonComponent]] = None,
+        events: Optional[EventCallbacks] = None,
     ) -> None:
         self._pages = pages
         self._timeout = timeout
@@ -65,11 +65,7 @@ class Menu:
     async def call_event(self, event: MenuEvents) -> None:
         await cast(MenuChangeEvent, self._events[event])(self)
 
-    def _create_arrows(
-            self,
-            left: Optional[int] = None,
-            right: Optional[int] = None
-    ) -> List[discord.ui.Button]:
+    def _create_arrows(self, left: Optional[int] = None, right: Optional[int] = None) -> List[discord.ui.Button]:
         """This function creates the arrow buttons that are used to navigate between the pages.
 
         Args:
@@ -80,7 +76,7 @@ class Menu:
         """
 
         def create_view(index: int) -> Callback:
-            async def callback(item: discord.ui.Item, interaction: discord.Interaction):
+            async def callback(_: discord.ui.Item, interaction: discord.Interaction):
                 await interaction.response.edit_message(
                     **self._pages[index].convert_to_interaction_message().as_edit().dict()
                 )
@@ -96,7 +92,8 @@ class Menu:
             if display is None:
                 return
             button = deepcopy(
-                self._arrows[action] if self._arrows is not None and action in self._arrows else DefaultButtons[action])
+                self._arrows[action] if self._arrows is not None and action in self._arrows else DefaultButtons[action]
+            )
             button["callback"] = create_view(display)
             buttons.append(create_button(button))
 
