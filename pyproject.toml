@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "discord-qalib"
-version = "2.5.7"
+version = "2.5.8"
 authors = [
     { name = "YousefEZ", email = "syberprojects@gmail.com" },
 ]
@@ -20,7 +20,7 @@ dynamic = ["dependencies", "license"]
 
 [tool.poetry]
 name = "discord-qalib"
-version = "2.5.7"
+version = "2.5.8"
 authors = ["YousefEZ <syberprojects@gmail.com>", ]
 description = "Discord library built on discord.py to simplify source code by rendering templates of embeds and menus"
 packages = [{ include = "qalib" }]
