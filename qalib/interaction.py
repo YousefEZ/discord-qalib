@@ -38,7 +38,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
             else interaction
         )
         self._renderer = renderer
-        self._displayed = False
+        self._displayed = getattr(interaction, "_displayed", False)
 
     async def rendered_send(
         self,
