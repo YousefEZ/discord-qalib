@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, cast
+from typing import Any, Dict, Generic, Optional, Union
 
 import discord
 from deprecated import deprecated
@@ -12,48 +14,29 @@ from qalib.translators.deserializer import K_contra
 from qalib.translators.events import EventCallbacks
 from qalib.translators.menu import Menu
 
-if TYPE_CHECKING:
-    from discord.types.interactions import Interaction as InteractionPayload
-
-
-def create_interaction_payload(interaction: discord.Interaction) -> Dict[str, Any]:
-    # pylint: disable=protected-access
-    # noinspection PyProtectedMember
-    return {
-        "id": interaction.id,
-        "type": int(interaction.type.value),
-        "data": interaction.data,
-        "token": interaction.token,
-        "version": interaction.version,
-        "channel_id": interaction.channel_id,
-        "guild_id": interaction.guild_id,
-        "application_id": interaction.application_id,
-        "locale": interaction.locale,
-        "guild_locale": interaction.guild_locale,
-        "app_permissions": interaction._app_permissions,
-    }
-
 
 class QalibInteraction(discord.Interaction, Generic[K_contra]):
     """The QalibInteraction class is a subclass of discord.Interaction, and is used to add additional functionality to
     the interaction. It is meant to be used in the on_interaction event, and is responsible for deserializing the
     requested modal and sending it to the user."""
 
-    def __init__(self, interaction: discord.Interaction, renderer: Renderer[K_contra]):
-        """Constructor method for the QalibInteraction class."""
-        data = create_interaction_payload(interaction)
-        if TYPE_CHECKING:
-            super().__init__(
-                data=(cast(InteractionPayload, data)),
-                state=interaction._state,
-            )
-        else:
-            super().__init__(
-                data=data,
-                state=interaction._state,
-            )
-        self.message = interaction.message
-        self.user = interaction.user
+    __slots__ = discord.Interaction.__slots__ + ("_renderer", "_displayed", "_wrapped")
+
+    def __init__(
+        self,
+        interaction: Union[QalibInteraction[Any], discord.Interaction],
+        renderer: Renderer[K_contra],
+    ):
+        for attr in discord.Interaction.__slots__:
+            try:
+                setattr(self, attr, getattr(interaction, attr))
+            except AttributeError:
+                pass
+        self._wrapped = (
+            interaction._wrapped
+            if isinstance(interaction, QalibInteraction)
+            else interaction
+        )
         self._renderer = renderer
         self._displayed = False
 
@@ -121,9 +104,16 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
 
         assert isinstance(message, Message)
         if self._displayed:
-            await self._display(**{**message.convert_to_interaction_message().as_edit().dict(), **kwargs})
+            await self._display(
+                **{
+                    **message.convert_to_interaction_message().as_edit().dict(),
+                    **kwargs,
+                }
+            )
             return
-        await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
+        await self._display(
+            **{**message.convert_to_interaction_message().dict(), **kwargs}
+        )
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client, and editing the message if there is one

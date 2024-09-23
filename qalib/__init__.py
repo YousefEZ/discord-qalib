@@ -4,6 +4,7 @@ Extensions to the Rapptz Discord.py library, adding the use of templating on emb
 :copyright: (c) 2022-present YousefEZ
 :license: MIT, see LICENSE for more details.
 """
+
 from __future__ import annotations
 
 from functools import wraps
@@ -40,14 +41,20 @@ def qalib_context(
 
     Returns (QalibContext): decorated function that takes the Context object and using the extended QalibContext object
     """
-    renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
+    renderer_instance: Renderer[str] = Renderer(
+        template_engine, filename, *renderer_options
+    )
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
 
             @wraps(func)
-            async def method(self: commands.Cog, ctx: commands.Context, *args: Any, **kwargs: Any) -> T:
-                return await func(self, QalibContext(ctx, renderer_instance), *args, **kwargs)
+            async def method(
+                self: commands.Cog, ctx: commands.Context, *args: Any, **kwargs: Any
+            ) -> T:
+                return await func(
+                    self, QalibContext(ctx, renderer_instance), *args, **kwargs
+                )
 
             return method
 
@@ -74,7 +81,9 @@ def qalib_interaction(
     Returns (Callable): decorated function that takes the Interaction object and using the extended
     QalibInteraction object
     """
-    renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
+    renderer_instance: Renderer[str] = Renderer(
+        template_engine, filename, *renderer_options
+    )
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         if discord.utils.is_inside_class(func):
@@ -82,17 +91,21 @@ def qalib_interaction(
             @wraps(func)
             async def method(
                 self: commands.Cog,
-                inter: discord.Interaction,
+                inter: discord.Interaction | QalibInteraction[Any],
                 *args: Any,
                 **kwargs: Any,
             ) -> T:
-                return await func(self, QalibInteraction(inter, renderer_instance), *args, **kwargs)
+                return await func(
+                    self, QalibInteraction(inter, renderer_instance), *args, **kwargs
+                )
 
             return method
 
         @wraps(func)
         async def function(inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
-            return await func(QalibInteraction(inter, renderer_instance), *args, **kwargs)
+            return await func(
+                QalibInteraction(inter, renderer_instance), *args, **kwargs
+            )
 
         return function
 
@@ -112,12 +125,18 @@ def qalib_item_interaction(
     Returns (Callable): decorated function that takes the Interaction object and using the extended
     QalibInteraction object
     """
-    renderer_instance: Renderer[str] = Renderer(template_engine, filename, *renderer_options)
+    renderer_instance: Renderer[str] = Renderer(
+        template_engine, filename, *renderer_options
+    )
 
     def command(func: Callable[..., Coro[T]]) -> Callable[..., Coro[T]]:
         @wraps(func)
-        async def function(item: discord.ui.Item, inter: discord.Interaction, *args: Any, **kwargs: Any) -> T:
-            return await func(item, QalibInteraction(inter, renderer_instance), *args, **kwargs)
+        async def function(
+            item: discord.ui.Item, inter: discord.Interaction, *args: Any, **kwargs: Any
+        ) -> T:
+            return await func(
+                item, QalibInteraction(inter, renderer_instance), *args, **kwargs
+            )
 
         return function
 
