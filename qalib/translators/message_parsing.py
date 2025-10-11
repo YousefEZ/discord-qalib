@@ -15,6 +15,7 @@ from typing import (
     Callable,
 )
 
+import discord_emoji as de
 import discord.partial_emoji
 import emoji
 from discord import ui, utils
@@ -144,7 +145,7 @@ def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
         return raw_emoji["name"]
 
     if "id" not in raw_emoji:
-        return emoji.emojize(":" + raw_emoji["name"] + ":")
+        return de.to_unicode(raw_emoji["name"])
 
     string = (
         f"a:{raw_emoji['name']}:"
