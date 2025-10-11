@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Discord library built on discord.py to simplify source code by rendering templates of embeds and menus"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -43,7 +43,7 @@ combine_star = true
 line_length = 120
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 mock = "^5.0.0"
 typing-extensions = "^4.4.0"
 discord-py = "^2.1.0"
