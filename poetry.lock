@@ -290,6 +290,18 @@ files = [
 "discord.py" = ">=2.3.2"
 
 [[package]]
+name = "discord-emoji"
+version = "1.4.2"
+description = "Converter between discord emoji and unicode emoji."
+optional = false
+python-versions = ">=3.9,<4.0"
+groups = ["main"]
+files = [
+    {file = "discord_emoji-1.4.2-py3-none-any.whl", hash = "sha256:faccb77aab5f5052d3a9ad53b55c7fa4325e7f0593080027978a0b50cfb05591"},
+    {file = "discord_emoji-1.4.2.tar.gz", hash = "sha256:61c60a868c86223c5881c855ed52ef2924ab1b6f4be002b276bd2a1b62bb4fa4"},
+]
+
+[[package]]
 name = "discord-py"
 version = "2.6.4"
 description = "A Python wrapper for the Discord API"
@@ -1191,4 +1203,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "dc051a54f9e89aa75b60ca73ceffea58bdee59fb4c7678239c66ad4edc80da11"
+content-hash = "a898779d3f81fe9a523e8d094a98d6ad10ba625da63ee2242eb9891255f726bb"
