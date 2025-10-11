@@ -58,7 +58,9 @@ def _split_field(field: Field, key: Optional[str]) -> List[Field]:
 _T = TypeVar("_T")
 
 
-def _page_key_guard(func: Callable[[str, _T, int], _T]) -> Callable[[Optional[str], _T, int], _T]:
+def _page_key_guard(
+    func: Callable[[str, _T, int], _T],
+) -> Callable[[Optional[str], _T, int], _T]:
     """A decorator that guards a function so that it only runs if the embed proxy has a page key.
 
     Args:
@@ -94,7 +96,10 @@ def _replace_footer_with_page_key(page_key: str, footer: Optional[Footer], page:
     if "text" not in footer:
         return footer
 
-    return {"text": footer['text'].replace(page_key, str(page)), "icon_url": footer['icon_url']}
+    return {
+        "text": footer["text"].replace(page_key, str(page)),
+        "icon_url": footer["icon_url"],
+    }
 
 
 @_page_key_guard

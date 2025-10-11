@@ -11,7 +11,12 @@ from discord.abc import Snowflake
 
 from qalib.template_engines.template_engine import TemplateEngine
 from qalib.translators import Callback, Message, DiscordIdentifier
-from qalib.translators.deserializer import Deserializer, K_contra, ReturnType, ElementTypes
+from qalib.translators.deserializer import (
+    Deserializer,
+    K_contra,
+    ReturnType,
+    ElementTypes,
+)
 from qalib.translators.element.embed import render
 from qalib.translators.element.expansive import expand
 from qalib.translators.events import EventCallbacks
@@ -24,13 +29,9 @@ from qalib.translators.json.components import (
     ChannelSelect,
     ComponentType,
     Components,
-    Timestamp,
-    ExpansiveEmbed,
     File,
     AllowedMentions,
-    MessageReference,
     View,
-    BaseMessage,
     RegularMessage,
     Arrows,
     ExpansiveMessage,
@@ -111,7 +112,11 @@ class JSONTemplater(Templater):
 
 class JSONDeserializer(Deserializer[K_contra]):
     def deserialize(
-        self, source: str, key: K_contra, callables: Dict[str, Callback], events: EventCallbacks
+        self,
+        source: str,
+        key: K_contra,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> ReturnType:
         """Method to deserialize a source into a Display object
 
@@ -128,7 +133,11 @@ class JSONDeserializer(Deserializer[K_contra]):
         return self.deserialize_element(document, element, callables, events)
 
     def deserialize_element(
-        self, document: Document, element: Elements, callables: Dict[str, Callback], events: EventCallbacks
+        self,
+        document: Document,
+        element: Elements,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> ReturnType:
         """Method to deserialize an element into a Display object
 
@@ -143,14 +152,20 @@ class JSONDeserializer(Deserializer[K_contra]):
         element_type: Optional[ElementTypes] = ElementTypes.from_str(element["type"])
 
         if element_type == ElementTypes.MESSAGE:
-            return self.deserialize_message(cast(Union[RegularMessage, ExpansiveMessage], element), callables, events)
+            return self.deserialize_message(
+                cast(Union[RegularMessage, ExpansiveMessage], element),
+                callables,
+                events,
+            )
         if element_type == ElementTypes.EXPANSIVE:
             return self.deserialize_expansive_into_menu(cast(ExpansiveMessage, element), callables, events)
         if element_type == ElementTypes.MENU:
             return self.deserialize_menu(cast(MenuMessage, element), callables, events, document=document)
         if element_type == ElementTypes.MODAL:
             return self.deserialize_modal(
-                cast(Modal, element), callables, cast(Dict[ModalEvents, ModalEventsCallbacks], events)
+                cast(Modal, element),
+                callables,
+                cast(Dict[ModalEvents, ModalEventsCallbacks], events),
             )
 
         raise TypeError(f"Unrecognized Element Type: {element_type}")
@@ -176,16 +191,23 @@ class JSONDeserializer(Deserializer[K_contra]):
 
         message = Message(
             embed=apply(message_tree.get("embed"), lambda e: render(JSONEmbedAdapter(e))),
-            embeds=apply(message_tree.get("embeds"), lambda embeds: [render(JSONEmbedAdapter(e)) for e in embeds]),
+            embeds=apply(
+                message_tree.get("embeds"),
+                lambda embeds: [render(JSONEmbedAdapter(e)) for e in embeds],
+            ),
             content=message_tree.get("content"),
             tts=message_tree.get("tts"),
             nonce=apply(message_tree.get("nonce"), int),
             delete_after=apply(message_tree.get("delete_after"), float),
             suppress_embeds=message_tree.get("suppress_embeds"),
             file=pipe(cast(Optional[File], message_tree.get("file")), self._render_file),
-            files=apply(message_tree.get("files"), lambda files: list(map(self._render_file, files))),
+            files=apply(
+                message_tree.get("files"),
+                lambda files: list(map(self._render_file, files)),
+            ),
             allowed_mentions=pipe(
-                cast(Optional[AllowedMentions], message_tree.get("allowed_mentions")), self._render_allowed_mentions
+                cast(Optional[AllowedMentions], message_tree.get("allowed_mentions")),
+                self._render_allowed_mentions,
             ),
             reference=apply(
                 message_tree.get("message_reference"),
@@ -208,7 +230,10 @@ class JSONDeserializer(Deserializer[K_contra]):
         return message
 
     def deserialize_expansive_into_menu(
-        self, message_tree: ExpansiveMessage, callbacks: Dict[str, Callback], events: EventCallbacks
+        self,
+        message_tree: ExpansiveMessage,
+        callbacks: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> Menu:
         """Method to deserialize an expansive message into a Menu
 
@@ -242,7 +267,10 @@ class JSONDeserializer(Deserializer[K_contra]):
         }
 
     def deserialize_expansive(
-        self, message_tree: ExpansiveMessage, callbacks: Dict[str, Callback], events: EventCallbacks
+        self,
+        message_tree: ExpansiveMessage,
+        callbacks: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> List[Message]:
         """Method to deserialize a source into a list of Display objects
 
@@ -259,7 +287,11 @@ class JSONDeserializer(Deserializer[K_contra]):
         ]
 
     def deserialize_page(
-        self, document: Document, raw_page: Union[str, Page], callables: Dict[str, Callback], events: EventCallbacks
+        self,
+        document: Document,
+        raw_page: Union[str, Page],
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
     ) -> List[Message]:
         """Method to deserialize a page into a Display object
 
@@ -275,13 +307,24 @@ class JSONDeserializer(Deserializer[K_contra]):
         element_type = ElementTypes.from_str(page["type"])
 
         if element_type == ElementTypes.MESSAGE:
-            return [self.deserialize_message(cast(Union[RegularMessage, ExpansiveMessage], page), callables, events)]
+            return [
+                self.deserialize_message(
+                    cast(Union[RegularMessage, ExpansiveMessage], page),
+                    callables,
+                    events,
+                )
+            ]
         if element_type == ElementTypes.EXPANSIVE:
             return self.deserialize_expansive(cast(ExpansiveMessage, page), callables, events)
         raise TypeError(f"Unrecognized Element Type: {element_type}")
 
     def deserialize_menu(
-        self, menu: MenuMessage, callables: Dict[str, Callback], events: EventCallbacks, *, document: Document
+        self,
+        menu: MenuMessage,
+        callables: Dict[str, Callback],
+        events: EventCallbacks,
+        *,
+        document: Document,
     ) -> Menu:
         """Method to deserialize a menu into a list of Display objects
 
@@ -294,7 +337,8 @@ class JSONDeserializer(Deserializer[K_contra]):
         Returns (List[Message]): A list of Display objects
         """
         pages: List[Message] = sum(
-            (self.deserialize_page(document, page, callables, events) for page in menu["pages"]), []
+            (self.deserialize_page(document, page, callables, events) for page in menu["pages"]),
+            [],
         )
         timeout: Optional[float] = menu.get("timeout", 180.0)
 
@@ -305,7 +349,10 @@ class JSONDeserializer(Deserializer[K_contra]):
         return Menu(pages, timeout, arrows, events)
 
     def deserialize_modal(
-        self, tree: Modal, callables: Dict[str, Callback], events: Dict[ModalEvents, ModalEventsCallbacks]
+        self,
+        tree: Modal,
+        callables: Dict[str, Callback],
+        events: Dict[ModalEvents, ModalEventsCallbacks],
     ) -> discord.ui.Modal:
         """Method to deserialize a modal into a discord.ui.Modal object
 
@@ -334,7 +381,9 @@ class JSONDeserializer(Deserializer[K_contra]):
     def _render_allowed_mentions(
         allowed_mentions: AllowedMentions,
     ) -> discord.AllowedMentions:
-        def parse_mentions(mentions: Union[bool, List[int]]) -> Union[bool, List[Snowflake]]:
+        def parse_mentions(
+            mentions: Union[bool, List[int]],
+        ) -> Union[bool, List[Snowflake]]:
             if isinstance(mentions, bool):
                 return mentions
             return [DiscordIdentifier(int(identifier)) for identifier in mentions]
@@ -455,7 +504,9 @@ class JSONDeserializer(Deserializer[K_contra]):
 
     @staticmethod
     def _render_type_select(
-        select_type: Type[CustomSelects], component: CustomSelect, callback: Optional[Callback]
+        select_type: Type[CustomSelects],
+        component: CustomSelect,
+        callback: Optional[Callback],
     ) -> CustomSelects:
         """Renders a type select menu from the given component's template
 

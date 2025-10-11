@@ -15,9 +15,7 @@ from qalib.translators.menu import Menu
 class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
     """QalibContext object is responsible for handling messages that are to be sent to the client."""
 
-    def __init__(
-        self, ctx: discord.ext.commands.context.Context, renderer: Renderer[K_contra]
-    ):
+    def __init__(self, ctx: discord.ext.commands.context.Context, renderer: Renderer[K_contra]):
         """Constructor for the QalibContext object
 
         Args:
@@ -53,16 +51,11 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
         Returns:
             bool: true of false that indicates whether the data is valid.
         """
-        return (
-            message.author == self.message.author
-            and message.channel == self.message.channel
-        )
+        return message.author == self.message.author and message.channel == self.message.channel
 
     async def get_message(self) -> Optional[str]:
         """This method waits for a message to be sent by the user"""
-        confirm: Optional[discord.message.Message] = await self.bot.wait_for(
-            "message", timeout=59.0, check=self.verify
-        )
+        confirm: Optional[discord.message.Message] = await self.bot.wait_for("message", timeout=59.0, check=self.verify)
         return confirm.content if confirm is not None else None
 
     async def rendered_send(
@@ -92,9 +85,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
             message = message.front
 
         assert isinstance(message, Message)
-        return await self.send(
-            **{**message.convert_to_context_message().dict(), **kwargs}
-        )
+        return await self.send(**{**message.convert_to_context_message().dict(), **kwargs})
 
     async def display(
         self,
@@ -123,9 +114,7 @@ class QalibContext(discord.ext.commands.context.Context, Generic[K_contra]):
 
         assert isinstance(message, Message)
         if self._displayed:
-            await self._display(
-                **{**message.convert_to_context_message().as_edit().dict(), **kwargs}
-            )
+            await self._display(**{**message.convert_to_context_message().as_edit().dict(), **kwargs})
             return
         await self._display(**{**message.convert_to_context_message().dict(), **kwargs})
 
