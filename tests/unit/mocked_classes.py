@@ -11,7 +11,15 @@ button_message_component = {
     "component_type": 2,
 }
 
-raw_data = {"id": 0, "application_id": 10, "token": "token", "version": 1, "type": 3, "data": button_message_component}
+raw_data = {
+    "id": 0,
+    "application_id": 10,
+    "token": "token",
+    "version": 1,
+    "type": 3,
+    "data": button_message_component,
+    "attachment_size_limit": 1,
+}
 
 
 class MockedInteraction(discord.Interaction):
@@ -60,7 +68,9 @@ class BotMocked(discord.ext.commands.Bot):
     ) -> Coro[Any]:
         async def get_message() -> discord.Message:
             message = (
-                cast(discord.Message, MessageMocked(content="Hello World")) if self.message is None else self.message
+                cast(discord.Message, MessageMocked(content="Hello World"))
+                if self.message is None
+                else self.message
             )
             assert event == "message" and (check is None or check(message))
             return message

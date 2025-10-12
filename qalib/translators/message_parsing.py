@@ -15,6 +15,7 @@ from typing import (
     Callable,
 )
 
+import discord_emoji as de
 import discord.partial_emoji
 import emoji
 from discord import ui, utils
@@ -144,13 +145,9 @@ def make_emoji(raw_emoji: Optional[Union[str, Emoji]]) -> Optional[str]:
         return raw_emoji["name"]
 
     if "id" not in raw_emoji:
-        return emoji.emojize(":" + raw_emoji["name"] + ":")
+        return de.to_unicode(raw_emoji["name"])
 
-    string = (
-        f"a:{raw_emoji['name']}:"
-        if raw_emoji.get("animated", False)
-        else f":{raw_emoji['name']}:"
-    )
+    string = f"a:{raw_emoji['name']}:" if raw_emoji.get("animated", False) else f":{raw_emoji['name']}:"
     return string + str(raw_emoji["id"]) if "id" in raw_emoji else string
 
 
@@ -236,17 +233,13 @@ def create_select(**kwargs) -> ui.Select:
         placeholder=kwargs.get("placeholder"),
         min_values=int(kwargs.get("min_values", 1)),
         max_values=int(kwargs.get("max_values", 1)),
-        disabled=kwargs["disabled"].lower() == "true"
-        if "disabled" in kwargs
-        else False,
+        disabled=kwargs["disabled"].lower() == "true" if "disabled" in kwargs else False,
         options=kwargs.get("options", []),
         row=int(row) if (row := kwargs.get("row")) is not None else None,
     )
 
 
-def create_type_select(
-    select: SelectTypes, **kwargs
-) -> Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]:
+def create_type_select(select: SelectTypes, **kwargs) -> Union[ui.RoleSelect, ui.UserSelect, ui.MentionableSelect]:
     if kwargs.get("callback") is not None:
         callback = _create_callback(kwargs["callback"])
         select = cast(

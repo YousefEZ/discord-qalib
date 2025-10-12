@@ -197,10 +197,12 @@ class XMLDeserializer(Deserializer[K_contra]):
                 lambda raw_tree: [render(XMLEmbedAdapter(raw_embed)) for raw_embed in raw_tree],
             ),
             view=apply(get_element(message_tree, "view"), self._render_view, callables, events),
-            content=" ".join(filter_tabs(get_text(message_tree, "content")).split("\n"))
-            if apply(get_element(message_tree, "content"), lambda element: self.get_attribute(element, "strip"))
-            == "true"
-            else filter_tabs(get_text(message_tree, "content")),
+            content=(
+                " ".join(filter_tabs(get_text(message_tree, "content")).split("\n"))
+                if apply(get_element(message_tree, "content"), lambda element: self.get_attribute(element, "strip"))
+                == "true"
+                else filter_tabs(get_text(message_tree, "content"))
+            ),
             tts=apply(get_text(message_tree, "tts"), lambda string: string.lower() == "true"),
             nonce=apply(get_text(message_tree, "nonce"), int),
             delete_after=apply(get_text(message_tree, "delete_after"), float),
@@ -583,7 +585,7 @@ class XMLDeserializer(Deserializer[K_contra]):
 
         return create_type_select(select_base, **attributes)
 
-    def _render_text_input(self, component: ElementTree.Element, callback: (Optional[Callback])) -> ui.TextInput:
+    def _render_text_input(self, component: ElementTree.Element, callback: Optional[Callback]) -> ui.TextInput:
         """Renders a text input based on the template in the element, and formatted values given by the keywords.
 
         Args:

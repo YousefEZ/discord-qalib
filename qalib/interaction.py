@@ -32,11 +32,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
                 setattr(self, attr, getattr(interaction, attr))
             except AttributeError:
                 pass
-        self._wrapped = (
-            interaction._wrapped
-            if isinstance(interaction, QalibInteraction)
-            else interaction
-        )
+        self._wrapped = interaction._wrapped if isinstance(interaction, QalibInteraction) else interaction
         self._renderer = renderer
         self._displayed = getattr(interaction, "_displayed", False)
 
@@ -111,9 +107,7 @@ class QalibInteraction(discord.Interaction, Generic[K_contra]):
                 }
             )
             return
-        await self._display(
-            **{**message.convert_to_interaction_message().dict(), **kwargs}
-        )
+        await self._display(**{**message.convert_to_interaction_message().dict(), **kwargs})
 
     async def _display(self, **kwargs: Any) -> None:
         """This method is responsible for sending the message to the client, and editing the message if there is one
