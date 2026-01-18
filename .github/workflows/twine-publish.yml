@@ -1,27 +1,40 @@
-name: Publish to Twine by getting version from Github pull request description and using bumpver to bump version and publish
+name: CD
 
 on:
   pull_request:
-    types: [ closed ]
+    types: [closed]
+    branches: [main]
 
 jobs:
-  publish:
+  release:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    if: |
-      github.event.pull_request.merged == true &&
-      github.event.pull_request.base.ref == 'main'
     permissions:
       contents: write
-      pull-requests: write
-    steps:
-      - name: 'Checkout source code'
-        uses: 'actions/checkout@v2'
-        with:
-          persist-credentials: false
-          ref: ${{ github.ref }}
-      - name: Bump and Publisher Distribution to PyPi
-        uses: yousefez/auto-pypi@1.0.3
-        with:
-          githubtoken: ${{ secrets.GITHUB_TOKEN }}
-          twinetoken: ${{ secrets.TWINE_USERNAME }}
+      id-token: write 
 
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check Labels
+        id: check_labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map(l => l.name.toLowerCase());
+            if (labels.includes('bump:major')) return core.setOutput('level', 'major');
+            if (labels.includes('bump:minor')) return core.setOutput('level', 'minor');
+            if (labels.includes('bump:patch')) return core.setOutput('level', 'patch');
+            return core.setOutput('level', 'none');
+      - name: Bump & Push
+        if: steps.check_labels.outputs.level != 'none'
+        run: |
+          pip install bumpver build
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          bumpver update --${{ steps.check_labels.outputs.level }} --commit --tag-num --push
+        shell: bash
+      - name: Publish 📦
+        if: steps.check_labels.outputs.level != 'none'
+        uses: pypa/gh-action-pypi-publish@release/v1
