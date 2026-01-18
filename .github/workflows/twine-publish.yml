@@ -1,4 +1,4 @@
-name: 'Standard-CD-PyPI'
+name: 'Twine Publish'
 
 on:
   pull_request:
@@ -10,15 +10,22 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write
+      contents: write    # To push version commits
+      id-token: write    # To authenticate with PyPI (OIDC)
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Generate GitHub App Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Checkout Code
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-
+          token: ${{ steps.generate_token.outputs.token }}
       - name: Get Bump Level
         id: bump_level
         uses: actions/github-script@v7
@@ -26,27 +33,31 @@ jobs:
           result-encoding: string
           script: |
             const labels = context.payload.pull_request.labels.map(l => l.name.toLowerCase());
-            console.log("Detected labels:", labels);
             if (labels.includes('bump:major')) return 'major';
             if (labels.includes('bump:minor')) return 'minor';
             if (labels.includes('bump:patch')) return 'patch';
             return 'none';
-
-      - name: Debug Output
-        run: echo "The detected bump level is ${{ steps.bump_level.outputs.result }}"
-
-      - name: Bump Version
+      - name: Set up Python
+        if: steps.bump_level.outputs.result != 'none'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bump Version and Tag
         if: steps.bump_level.outputs.result != 'none'
         run: |
           pip install bumpver build
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "discord-qalib-bot[bot]"
+          git config user.email "discord-qalib-bot[bot]@users.noreply.github.com"
           
-          # We use --fetch to ensure we see the latest tags
-          # We REMOVE --tag-num because your version (2.5.13) is not a pre-release
+          # Performs the bump, creates the tag, and pushes to main
           bumpver update --${{ steps.bump_level.outputs.result }} --commit --push --fetch
         shell: bash
-
-      - name: Publish to PyPI
+      - name: Build Distribution
+        if: steps.bump_level.outputs.result != 'none'
+        run: python -m build
+        shell: bash
+      - name: Publish to PyPI 📦
         if: steps.bump_level.outputs.result != 'none'
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true
