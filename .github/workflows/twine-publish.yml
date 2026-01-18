@@ -1,4 +1,4 @@
-name: 'Twine Publish'
+name: 'Standard-CD-PyPI'
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     permissions:
-      contents: write    # To push version commits
-      id-token: write    # To authenticate with PyPI (OIDC)
+      contents: write
+      id-token: write
 
     steps:
       - name: Generate GitHub App Token
@@ -37,27 +37,25 @@ jobs:
             if (labels.includes('bump:minor')) return 'minor';
             if (labels.includes('bump:patch')) return 'patch';
             return 'none';
-      - name: Set up Python
+      - name: Configure Git Identity
         if: steps.bump_level.outputs.result != 'none'
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Bump Version and Tag
+        run: |
+          # This forces 'bumpver' to use the App token for the push
+          git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+          
+          git config user.name "discord-qalib-bot[bot]"
+          git config user.email "discord-qalib-bot[bot]@users.noreply.github.com"
+        shell: bash
+      - name: Bump Version and Push
         if: steps.bump_level.outputs.result != 'none'
         run: |
           pip install bumpver build
-          git config user.name "discord-qalib-bot[bot]"
-          git config user.email "discord-qalib-bot[bot]@users.noreply.github.com"
-          
-          # Performs the bump, creates the tag, and pushes to main
+          # Removed --tag-num as discussed; using --fetch to sync tags
           bumpver update --${{ steps.bump_level.outputs.result }} --commit --push --fetch
         shell: bash
-      - name: Build Distribution
+      - name: Build & Publish to PyPI
         if: steps.bump_level.outputs.result != 'none'
         run: python -m build
-        shell: bash
       - name: Publish to PyPI 📦
         if: steps.bump_level.outputs.result != 'none'
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          print-hash: true
